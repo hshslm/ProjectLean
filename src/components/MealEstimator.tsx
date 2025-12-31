@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, ArrowRight, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowRight, RotateCcw, Sparkles } from 'lucide-react';
+import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiPhotoUpload } from '@/components/MultiPhotoUpload';
@@ -168,14 +169,15 @@ export const MealEstimator: React.FC = () => {
       <div className="max-w-lg mx-auto px-4 py-8 sm:py-12">
         {/* Header */}
         <header className="text-center mb-8 animate-fade-up">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage-light text-sage-dark text-sm font-medium mb-4">
-            <Leaf className="w-4 h-4" />
-            <span>Project Lean</span>
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-2">
+          <img 
+            src={projectLeanLogo} 
+            alt="Project Lean" 
+            className="h-16 sm:h-20 mx-auto mb-4"
+          />
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-2">
             Meal Macro Estimator
           </h1>
-          <p className="text-muted-foreground max-w-sm mx-auto">
+          <p className="text-muted-foreground max-w-sm mx-auto text-sm">
             Get a quick estimate to make informed decisions — no tracking required.
           </p>
         </header>

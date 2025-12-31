@@ -4,8 +4,8 @@
   "description": "Get quick calorie and macro estimates for your meals. No tracking, no judgment.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F8F6F2",
-  "theme_color": "#7C9A82",
+  "background_color": "#FAFAFA",
+  "theme_color": "#D93025",
   "orientation": "portrait",
   "icons": [
     {
