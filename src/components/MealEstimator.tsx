@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Leaf, ArrowRight, RotateCcw } from 'lucide-react';
+import { Leaf, ArrowRight, RotateCcw, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { PhotoUpload } from '@/components/PhotoUpload';
@@ -106,6 +106,12 @@ export const MealEstimator: React.FC = () => {
     setResult(null);
   };
 
+  const handleTryExample = () => {
+    setNotes('Grilled chicken breast with steamed broccoli and brown rice');
+    setPortionSize('medium');
+    setCalorieBudget('600');
+  };
+
   const canEstimate = imageFile || notes.trim().length > 0;
 
   return (
@@ -180,7 +186,7 @@ export const MealEstimator: React.FC = () => {
               {isLoading ? (
                 <LoadingState />
               ) : (
-                <div className="animate-fade-up" style={{ animationDelay: '300ms' }}>
+                <div className="animate-fade-up space-y-3" style={{ animationDelay: '300ms' }}>
                   <Button
                     onClick={handleEstimate}
                     disabled={!canEstimate}
@@ -191,6 +197,18 @@ export const MealEstimator: React.FC = () => {
                     Estimate macros
                     <ArrowRight className="w-5 h-5" />
                   </Button>
+                  
+                  {!canEstimate && (
+                    <Button
+                      onClick={handleTryExample}
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-muted-foreground hover:text-foreground"
+                    >
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      Try an example meal
+                    </Button>
+                  )}
                 </div>
               )}
             </>
