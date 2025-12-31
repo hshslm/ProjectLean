@@ -6,6 +6,7 @@ import { PhotoUpload } from '@/components/PhotoUpload';
 import { MacroResults } from '@/components/MacroResults';
 import { LoadingState } from '@/components/LoadingState';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EstimationResult {
   foodIdentification: string;
@@ -22,63 +23,6 @@ interface EstimationResult {
   coachingContext: string;
   suggestion?: string;
 }
-
-// Demo function - simulates AI response for demo purposes
-const simulateEstimation = async (hasImage: boolean, notes: string): Promise<EstimationResult> => {
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Demo responses based on common meals
-  const demoResults: EstimationResult[] = [
-    {
-      foodIdentification: "Looks like grilled chicken breast, white rice, and steamed broccoli with a light sauce drizzle.",
-      macros: {
-        caloriesLow: 450,
-        caloriesHigh: 550,
-        proteinLow: 35,
-        proteinHigh: 45,
-        carbsLow: 40,
-        carbsHigh: 50,
-        fatLow: 10,
-        fatHigh: 15,
-      },
-      coachingContext: "This looks like a solid, protein-forward meal. The balance of lean protein with complex carbs and vegetables is great for supporting your goals.",
-      suggestion: "If you're aiming for lower carbs, you could swap some rice for extra vegetables.",
-    },
-    {
-      foodIdentification: "I see what appears to be a burger with fries, possibly with cheese and sauce.",
-      macros: {
-        caloriesLow: 800,
-        caloriesHigh: 1100,
-        proteinLow: 30,
-        proteinHigh: 45,
-        carbsLow: 60,
-        carbsHigh: 85,
-        fatLow: 40,
-        fatHigh: 60,
-      },
-      coachingContext: "This is a more calorie-dense meal, with most of the energy coming from fats and carbs. Totally fine as part of a balanced day.",
-      suggestion: "If you're being mindful of intake today, this might be your main meal — and that's okay.",
-    },
-    {
-      foodIdentification: "This looks like a mixed salad with grilled protein, possibly salmon or chicken, with dressing.",
-      macros: {
-        caloriesLow: 350,
-        caloriesHigh: 500,
-        proteinLow: 25,
-        proteinHigh: 35,
-        carbsLow: 15,
-        carbsHigh: 25,
-        fatLow: 18,
-        fatHigh: 30,
-      },
-      coachingContext: "A lighter, nutrient-dense choice. The fat content depends heavily on the dressing amount.",
-      suggestion: "Great option if you're looking for something satisfying without being too heavy.",
-    },
-  ];
-  
-  // Return a random demo result
-  return demoResults[Math.floor(Math.random() * demoResults.length)];
-};
 
 export const MealEstimator: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -107,10 +51,27 @@ export const MealEstimator: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // For demo purposes, we're using a simulated response
-      // In production, this would call the AI backend
-      const estimation = await simulateEstimation(!!imageFile, notes);
-      setResult(estimation);
+      // Call the AI edge function
+      const { data, error } = await supabase.functions.invoke('analyze-meal', {
+        body: {
+          imageBase64: imagePreview,
+          notes: notes.trim() || undefined,
+        },
+      });
+
+      if (error) {
+        console.error('Function error:', error);
+        toast.error('Something went wrong. Please try again.');
+        return;
+      }
+
+      if (data.error) {
+        console.error('API error:', data.error);
+        toast.error(data.error);
+        return;
+      }
+
+      setResult(data);
     } catch (error) {
       toast.error('Something went wrong. Please try again.');
       console.error('Estimation error:', error);
