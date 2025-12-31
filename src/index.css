@@ -5,119 +5,126 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:wght@400;500;600;700&display=swap');
 
 /* Project Lean Design System
-   A warm, supportive, wellness-focused aesthetic
+   Bold, energetic fitness brand - Black & Red
    All colors in HSL */
 
 @layer base {
   :root {
     /* Core brand colors */
-    --sage: 138 18% 55%;
-    --sage-light: 138 20% 92%;
-    --sage-dark: 138 18% 40%;
+    --brand-red: 4 77% 50%;
+    --brand-red-light: 4 80% 95%;
+    --brand-red-dark: 4 77% 42%;
     
-    --coral: 15 76% 62%;
-    --coral-light: 15 80% 95%;
+    --brand-black: 0 0% 8%;
+    --brand-black-light: 0 0% 96%;
     
-    --cream: 40 33% 97%;
-    --cream-dark: 40 20% 94%;
+    --cream: 0 0% 98%;
+    --cream-dark: 0 0% 94%;
     
-    --charcoal: 220 10% 20%;
-    --charcoal-light: 220 8% 40%;
-    --charcoal-muted: 220 6% 55%;
+    --charcoal: 0 0% 15%;
+    --charcoal-light: 0 0% 35%;
+    --charcoal-muted: 0 0% 50%;
+    
+    /* Legacy aliases for compatibility */
+    --sage: 4 77% 50%;
+    --sage-light: 4 80% 95%;
+    --sage-dark: 4 77% 42%;
+    --coral: 4 77% 50%;
+    --coral-light: 4 80% 95%;
     
     /* Semantic tokens */
-    --background: 40 33% 97%;
-    --foreground: 220 10% 20%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 10% 20%;
+    --card-foreground: 0 0% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 10% 20%;
+    --popover-foreground: 0 0% 8%;
 
-    --primary: 138 18% 55%;
+    --primary: 4 77% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 20% 94%;
-    --secondary-foreground: 220 10% 20%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 40 20% 94%;
-    --muted-foreground: 220 6% 55%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 15 76% 62%;
+    --accent: 4 77% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 40 15% 88%;
-    --input: 40 15% 88%;
-    --ring: 138 18% 55%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 4 77% 50%;
 
     --radius: 1rem;
 
     /* Custom gradients */
-    --gradient-sage: linear-gradient(135deg, hsl(138 18% 55%) 0%, hsl(138 22% 48%) 100%);
-    --gradient-warm: linear-gradient(180deg, hsl(40 33% 97%) 0%, hsl(40 20% 94%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(40 25% 98%) 100%);
+    --gradient-sage: linear-gradient(135deg, hsl(4 77% 50%) 0%, hsl(4 77% 42%) 100%);
+    --gradient-warm: linear-gradient(180deg, hsl(0 0% 98%) 0%, hsl(0 0% 94%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
     
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220 10% 20% / 0.03);
-    --shadow-md: 0 4px 6px -1px hsl(220 10% 20% / 0.05), 0 2px 4px -2px hsl(220 10% 20% / 0.03);
-    --shadow-lg: 0 10px 15px -3px hsl(220 10% 20% / 0.05), 0 4px 6px -4px hsl(220 10% 20% / 0.03);
-    --shadow-xl: 0 20px 25px -5px hsl(220 10% 20% / 0.08), 0 8px 10px -6px hsl(220 10% 20% / 0.03);
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.03);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.06), 0 2px 4px -2px hsl(0 0% 0% / 0.04);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.04);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.10), 0 8px 10px -6px hsl(0 0% 0% / 0.04);
     
     /* Typography */
-    --font-display: 'Fraunces', serif;
+    --font-display: 'Inter', sans-serif;
     --font-body: 'Inter', sans-serif;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 0 0% 8%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 8%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 4 77% 50%;
   }
 
   .dark {
-    --background: 220 15% 10%;
-    --foreground: 40 20% 95%;
+    --background: 0 0% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 220 15% 13%;
-    --card-foreground: 40 20% 95%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 220 15% 13%;
-    --popover-foreground: 40 20% 95%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 138 22% 60%;
-    --primary-foreground: 220 15% 10%;
+    --primary: 4 77% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 12% 18%;
-    --secondary-foreground: 40 20% 95%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 220 12% 18%;
-    --muted-foreground: 220 8% 60%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 15 70% 58%;
-    --accent-foreground: 220 15% 10%;
+    --accent: 4 77% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 50%;
-    --destructive-foreground: 40 20% 95%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 220 12% 20%;
-    --input: 220 12% 20%;
-    --ring: 138 22% 60%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 4 77% 55%;
     
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 4 77% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 4 77% 55%;
   }
 }
 
