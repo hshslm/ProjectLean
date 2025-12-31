@@ -21,31 +21,26 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({
   disabled = false,
 }) => {
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-foreground">
-        Portion size
-      </label>
-      <div className="grid grid-cols-3 gap-2">
-        {portions.map((portion) => (
-          <button
-            key={portion.value}
-            type="button"
-            onClick={() => onChange(portion.value)}
-            disabled={disabled}
-            className={cn(
-              "flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200",
-              "focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2",
-              value === portion.value
-                ? "border-sage bg-sage-light text-sage-dark"
-                : "border-border bg-card text-muted-foreground hover:border-sage/50",
-              disabled && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <span className="font-medium text-sm">{portion.label}</span>
-            <span className="text-xs mt-0.5 opacity-70">{portion.description}</span>
-          </button>
-        ))}
-      </div>
+    <div className="grid grid-cols-3 gap-2">
+      {portions.map((portion) => (
+        <button
+          key={portion.value}
+          type="button"
+          onClick={() => onChange(portion.value)}
+          disabled={disabled}
+          className={cn(
+            "flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200",
+            "focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2",
+            value === portion.value
+              ? "border-sage bg-sage-light text-sage-dark"
+              : "border-border bg-card text-muted-foreground hover:border-sage/50",
+            disabled && "opacity-50 cursor-not-allowed"
+          )}
+        >
+          <span className="font-medium text-sm">{portion.label}</span>
+          <span className="text-xs mt-0.5 opacity-70">{portion.description}</span>
+        </button>
+      ))}
     </div>
   );
 };

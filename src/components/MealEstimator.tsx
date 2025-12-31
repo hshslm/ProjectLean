@@ -1,14 +1,25 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Leaf, ArrowRight, RotateCcw, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { PhotoUpload } from '@/components/PhotoUpload';
+import { MultiPhotoUpload } from '@/components/MultiPhotoUpload';
 import { MacroResults } from '@/components/MacroResults';
 import { LoadingState } from '@/components/LoadingState';
 import { PortionSelector, PortionSize } from '@/components/PortionSelector';
 import { CalorieBudget } from '@/components/CalorieBudget';
+import { WeightInput, WeightUnit } from '@/components/WeightInput';
+import { ReferenceObjectTip } from '@/components/ReferenceObjectTip';
+import { VisualPortionGuide } from '@/components/VisualPortionGuide';
+import { QuickAdjustments } from '@/components/QuickAdjustments';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import type { Ingredient } from '@/components/IngredientBreakdown';
+import type { ConfidenceLevel } from '@/components/ConfidenceIndicator';
+
+interface PhotoItem {
+  file: File;
+  preview: string;
+}
 
 interface EstimationResult {
   foodIdentification: string;
@@ -22,40 +33,46 @@ interface EstimationResult {
     fatLow: number;
     fatHigh: number;
   };
+  ingredients?: Ingredient[];
+  confidence?: {
+    level: ConfidenceLevel;
+    reason?: string;
+  };
   coachingContext: string;
   suggestion?: string;
 }
 
 export const MealEstimator: React.FC = () => {
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [notes, setNotes] = useState('');
   const [portionSize, setPortionSize] = useState<PortionSize>('medium');
   const [calorieBudget, setCalorieBudget] = useState('');
+  const [weight, setWeight] = useState('');
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>('g');
+  const [showReferenceTip, setShowReferenceTip] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<EstimationResult | null>(null);
+  const [multiplier, setMultiplier] = useState(1);
 
-  const handleImageSelect = useCallback((file: File, preview: string) => {
-    setImageFile(file);
-    setImagePreview(preview);
-    setResult(null);
-  }, []);
-
-  const handleImageClear = useCallback(() => {
-    setImageFile(null);
-    setImagePreview(null);
-    setResult(null);
-  }, []);
+  // Hide reference tip once photos are added
+  useEffect(() => {
+    if (photos.length > 0) {
+      const timer = setTimeout(() => setShowReferenceTip(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [photos.length]);
 
   const handleEstimate = async () => {
-    if (!imageFile && !notes.trim()) {
+    if (photos.length === 0 && !notes.trim()) {
       toast.error('Please add a photo or description of your meal');
       return;
     }
 
     setIsLoading(true);
+    setMultiplier(1); // Reset multiplier for new estimation
+    
     try {
-      // Build context from portion size and goal
+      // Build context from all inputs
       let contextNotes = notes.trim();
       
       if (portionSize !== 'medium') {
@@ -63,15 +80,20 @@ export const MealEstimator: React.FC = () => {
         contextNotes += `Portion size: ${portionSize}`;
       }
 
+      if (weight) {
+        contextNotes += contextNotes ? `. ` : '';
+        contextNotes += `Known weight of main item: ${weight}${weightUnit}`;
+      }
+
       if (calorieBudget) {
         contextNotes += contextNotes ? `. ` : '';
         contextNotes += `My calorie budget for this meal is ${calorieBudget} kcal - please tell me if this meal fits within that budget`;
       }
 
-      // Call the AI edge function
+      // Call the AI edge function with all images
       const { data, error } = await supabase.functions.invoke('analyze-meal', {
         body: {
-          imageBase64: imagePreview,
+          images: photos.map(p => p.preview),
           notes: contextNotes || undefined,
         },
       });
@@ -98,21 +120,38 @@ export const MealEstimator: React.FC = () => {
   };
 
   const handleReset = () => {
-    setImageFile(null);
-    setImagePreview(null);
+    setPhotos([]);
     setNotes('');
     setPortionSize('medium');
     setCalorieBudget('');
+    setWeight('');
+    setWeightUnit('g');
     setResult(null);
+    setMultiplier(1);
+    setShowReferenceTip(true);
   };
 
   const handleTryExample = () => {
     setNotes('Grilled chicken breast with steamed broccoli and brown rice');
     setPortionSize('medium');
     setCalorieBudget('600');
+    setWeight('150');
+    setWeightUnit('g');
   };
 
-  const canEstimate = imageFile || notes.trim().length > 0;
+  const canEstimate = photos.length > 0 || notes.trim().length > 0;
+
+  // Apply multiplier to macros
+  const adjustedMacros = result?.macros ? {
+    caloriesLow: Math.round(result.macros.caloriesLow * multiplier),
+    caloriesHigh: Math.round(result.macros.caloriesHigh * multiplier),
+    proteinLow: Math.round(result.macros.proteinLow * multiplier),
+    proteinHigh: Math.round(result.macros.proteinHigh * multiplier),
+    carbsLow: Math.round(result.macros.carbsLow * multiplier),
+    carbsHigh: Math.round(result.macros.carbsHigh * multiplier),
+    fatLow: Math.round(result.macros.fatLow * multiplier),
+    fatHigh: Math.round(result.macros.fatHigh * multiplier),
+  } : null;
 
   return (
     <div className="min-h-screen gradient-warm">
@@ -135,18 +174,42 @@ export const MealEstimator: React.FC = () => {
         <main className="space-y-6">
           {!result ? (
             <>
-              {/* Photo Upload */}
+              {/* Reference Object Tip */}
+              {showReferenceTip && photos.length === 0 && (
+                <div className="animate-fade-up">
+                  <ReferenceObjectTip onDismiss={() => setShowReferenceTip(false)} />
+                </div>
+              )}
+
+              {/* Multi-Photo Upload */}
               <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
-                <PhotoUpload
-                  onImageSelect={handleImageSelect}
-                  onImageClear={handleImageClear}
-                  preview={imagePreview}
+                <MultiPhotoUpload
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                  maxPhotos={4}
                   disabled={isLoading}
                 />
               </div>
 
-              {/* Portion Size Selector */}
+              {/* Weight Input */}
               <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
+                <WeightInput
+                  weight={weight}
+                  unit={weightUnit}
+                  onWeightChange={setWeight}
+                  onUnitChange={setWeightUnit}
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Portion Size Selector with Guide */}
+              <div className="animate-fade-up" style={{ animationDelay: '175ms' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-foreground">
+                    Portion size
+                  </label>
+                  <VisualPortionGuide />
+                </div>
                 <PortionSelector
                   value={portionSize}
                   onChange={setPortionSize}
@@ -214,14 +277,24 @@ export const MealEstimator: React.FC = () => {
             </>
           ) : (
             <>
-              {/* Results with image */}
+              {/* Results */}
               <MacroResults
                 foodIdentification={result.foodIdentification}
-                macros={result.macros}
+                macros={adjustedMacros!}
                 coachingContext={result.coachingContext}
                 suggestion={result.suggestion}
-                imagePreview={imagePreview}
+                imagePreview={photos[0]?.preview || null}
+                ingredients={result.ingredients}
+                confidence={result.confidence}
               />
+
+              {/* Quick Adjustments */}
+              <div className="opacity-0 animate-fade-up" style={{ animationDelay: '950ms' }}>
+                <QuickAdjustments
+                  multiplier={multiplier}
+                  onMultiplierChange={setMultiplier}
+                />
+              </div>
 
               {/* Try Another */}
               <div className="pt-4 opacity-0 animate-fade-up" style={{ animationDelay: '1000ms' }}>

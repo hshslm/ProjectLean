@@ -16,13 +16,21 @@ When analyzing a meal photo and/or description, you must:
    - Protein (g range)
    - Carbs (g range)  
    - Fat (g range)
+
+3. **Provide ingredient breakdown**: For each distinct food item, provide individual macro estimates.
+
+4. **Assess confidence level**:
+   - "high": Clear photo, identifiable portions, common foods
+   - "medium": Some ambiguity in portions or ingredients
+   - "low": Blurry photo, mixed dishes, hidden ingredients
+   - Include a brief reason for your confidence level
    
-3. **Provide coaching context** (Project Lean style):
+5. **Provide coaching context** (Project Lean style):
    - Neutral, educational, non-judgmental
    - Note what's driving the calories (protein-forward? fat-heavy? carb-based?)
    - Keep it supportive
    
-4. **Optional smart suggestion** (ONE line only):
+6. **Optional smart suggestion** (ONE line only):
    - A practical observation, not a plan
    - Examples: "If keeping calories lower, the sauce makes the biggest difference" or "Solid protein content for a recovery meal"
 
@@ -46,6 +54,20 @@ Respond ONLY with valid JSON in this exact format:
     "fatLow": number,
     "fatHigh": number
   },
+  "ingredients": [
+    {
+      "name": "ingredient name",
+      "estimatedWeight": "e.g., 150g or 5oz",
+      "calories": { "low": number, "high": number },
+      "protein": { "low": number, "high": number },
+      "carbs": { "low": number, "high": number },
+      "fat": { "low": number, "high": number }
+    }
+  ],
+  "confidence": {
+    "level": "high" | "medium" | "low",
+    "reason": "brief explanation of confidence level"
+  },
   "coachingContext": "string with supportive context",
   "suggestion": "optional one-line suggestion or null"
 }`;
@@ -57,9 +79,12 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, notes } = await req.json();
+    const { images, imageBase64, notes } = await req.json();
     
-    if (!imageBase64 && !notes) {
+    // Support both single image (imageBase64) and multiple images (images array)
+    const imageList = images || (imageBase64 ? [imageBase64] : []);
+    
+    if (imageList.length === 0 && !notes) {
       return new Response(
         JSON.stringify({ error: 'Please provide an image or description' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -79,25 +104,29 @@ serve(async (req) => {
     const userContent: any[] = [];
     
     let textPrompt = "Analyze this meal and estimate the macros.";
+    if (imageList.length > 1) {
+      textPrompt = `Analyze this meal from ${imageList.length} different angles and estimate the macros. Use all images to get the most accurate assessment of portions and ingredients.`;
+    }
     if (notes) {
       textPrompt += ` Additional context from user: "${notes}"`;
     }
-    if (!imageBase64) {
+    if (imageList.length === 0) {
       textPrompt = `Based on this description, estimate the macros for the meal: "${notes}"`;
     }
     
     userContent.push({ type: "text", text: textPrompt });
     
-    if (imageBase64) {
+    // Add all images to the request
+    for (const img of imageList) {
       userContent.push({
         type: "image_url",
         image_url: {
-          url: imageBase64
+          url: img
         }
       });
     }
 
-    console.log('Calling AI gateway for meal analysis...');
+    console.log(`Calling AI gateway for meal analysis with ${imageList.length} image(s)...`);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
