@@ -1,6 +1,8 @@
 import React from 'react';
 import { Flame, Beef, Wheat, Droplets, Sparkles, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ConfidenceIndicator, ConfidenceLevel } from '@/components/ConfidenceIndicator';
+import { IngredientBreakdown, Ingredient } from '@/components/IngredientBreakdown';
 
 interface MacroData {
   caloriesLow: number;
@@ -19,6 +21,11 @@ interface MacroResultsProps {
   coachingContext: string;
   suggestion?: string;
   imagePreview?: string | null;
+  ingredients?: Ingredient[];
+  confidence?: {
+    level: ConfidenceLevel;
+    reason?: string;
+  };
 }
 
 const MacroCard: React.FC<{
@@ -56,6 +63,8 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
   coachingContext,
   suggestion,
   imagePreview,
+  ingredients,
+  confidence,
 }) => {
   return (
     <div className="space-y-6">
@@ -70,6 +79,13 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
             alt="Analyzed meal"
             className="w-full h-48 object-cover"
           />
+        </div>
+      )}
+
+      {/* Confidence Indicator */}
+      {confidence && (
+        <div className="opacity-0 animate-fade-up" style={{ animationDelay: '50ms' }}>
+          <ConfidenceIndicator level={confidence.level} reason={confidence.reason} />
         </div>
       )}
 
@@ -139,6 +155,13 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Ingredient Breakdown */}
+      {ingredients && ingredients.length > 0 && (
+        <div className="opacity-0 animate-fade-up" style={{ animationDelay: '650ms' }}>
+          <IngredientBreakdown ingredients={ingredients} />
+        </div>
+      )}
 
       {/* Coaching Context */}
       <div 
