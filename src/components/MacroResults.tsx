@@ -18,6 +18,7 @@ interface MacroResultsProps {
   macros: MacroData;
   coachingContext: string;
   suggestion?: string;
+  imagePreview?: string | null;
 }
 
 const MacroCard: React.FC<{
@@ -54,13 +55,28 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
   macros,
   coachingContext,
   suggestion,
+  imagePreview,
 }) => {
   return (
     <div className="space-y-6">
+      {/* Image Preview in Results */}
+      {imagePreview && (
+        <div 
+          className="rounded-2xl overflow-hidden shadow-soft opacity-0 animate-fade-up"
+          style={{ animationDelay: '0ms' }}
+        >
+          <img
+            src={imagePreview}
+            alt="Analyzed meal"
+            className="w-full h-48 object-cover"
+          />
+        </div>
+      )}
+
       {/* Food Identification */}
       <div 
         className="p-5 rounded-2xl bg-sage-light border border-sage/20 opacity-0 animate-fade-up"
-        style={{ animationDelay: '0ms' }}
+        style={{ animationDelay: '100ms' }}
       >
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-sage/20">
@@ -87,7 +103,7 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
             high={macros.caloriesHigh}
             unit="kcal"
             color="bg-coral-light"
-            delay={100}
+            delay={200}
           />
         </div>
         <MacroCard
@@ -97,7 +113,7 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
           high={macros.proteinHigh}
           unit="g"
           color="bg-sage-light"
-          delay={200}
+          delay={300}
         />
         <MacroCard
           icon={<Wheat className="w-4 h-4 text-amber-600" />}
@@ -106,7 +122,7 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
           high={macros.carbsHigh}
           unit="g"
           color="bg-amber-50"
-          delay={300}
+          delay={400}
         />
         <MacroCard
           icon={<Droplets className="w-4 h-4 text-sky-600" />}
@@ -115,9 +131,9 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
           high={macros.fatHigh}
           unit="g"
           color="bg-sky-50"
-          delay={400}
+          delay={500}
         />
-        <div className="flex items-center justify-center p-4 rounded-xl bg-secondary opacity-0 animate-fade-up" style={{ animationDelay: '500ms' }}>
+        <div className="flex items-center justify-center p-4 rounded-xl bg-secondary opacity-0 animate-fade-up" style={{ animationDelay: '600ms' }}>
           <span className="text-xs text-muted-foreground text-center">
             Ranges account for portion & prep variance
           </span>
@@ -127,7 +143,7 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
       {/* Coaching Context */}
       <div 
         className="p-5 rounded-2xl bg-card shadow-soft border border-border opacity-0 animate-fade-up"
-        style={{ animationDelay: '600ms' }}
+        style={{ animationDelay: '700ms' }}
       >
         <p className="text-foreground leading-relaxed font-medium">
           {coachingContext}
@@ -138,7 +154,7 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
       {suggestion && (
         <div 
           className="p-4 rounded-xl bg-coral-light border border-coral/20 opacity-0 animate-fade-up"
-          style={{ animationDelay: '700ms' }}
+          style={{ animationDelay: '800ms' }}
         >
           <p className="text-charcoal-light text-sm leading-relaxed">
             💡 {suggestion}
@@ -149,7 +165,7 @@ export const MacroResults: React.FC<MacroResultsProps> = ({
       {/* Disclaimer */}
       <div 
         className="flex items-start gap-2 p-4 rounded-xl bg-secondary opacity-0 animate-fade-up"
-        style={{ animationDelay: '800ms' }}
+        style={{ animationDelay: '900ms' }}
       >
         <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
         <p className="text-xs text-muted-foreground leading-relaxed">
