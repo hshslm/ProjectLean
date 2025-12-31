@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowRight, RotateCcw } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -141,14 +141,6 @@ export const MealEstimator: React.FC = () => {
     setShowReferenceTip(true);
   };
 
-  const handleTryExample = () => {
-    setNotes('Grilled chicken breast with steamed broccoli and brown rice');
-    setPortionSize('medium');
-    setCalorieBudget('600');
-    setProteinGoal('40');
-    setWeight('150');
-    setWeightUnit('g');
-  };
 
   const canEstimate = photos.length > 0 || notes.trim().length > 0;
 
@@ -270,7 +262,7 @@ export const MealEstimator: React.FC = () => {
               {isLoading ? (
                 <LoadingState />
               ) : (
-                <div className="animate-fade-up space-y-3" style={{ animationDelay: '300ms' }}>
+                <div className="animate-fade-up" style={{ animationDelay: '300ms' }}>
                   <Button
                     onClick={handleEstimate}
                     disabled={!canEstimate}
@@ -281,18 +273,6 @@ export const MealEstimator: React.FC = () => {
                     Estimate macros
                     <ArrowRight className="w-5 h-5" />
                   </Button>
-                  
-                  {!canEstimate && (
-                    <Button
-                      onClick={handleTryExample}
-                      variant="ghost"
-                      size="sm"
-                      className="w-full text-muted-foreground hover:text-foreground"
-                    >
-                      <Sparkles className="w-4 h-4 mr-1" />
-                      Try an example meal
-                    </Button>
-                  )}
                 </div>
               )}
             </>
