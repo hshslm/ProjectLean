@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Leaf, ArrowRight, RotateCcw, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,10 +7,12 @@ import { MacroResults } from '@/components/MacroResults';
 import { LoadingState } from '@/components/LoadingState';
 import { PortionSelector, PortionSize } from '@/components/PortionSelector';
 import { CalorieBudget } from '@/components/CalorieBudget';
+import { ProteinGoal } from '@/components/ProteinGoal';
 import { WeightInput, WeightUnit } from '@/components/WeightInput';
 import { ReferenceObjectTip } from '@/components/ReferenceObjectTip';
 import { VisualPortionGuide } from '@/components/VisualPortionGuide';
 import { QuickAdjustments } from '@/components/QuickAdjustments';
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { Ingredient } from '@/components/IngredientBreakdown';
@@ -47,6 +49,7 @@ export const MealEstimator: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [portionSize, setPortionSize] = useState<PortionSize>('medium');
   const [calorieBudget, setCalorieBudget] = useState('');
+  const [proteinGoal, setProteinGoal] = useState('');
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState<WeightUnit>('g');
   const [showReferenceTip, setShowReferenceTip] = useState(true);
@@ -90,6 +93,11 @@ export const MealEstimator: React.FC = () => {
         contextNotes += `My calorie budget for this meal is ${calorieBudget} kcal - please tell me if this meal fits within that budget`;
       }
 
+      if (proteinGoal) {
+        contextNotes += contextNotes ? `. ` : '';
+        contextNotes += `My protein goal for this meal is ${proteinGoal}g - please tell me if this meal meets that goal`;
+      }
+
       // Call the AI edge function with all images
       const { data, error } = await supabase.functions.invoke('analyze-meal', {
         body: {
@@ -124,6 +132,7 @@ export const MealEstimator: React.FC = () => {
     setNotes('');
     setPortionSize('medium');
     setCalorieBudget('');
+    setProteinGoal('');
     setWeight('');
     setWeightUnit('g');
     setResult(null);
@@ -135,6 +144,7 @@ export const MealEstimator: React.FC = () => {
     setNotes('Grilled chicken breast with steamed broccoli and brown rice');
     setPortionSize('medium');
     setCalorieBudget('600');
+    setProteinGoal('40');
     setWeight('150');
     setWeightUnit('g');
   };
@@ -226,6 +236,15 @@ export const MealEstimator: React.FC = () => {
                 />
               </div>
 
+              {/* Protein Goal */}
+              <div className="animate-fade-up" style={{ animationDelay: '225ms' }}>
+                <ProteinGoal
+                  value={proteinGoal}
+                  onChange={setProteinGoal}
+                  disabled={isLoading}
+                />
+              </div>
+
               {/* Notes Input */}
               <div className="animate-fade-up" style={{ animationDelay: '250ms' }}>
                 <label 
@@ -313,11 +332,14 @@ export const MealEstimator: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <footer className="mt-12 text-center opacity-0 animate-fade-up" style={{ animationDelay: '400ms' }}>
+        <footer className="mt-12 pb-20 text-center opacity-0 animate-fade-up" style={{ animationDelay: '400ms' }}>
           <p className="text-xs text-muted-foreground">
             Built for awareness, not obsession.
           </p>
         </footer>
+
+        {/* Install Prompt */}
+        <InstallPrompt />
       </div>
     </div>
   );
