@@ -6,6 +6,7 @@ import { PhotoUpload } from '@/components/PhotoUpload';
 import { MacroResults } from '@/components/MacroResults';
 import { LoadingState } from '@/components/LoadingState';
 import { PortionSelector, PortionSize } from '@/components/PortionSelector';
+import { CalorieBudget } from '@/components/CalorieBudget';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,7 +31,7 @@ export const MealEstimator: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [portionSize, setPortionSize] = useState<PortionSize>('medium');
-  
+  const [calorieBudget, setCalorieBudget] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<EstimationResult | null>(null);
 
@@ -61,7 +62,11 @@ export const MealEstimator: React.FC = () => {
         contextNotes += contextNotes ? `. ` : '';
         contextNotes += `Portion size: ${portionSize}`;
       }
-      
+
+      if (calorieBudget) {
+        contextNotes += contextNotes ? `. ` : '';
+        contextNotes += `My calorie budget for this meal is ${calorieBudget} kcal - please tell me if this meal fits within that budget`;
+      }
 
       // Call the AI edge function
       const { data, error } = await supabase.functions.invoke('analyze-meal', {
@@ -97,7 +102,7 @@ export const MealEstimator: React.FC = () => {
     setImagePreview(null);
     setNotes('');
     setPortionSize('medium');
-    
+    setCalorieBudget('');
     setResult(null);
   };
 
@@ -143,6 +148,14 @@ export const MealEstimator: React.FC = () => {
                 />
               </div>
 
+              {/* Calorie Budget */}
+              <div className="animate-fade-up" style={{ animationDelay: '200ms' }}>
+                <CalorieBudget
+                  value={calorieBudget}
+                  onChange={setCalorieBudget}
+                  disabled={isLoading}
+                />
+              </div>
 
               {/* Notes Input */}
               <div className="animate-fade-up" style={{ animationDelay: '250ms' }}>
