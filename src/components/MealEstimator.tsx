@@ -5,6 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { PhotoUpload } from '@/components/PhotoUpload';
 import { MacroResults } from '@/components/MacroResults';
 import { LoadingState } from '@/components/LoadingState';
+import { PortionSelector, PortionSize } from '@/components/PortionSelector';
+import { GoalSelector, MealGoal } from '@/components/GoalSelector';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -28,6 +30,8 @@ export const MealEstimator: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+  const [portionSize, setPortionSize] = useState<PortionSize>('medium');
+  const [mealGoal, setMealGoal] = useState<MealGoal>('none');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<EstimationResult | null>(null);
 
@@ -51,11 +55,29 @@ export const MealEstimator: React.FC = () => {
 
     setIsLoading(true);
     try {
+      // Build context from portion size and goal
+      let contextNotes = notes.trim();
+      
+      if (portionSize !== 'medium') {
+        contextNotes += contextNotes ? `. ` : '';
+        contextNotes += `Portion size: ${portionSize}`;
+      }
+      
+      if (mealGoal !== 'none') {
+        contextNotes += contextNotes ? `. ` : '';
+        const goalText = {
+          fat_loss: 'My goal is fat loss',
+          muscle_gain: 'My goal is muscle gain/building',
+          maintenance: 'My goal is weight maintenance',
+        }[mealGoal];
+        contextNotes += goalText;
+      }
+
       // Call the AI edge function
       const { data, error } = await supabase.functions.invoke('analyze-meal', {
         body: {
           imageBase64: imagePreview,
-          notes: notes.trim() || undefined,
+          notes: contextNotes || undefined,
         },
       });
 
@@ -84,6 +106,8 @@ export const MealEstimator: React.FC = () => {
     setImageFile(null);
     setImagePreview(null);
     setNotes('');
+    setPortionSize('medium');
+    setMealGoal('none');
     setResult(null);
   };
 
@@ -120,8 +144,26 @@ export const MealEstimator: React.FC = () => {
                 />
               </div>
 
-              {/* Notes Input */}
+              {/* Portion Size Selector */}
+              <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
+                <PortionSelector
+                  value={portionSize}
+                  onChange={setPortionSize}
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Goal Selector */}
               <div className="animate-fade-up" style={{ animationDelay: '200ms' }}>
+                <GoalSelector
+                  value={mealGoal}
+                  onChange={setMealGoal}
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Notes Input */}
+              <div className="animate-fade-up" style={{ animationDelay: '250ms' }}>
                 <label 
                   htmlFor="notes"
                   className="block text-sm font-medium text-foreground mb-2"
@@ -131,11 +173,11 @@ export const MealEstimator: React.FC = () => {
                 </label>
                 <Textarea
                   id="notes"
-                  placeholder="E.g., cooked in olive oil, extra sauce, large portion..."
+                  placeholder="E.g., cooked in olive oil, extra sauce, ate half..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   disabled={isLoading}
-                  className="min-h-[100px] resize-none rounded-xl border-border bg-card focus:border-sage focus:ring-sage"
+                  className="min-h-[80px] resize-none rounded-xl border-border bg-card focus:border-sage focus:ring-sage"
                 />
               </div>
 
@@ -159,16 +201,17 @@ export const MealEstimator: React.FC = () => {
             </>
           ) : (
             <>
-              {/* Results */}
+              {/* Results with image */}
               <MacroResults
                 foodIdentification={result.foodIdentification}
                 macros={result.macros}
                 coachingContext={result.coachingContext}
                 suggestion={result.suggestion}
+                imagePreview={imagePreview}
               />
 
               {/* Try Another */}
-              <div className="pt-4 opacity-0 animate-fade-up" style={{ animationDelay: '900ms' }}>
+              <div className="pt-4 opacity-0 animate-fade-up" style={{ animationDelay: '1000ms' }}>
                 <Button
                   onClick={handleReset}
                   variant="sage-outline"

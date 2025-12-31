@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { Upload, Camera, X, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface PhotoUploadProps {
   onImageSelect: (file: File, preview: string) => void;
@@ -16,6 +17,8 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   disabled = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((file: File) => {
     if (file.type.startsWith('image/')) {
@@ -51,6 +54,14 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
     if (file) handleFile(file);
   }, [handleFile]);
 
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  const openCamera = () => {
+    cameraInputRef.current?.click();
+  };
+
   if (preview) {
     return (
       <div className="relative rounded-2xl overflow-hidden shadow-elevated animate-fade-up">
@@ -76,54 +87,72 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   }
 
   return (
-    <div
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      className={cn(
-        "relative rounded-2xl border-2 border-dashed transition-all duration-300",
-        "h-64 sm:h-80 flex flex-col items-center justify-center gap-4",
-        isDragging
-          ? "border-sage bg-sage-light scale-[1.02]"
-          : "border-border bg-card hover:border-sage/50 hover:bg-sage-light/30",
-        disabled && "opacity-50 cursor-not-allowed"
-      )}
-    >
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleInputChange}
+    <div className="space-y-3">
+      {/* Main drop zone */}
+      <div
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onClick={openFilePicker}
+        className={cn(
+          "relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer",
+          "h-48 sm:h-56 flex flex-col items-center justify-center gap-3",
+          isDragging
+            ? "border-sage bg-sage-light scale-[1.02]"
+            : "border-border bg-card hover:border-sage/50 hover:bg-sage-light/30",
+          disabled && "opacity-50 cursor-not-allowed"
+        )}
+      >
+        {/* Hidden file inputs */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleInputChange}
+          disabled={disabled}
+          className="hidden"
+          aria-label="Upload meal photo"
+        />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleInputChange}
+          disabled={disabled}
+          className="hidden"
+          aria-label="Take photo with camera"
+        />
+        
+        <div className={cn(
+          "p-3 rounded-full transition-colors duration-300",
+          isDragging ? "bg-sage/20" : "bg-sage-light"
+        )}>
+          <Image className="w-6 h-6 text-sage" />
+        </div>
+        
+        <div className="text-center px-4">
+          <p className="text-foreground font-medium mb-0.5">
+            Drop your meal photo here
+          </p>
+          <p className="text-sm text-muted-foreground">
+            or tap to browse gallery
+          </p>
+        </div>
+      </div>
+
+      {/* Camera button - prominent for mobile */}
+      <Button
+        type="button"
+        variant="sage"
+        size="lg"
+        onClick={openCamera}
         disabled={disabled}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-        aria-label="Upload meal photo"
-      />
-      
-      <div className={cn(
-        "p-4 rounded-full transition-colors duration-300",
-        isDragging ? "bg-sage/20" : "bg-sage-light"
-      )}>
-        <Image className="w-8 h-8 text-sage" />
-      </div>
-      
-      <div className="text-center px-4">
-        <p className="text-foreground font-medium mb-1">
-          Drop your meal photo here
-        </p>
-        <p className="text-sm text-muted-foreground">
-          or tap to take a photo
-        </p>
-      </div>
-      
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <Upload className="w-3.5 h-3.5" /> Upload
-        </span>
-        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-        <span className="flex items-center gap-1">
-          <Camera className="w-3.5 h-3.5" /> Camera
-        </span>
-      </div>
+        className="w-full"
+      >
+        <Camera className="w-5 h-5" />
+        Take a photo
+      </Button>
     </div>
   );
 };
