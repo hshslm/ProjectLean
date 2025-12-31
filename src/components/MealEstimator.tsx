@@ -6,7 +6,6 @@ import { PhotoUpload } from '@/components/PhotoUpload';
 import { MacroResults } from '@/components/MacroResults';
 import { LoadingState } from '@/components/LoadingState';
 import { PortionSelector, PortionSize } from '@/components/PortionSelector';
-import { GoalSelector, MealGoal } from '@/components/GoalSelector';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,7 +30,7 @@ export const MealEstimator: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [portionSize, setPortionSize] = useState<PortionSize>('medium');
-  const [mealGoal, setMealGoal] = useState<MealGoal>('none');
+  
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<EstimationResult | null>(null);
 
@@ -63,15 +62,6 @@ export const MealEstimator: React.FC = () => {
         contextNotes += `Portion size: ${portionSize}`;
       }
       
-      if (mealGoal !== 'none') {
-        contextNotes += contextNotes ? `. ` : '';
-        const goalText = {
-          fat_loss: 'My goal is fat loss',
-          muscle_gain: 'My goal is muscle gain/building',
-          maintenance: 'My goal is weight maintenance',
-        }[mealGoal];
-        contextNotes += goalText;
-      }
 
       // Call the AI edge function
       const { data, error } = await supabase.functions.invoke('analyze-meal', {
@@ -107,7 +97,7 @@ export const MealEstimator: React.FC = () => {
     setImagePreview(null);
     setNotes('');
     setPortionSize('medium');
-    setMealGoal('none');
+    
     setResult(null);
   };
 
@@ -153,14 +143,6 @@ export const MealEstimator: React.FC = () => {
                 />
               </div>
 
-              {/* Goal Selector */}
-              <div className="animate-fade-up" style={{ animationDelay: '200ms' }}>
-                <GoalSelector
-                  value={mealGoal}
-                  onChange={setMealGoal}
-                  disabled={isLoading}
-                />
-              </div>
 
               {/* Notes Input */}
               <div className="animate-fade-up" style={{ animationDelay: '250ms' }}>
