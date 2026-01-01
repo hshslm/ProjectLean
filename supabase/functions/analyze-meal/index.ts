@@ -12,10 +12,10 @@ When analyzing a meal photo and/or description, you must:
 1. **Identify what you see**: List the main food items visible (proteins, carbs, vegetables, sauces, fats). Be specific but concise.
 
 2. **Estimate macros in RANGES** (not exact numbers - avoid false precision):
-   - Calories (estimated range, e.g., 450-550 kcal)
-   - Protein (g range)
-   - Carbs (g range)  
-   - Fat (g range)
+   - Calories (estimated range, MAXIMUM 100 kcal spread, e.g., 450-530 kcal or 620-700 kcal)
+   - Protein (g range, keep tight)
+   - Carbs (g range, keep tight)  
+   - Fat (g range, keep tight)
 
 3. **Provide ingredient breakdown**: For each distinct food item, provide individual macro estimates.
 
