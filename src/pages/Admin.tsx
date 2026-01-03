@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Plus, Users, LogOut, Eye } from 'lucide-react';
+import { Plus, Users, LogOut, Eye, Mail } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 
 interface Client {
@@ -24,6 +24,7 @@ const Admin = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [resendingFor, setResendingFor] = useState<string | null>(null);
   const [newClient, setNewClient] = useState({
     email: '',
     password: '',
@@ -104,6 +105,24 @@ const Admin = () => {
 
   const handleViewClient = (clientUserId: string) => {
     navigate(`/admin/client/${clientUserId}`);
+  };
+
+  const handleResendLogin = async (clientUserId: string, clientEmail: string) => {
+    setResendingFor(clientUserId);
+    try {
+      const { data, error } = await supabase.functions.invoke('resend-login', {
+        body: { clientUserId },
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast.success(`Login details sent to ${clientEmail}`);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to resend login details');
+    } finally {
+      setResendingFor(null);
+    }
   };
 
   if (loading) {
@@ -230,14 +249,25 @@ const Admin = () => {
                       </p>
                       <p className="text-sm text-muted-foreground">{client.email}</p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewClient(client.user_id)}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      View
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleResendLogin(client.user_id, client.email)}
+                        disabled={resendingFor === client.user_id}
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        {resendingFor === client.user_id ? 'Sending...' : 'Resend Login'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewClient(client.user_id)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
