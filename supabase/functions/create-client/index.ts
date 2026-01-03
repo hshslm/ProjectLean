@@ -14,14 +14,25 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    // Verify the requesting user is an admin
-    const authHeader = req.headers.get('Authorization')!;
-    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    // Get JWT from authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
-    const { data: { user: requestingUser } } = await userClient.auth.getUser();
-    if (!requestingUser) {
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Use admin client for all operations
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    
+    // Verify the user from the token
+    const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
+    
+    if (authError || !requestingUser) {
+      console.error('Auth error:', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -29,7 +40,7 @@ Deno.serve(async (req) => {
     }
 
     // Check if requesting user is admin
-    const { data: roleData } = await userClient
+    const { data: roleData } = await adminClient
       .from('user_roles')
       .select('role')
       .eq('user_id', requestingUser.id)
@@ -52,9 +63,6 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Create admin client
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Create the user
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
@@ -85,6 +93,8 @@ Deno.serve(async (req) => {
       .from('profiles')
       .update({ created_by: requestingUser.id })
       .eq('user_id', newUser.user.id);
+
+    console.log('Client created successfully:', newUser.user.id);
 
     return new Response(
       JSON.stringify({ success: true, userId: newUser.user.id }),
