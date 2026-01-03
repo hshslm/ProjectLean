@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     
     try {
       const emailResponse = await resend.emails.send({
-        from: 'Project Lean <onboarding@resend.dev>',
+        from: 'Project Lean <noreply@projectleaneg.com>',
         to: [email],
         subject: 'Welcome to Project Lean - Your Account Details',
         html: `
