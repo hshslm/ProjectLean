@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.bootstrap-admin]
 verify_jwt = false
+
+[functions.resend-login]
+verify_jwt = false
