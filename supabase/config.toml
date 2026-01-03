@@ -2,3 +2,9 @@ project_id = "ggqoaycpihmwldetqgec"
 
 [functions.analyze-meal]
 verify_jwt = false
+
+[functions.create-client]
+verify_jwt = false
+
+[functions.bootstrap-admin]
+verify_jwt = false
