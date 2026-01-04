@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
     const appUrl = req.headers.get('origin') || 'https://projectlean.app';
     
     const emailResponse = await resend.emails.send({
-      from: 'Project Lean <noreply@projectleaneg.com>',
+      from: 'Project Lean <noreply@projectlean.app>',
       to: [profile.email],
       subject: 'Your Project Lean Login Details',
       html: `
