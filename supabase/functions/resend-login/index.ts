@@ -107,30 +107,49 @@ Deno.serve(async (req) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Your Login Details 🔐</h1>
+          <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Project Lean 🔐</h1>
           </div>
           
           <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
             <p style="font-size: 16px;">Hi ${profile.full_name || 'there'},</p>
             
-            <p style="font-size: 16px;">Here are your updated login credentials for Project Lean:</p>
+            <p style="font-size: 16px;">Here are your login credentials for the Project Lean Macro Tracker:</p>
             
             <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin: 20px 0;">
               <h3 style="margin-top: 0; color: #374151;">Your Login Details</h3>
               <p style="margin: 10px 0;"><strong>Email:</strong> ${profile.email}</p>
-              <p style="margin: 10px 0;"><strong>New Password:</strong> ${newPassword}</p>
+              <p style="margin: 10px 0;"><strong>Password:</strong> ${newPassword}</p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://projectlean.app/auth" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Log In Now</a>
+            </div>
+
+            <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border: 1px solid #fecaca; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #991b1b;">📱 Install the App on Your Phone</h3>
+              <p style="font-size: 14px; color: #374151; margin-bottom: 10px;">For the best experience, add Project Lean to your home screen:</p>
+              
+              <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>iPhone:</strong></p>
+              <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 15px 0; padding-left: 20px;">
+                <li>Open <a href="https://projectlean.app" style="color: #dc2626;">projectlean.app</a> in Safari</li>
+                <li>Tap the Share button (square with arrow)</li>
+                <li>Scroll down and tap "Add to Home Screen"</li>
+              </ol>
+              
+              <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>Android:</strong></p>
+              <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 0 0; padding-left: 20px;">
+                <li>Open <a href="https://projectlean.app" style="color: #dc2626;">projectlean.app</a> in Chrome</li>
+                <li>Tap the menu (3 dots) in the top right</li>
+                <li>Tap "Add to Home Screen" or "Install App"</li>
+              </ol>
             </div>
             
             <p style="font-size: 14px; color: #6b7280;">We recommend changing your password after logging in.</p>
             
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${appUrl}/auth" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Log In Now</a>
-            </div>
+            <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you didn't request this, please contact your coach.</p>
             
-            <p style="font-size: 14px; color: #6b7280; margin-top: 30px;">If you didn't request this, please contact your coach.</p>
-            
-            <p style="margin-bottom: 0;">Best regards,<br><strong>The Project Lean Team</strong></p>
+            <p style="margin-bottom: 0; margin-top: 30px;">Best regards,<br><strong>The Project Lean Team</strong></p>
           </div>
         </body>
         </html>
