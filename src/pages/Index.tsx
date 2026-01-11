@@ -17,7 +17,8 @@ const Index = () => {
     }
   }, [user, role, loading, navigate]);
 
-  if (loading) {
+  // Show loading while auth or role is loading
+  if (loading || (user && role === null)) {
     return (
       <div className="min-h-screen gradient-warm flex items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
