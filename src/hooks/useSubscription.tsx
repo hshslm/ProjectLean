@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-const FREE_SCAN_LIMIT = 10;
+const FREE_SCAN_LIMIT = 6;
 const PAID_SCAN_LIMIT = 50;
 const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/8x23cv2qV2EgdxVcck6c00x';
 

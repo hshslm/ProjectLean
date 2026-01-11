@@ -95,7 +95,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
                 Confirm Email
               </a>
               <p style="color: #999999; font-size: 14px; margin: 24px 0 0;">
-                You're getting 10 free meal scans to start!
+                You're getting 6 free meal scans to start!
               </p>
             </div>
             <p style="color: #999999; font-size: 12px; text-align: center; margin-top: 32px;">
