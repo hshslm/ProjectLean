@@ -25,19 +25,26 @@ Deno.serve(async (req) => {
     
     const token = authHeader.replace('Bearer ', '');
     
-    // Use admin client for all operations
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    // Create a client with the user's auth header to verify them
+    const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } }
+    });
     
-    // Verify the user from the token using admin client
-    const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
+    // Verify the user's JWT claims
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getUser();
     
-    if (authError || !requestingUser) {
-      console.error('Auth error:', authError);
+    if (claimsError || !claimsData?.user) {
+      console.error('Auth error:', claimsError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    const requestingUser = claimsData.user;
+    
+    // Use admin client for privileged operations
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Check if requesting user is admin
     const { data: roleData } = await adminClient
