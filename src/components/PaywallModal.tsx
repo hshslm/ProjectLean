@@ -24,7 +24,7 @@ export const PaywallModal = ({ open, onOpenChange, onSubscribe }: PaywallModalPr
             Upgrade to Pro
           </DialogTitle>
           <DialogDescription className="text-center">
-            You've used all 10 free scans. Upgrade to continue tracking your meals.
+            You've used all 6 free scans. Upgrade to continue tracking your meals.
           </DialogDescription>
         </DialogHeader>
 

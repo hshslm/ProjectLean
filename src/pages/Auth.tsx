@@ -93,7 +93,7 @@ const Auth = () => {
             {isForgotPassword 
               ? 'Enter your email to receive a reset link' 
               : isSignUp 
-                ? 'Get 10 free meal scans to start' 
+                ? 'Get 6 free meal scans to start' 
                 : 'Sign in to continue'}
           </p>
         </div>
