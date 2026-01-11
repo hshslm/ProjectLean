@@ -71,6 +71,93 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_templates: {
+        Row: {
+          calories_high: number
+          calories_low: number
+          carbs_high: number
+          carbs_low: number
+          created_at: string
+          fat_high: number
+          fat_low: number
+          food_identified: string
+          id: string
+          image_url: string | null
+          name: string
+          protein_high: number
+          protein_low: number
+          user_id: string
+        }
+        Insert: {
+          calories_high: number
+          calories_low: number
+          carbs_high: number
+          carbs_low: number
+          created_at?: string
+          fat_high: number
+          fat_low: number
+          food_identified: string
+          id?: string
+          image_url?: string | null
+          name: string
+          protein_high: number
+          protein_low: number
+          user_id: string
+        }
+        Update: {
+          calories_high?: number
+          calories_low?: number
+          carbs_high?: number
+          carbs_low?: number
+          created_at?: string
+          fat_high?: number
+          fat_low?: number
+          food_identified?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          protein_high?: number
+          protein_low?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_settings: {
+        Row: {
+          breakfast_reminder: string | null
+          created_at: string
+          dinner_reminder: string | null
+          id: string
+          lunch_reminder: string | null
+          push_enabled: boolean
+          push_subscription: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          breakfast_reminder?: string | null
+          created_at?: string
+          dinner_reminder?: string | null
+          id?: string
+          lunch_reminder?: string | null
+          push_enabled?: boolean
+          push_subscription?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          breakfast_reminder?: string | null
+          created_at?: string
+          dinner_reminder?: string | null
+          id?: string
+          lunch_reminder?: string | null
+          push_enabled?: boolean
+          push_subscription?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -112,6 +199,33 @@ export type Database = {
           stripe_customer_id?: string | null
           subscription_expires_at?: string | null
           subscription_updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_goals: {
+        Row: {
+          created_at: string
+          daily_calories: number | null
+          daily_protein: number | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_calories?: number | null
+          daily_protein?: number | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_calories?: number | null
+          daily_protein?: number | null
+          id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
