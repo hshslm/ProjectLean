@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Users, LogOut, Eye, Mail } from 'lucide-react';
+import { Plus, Users, LogOut, Eye, Mail, Crown, Camera } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 
 interface Client {
@@ -16,6 +18,10 @@ interface Client {
   email: string;
   full_name: string | null;
   created_at: string;
+  is_subscribed: boolean;
+  is_coaching_client: boolean;
+  scan_count: number;
+  subscription_expires_at: string | null;
 }
 
 const Admin = () => {
@@ -59,8 +65,24 @@ const Admin = () => {
         .eq('role', 'admin');
       
       const adminIds = new Set(adminRoles?.map(r => r.user_id) || []);
-      const clientProfiles = data?.filter(p => !adminIds.has(p.user_id)) || [];
+      const clientProfiles = (data as unknown as Client[])?.filter(p => !adminIds.has(p.user_id)) || [];
       setClients(clientProfiles);
+    }
+  };
+
+  const toggleCoachingClient = async (clientUserId: string, currentValue: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_coaching_client: !currentValue } as Record<string, unknown>)
+        .eq('user_id', clientUserId);
+
+      if (error) throw error;
+
+      toast.success(!currentValue ? 'Coaching access granted' : 'Coaching access removed');
+      fetchClients();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update client status');
     }
   };
 
@@ -242,31 +264,64 @@ const Admin = () => {
             <div className="grid gap-3">
               {clients.map((client) => (
                 <Card key={client.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {client.full_name || client.email}
-                      </p>
-                      <p className="text-sm text-muted-foreground">{client.email}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleResendLogin(client.user_id, client.email)}
-                        disabled={resendingFor === client.user_id}
-                      >
-                        <Mail className="w-4 h-4 mr-2" />
-                        {resendingFor === client.user_id ? 'Sending...' : 'Resend Login'}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewClient(client.user_id)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </Button>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-foreground">
+                            {client.full_name || client.email}
+                          </p>
+                          {client.is_coaching_client && (
+                            <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-300">
+                              <Crown className="w-3 h-3 mr-1" />
+                              Coaching
+                            </Badge>
+                          )}
+                          {client.is_subscribed && !client.is_coaching_client && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-300">
+                              Subscribed
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{client.email}</p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Camera className="w-3 h-3" />
+                            {client.scan_count || 0} scans
+                          </span>
+                          {client.subscription_expires_at && (
+                            <span>
+                              Expires: {new Date(client.subscription_expires_at).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Coaching</span>
+                          <Switch
+                            checked={client.is_coaching_client}
+                            onCheckedChange={() => toggleCoachingClient(client.user_id, client.is_coaching_client)}
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleResendLogin(client.user_id, client.email)}
+                          disabled={resendingFor === client.user_id}
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          {resendingFor === client.user_id ? 'Sending...' : 'Resend Login'}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewClient(client.user_id)}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
