@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     // Use admin client for all operations
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     
-    // Verify the user from the token
+    // Verify the user from the token using admin client
     const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
     
     if (authError || !requestingUser) {
