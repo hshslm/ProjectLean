@@ -19,6 +19,12 @@ import { DailyTotals } from '@/components/DailyTotals';
 import { MealLogCard } from '@/components/MealLogCard';
 import { PaywallModal } from '@/components/PaywallModal';
 import { ScanCounter } from '@/components/ScanCounter';
+import { GoalProgress } from '@/components/GoalProgress';
+import { GoalSettings } from '@/components/GoalSettings';
+import { WeeklyChart } from '@/components/WeeklyChart';
+import { MealTemplates } from '@/components/MealTemplates';
+import { SaveTemplateDialog } from '@/components/SaveTemplateDialog';
+import { NotificationSettings } from '@/components/NotificationSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
@@ -70,6 +76,11 @@ interface MealLog {
   image_url: string | null;
 }
 
+interface UserGoals {
+  daily_calories: number | null;
+  daily_protein: number | null;
+}
+
 export const MealEstimator: React.FC = () => {
   const { user, signOut } = useAuth();
   const { 
@@ -99,12 +110,41 @@ export const MealEstimator: React.FC = () => {
   const [view, setView] = useState<'estimate' | 'history'>('history');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
+  const [weeklyLogs, setWeeklyLogs] = useState<MealLog[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // Goals
+  const [userGoals, setUserGoals] = useState<UserGoals>({ daily_calories: null, daily_protein: null });
+
+  // Template dialog
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [templateMeal, setTemplateMeal] = useState<MealLog | null>(null);
+
+  // Fetch user goals
+  useEffect(() => {
+    if (user) {
+      fetchUserGoals();
+    }
+  }, [user]);
+
+  const fetchUserGoals = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('user_goals')
+      .select('daily_calories, daily_protein')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    if (data) {
+      setUserGoals(data);
+    }
+  };
 
   // Fetch meal logs when viewing history
   useEffect(() => {
     if (view === 'history' && user) {
       fetchMealLogs();
+      fetchWeeklyLogs();
     }
   }, [view, selectedDate, user]);
 
@@ -128,6 +168,21 @@ export const MealEstimator: React.FC = () => {
     setIsLoadingHistory(false);
   };
 
+  const fetchWeeklyLogs = async () => {
+    if (!user) return;
+    const endDate = format(new Date(), 'yyyy-MM-dd');
+    const startDate = format(subDays(new Date(), 6), 'yyyy-MM-dd');
+    
+    const { data } = await supabase
+      .from('meal_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('meal_date', startDate)
+      .lte('meal_date', endDate);
+    
+    setWeeklyLogs(data || []);
+  };
+
   // Hide reference tip once photos are added
   useEffect(() => {
     if (photos.length > 0) {
@@ -135,6 +190,68 @@ export const MealEstimator: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [photos.length]);
+
+  const handleDeleteMeal = async (id: string) => {
+    const { error } = await supabase
+      .from('meal_logs')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Failed to delete meal');
+    } else {
+      toast.success('Meal deleted');
+      fetchMealLogs();
+      fetchWeeklyLogs();
+    }
+  };
+
+  const handleEditMeal = async (id: string, updates: Partial<MealLog>) => {
+    const { error } = await supabase
+      .from('meal_logs')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Failed to update meal');
+    } else {
+      toast.success('Meal updated');
+      fetchMealLogs();
+      fetchWeeklyLogs();
+    }
+  };
+
+  const handleSaveAsTemplate = (log: MealLog) => {
+    setTemplateMeal(log);
+    setSaveTemplateOpen(true);
+  };
+
+  const handleUseTemplate = async (template: any) => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('meal_logs')
+      .insert({
+        user_id: user.id,
+        food_identified: template.food_identified,
+        calories_low: template.calories_low,
+        calories_high: template.calories_high,
+        protein_low: template.protein_low,
+        protein_high: template.protein_high,
+        carbs_low: template.carbs_low,
+        carbs_high: template.carbs_high,
+        fat_low: template.fat_low,
+        fat_high: template.fat_high,
+        image_url: template.image_url,
+      });
+
+    if (error) {
+      toast.error('Failed to log meal');
+    } else {
+      fetchMealLogs();
+      fetchWeeklyLogs();
+    }
+  };
 
   const handleEstimate = async () => {
     if (photos.length === 0 && !notes.trim()) {
@@ -247,6 +364,7 @@ export const MealEstimator: React.FC = () => {
     setShowReferenceTip(true);
     setView('history');
     fetchMealLogs();
+    fetchWeeklyLogs();
   };
 
   const handlePrevDay = () => {
@@ -258,7 +376,6 @@ export const MealEstimator: React.FC = () => {
       setSelectedDate(prev => addDays(prev, 1));
     }
   };
-
 
   const canEstimate = photos.length > 0 || notes.trim().length > 0;
 
@@ -274,6 +391,17 @@ export const MealEstimator: React.FC = () => {
     fatHigh: Math.round(result.macros.fatHigh * multiplier),
   } : null;
 
+  // Calculate daily totals for goal progress
+  const dailyTotals = mealLogs.reduce(
+    (acc, log) => ({
+      caloriesLow: acc.caloriesLow + log.calories_low,
+      caloriesHigh: acc.caloriesHigh + log.calories_high,
+      proteinLow: acc.proteinLow + log.protein_low,
+      proteinHigh: acc.proteinHigh + log.protein_high,
+    }),
+    { caloriesLow: 0, caloriesHigh: 0, proteinLow: 0, proteinHigh: 0 }
+  );
+
   return (
     <div className="min-h-screen gradient-warm">
       <div className="max-w-lg mx-auto px-4 py-8 sm:py-12">
@@ -285,23 +413,33 @@ export const MealEstimator: React.FC = () => {
               alt="Project Lean" 
               className="h-12 sm:h-16"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <ScanCounter 
                 remainingScans={remainingScans} 
                 isSubscribed={isSubscribed} 
                 totalScans={totalScans} 
               />
+              {user && <NotificationSettings userId={user.id} />}
+              {user && (
+                <GoalSettings
+                  userId={user.id}
+                  currentCalorieGoal={userGoals.daily_calories}
+                  currentProteinGoal={userGoals.daily_protein}
+                  onGoalsUpdated={fetchUserGoals}
+                />
+              )}
               {isSubscribed && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => window.open('https://billing.stripe.com/p/login/4gw6rbcv63Gl4gw4gg', '_blank')}
                   title="Manage Subscription"
+                  className="h-8 w-8 p-0"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={signOut}>
+              <Button variant="ghost" size="sm" onClick={signOut} className="h-8 w-8 p-0">
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -343,19 +481,46 @@ export const MealEstimator: React.FC = () => {
                 </Button>
               </div>
 
+              {/* Goal Progress */}
+              {isToday(selectedDate) && !isLoadingHistory && (
+                <GoalProgress
+                  dailyCalorieGoal={userGoals.daily_calories}
+                  dailyProteinGoal={userGoals.daily_protein}
+                  currentCalories={{ low: dailyTotals.caloriesLow, high: dailyTotals.caloriesHigh }}
+                  currentProtein={{ low: dailyTotals.proteinLow, high: dailyTotals.proteinHigh }}
+                />
+              )}
+
               {/* Daily Totals */}
               {!isLoadingHistory && <DailyTotals mealLogs={mealLogs} />}
 
-              {/* Add Meal Button */}
-              <Button
-                variant="coral"
-                size="lg"
-                className="w-full"
-                onClick={() => setView('estimate')}
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Add Meal
-              </Button>
+              {/* Weekly Chart */}
+              {isToday(selectedDate) && weeklyLogs.length > 0 && (
+                <WeeklyChart 
+                  mealLogs={weeklyLogs}
+                  dailyCalorieGoal={userGoals.daily_calories}
+                  dailyProteinGoal={userGoals.daily_protein}
+                />
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="coral"
+                  size="lg"
+                  className="flex-1"
+                  onClick={() => setView('estimate')}
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add Meal
+                </Button>
+                {user && (
+                  <MealTemplates
+                    userId={user.id}
+                    onUseTemplate={handleUseTemplate}
+                  />
+                )}
+              </div>
 
               {/* Meal History */}
               {isLoadingHistory ? (
@@ -370,7 +535,13 @@ export const MealEstimator: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {mealLogs.map((log) => (
-                    <MealLogCard key={log.id} log={log} />
+                    <MealLogCard 
+                      key={log.id} 
+                      log={log}
+                      onDelete={handleDeleteMeal}
+                      onEdit={handleEditMeal}
+                      onSaveAsTemplate={handleSaveAsTemplate}
+                    />
                   ))}
                 </div>
               )}
@@ -541,6 +712,16 @@ export const MealEstimator: React.FC = () => {
             setShowPaywall(false);
           }}
         />
+
+        {/* Save Template Dialog */}
+        {user && (
+          <SaveTemplateDialog
+            open={saveTemplateOpen}
+            onOpenChange={setSaveTemplateOpen}
+            mealLog={templateMeal}
+            userId={user.id}
+          />
+        )}
       </div>
     </div>
   );
