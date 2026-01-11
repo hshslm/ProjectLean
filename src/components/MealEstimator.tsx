@@ -17,7 +17,10 @@ import { QuickAdjustments } from '@/components/QuickAdjustments';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { DailyTotals } from '@/components/DailyTotals';
 import { MealLogCard } from '@/components/MealLogCard';
+import { PaywallModal } from '@/components/PaywallModal';
+import { ScanCounter } from '@/components/ScanCounter';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { Ingredient } from '@/components/IngredientBreakdown';
@@ -69,6 +72,16 @@ interface MealLog {
 
 export const MealEstimator: React.FC = () => {
   const { user, signOut } = useAuth();
+  const { 
+    canScan, 
+    isSubscribed, 
+    remainingScans, 
+    freeScanLimit, 
+    incrementScanCount, 
+    openPaymentLink,
+    refetch: refetchSubscription 
+  } = useSubscription();
+  
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [notes, setNotes] = useState('');
   const [portionSize, setPortionSize] = useState<PortionSize>('medium');
@@ -80,6 +93,7 @@ export const MealEstimator: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<EstimationResult | null>(null);
   const [multiplier, setMultiplier] = useState(1);
+  const [showPaywall, setShowPaywall] = useState(false);
   
   // View state: 'estimate' or 'history'
   const [view, setView] = useState<'estimate' | 'history'>('history');
@@ -125,6 +139,12 @@ export const MealEstimator: React.FC = () => {
   const handleEstimate = async () => {
     if (photos.length === 0 && !notes.trim()) {
       toast.error('Please add a photo or description of your meal');
+      return;
+    }
+
+    // Check if user can scan (has free scans left or is subscribed)
+    if (!canScan) {
+      setShowPaywall(true);
       return;
     }
 
@@ -176,6 +196,11 @@ export const MealEstimator: React.FC = () => {
       }
 
       setResult(data);
+      
+      // Increment scan count (only for free users)
+      if (!isSubscribed) {
+        await incrementScanCount();
+      }
       
       // Save to meal_logs
       if (user && data.macros) {
@@ -260,9 +285,16 @@ export const MealEstimator: React.FC = () => {
               alt="Project Lean" 
               className="h-12 sm:h-16"
             />
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <ScanCounter 
+                remainingScans={remainingScans} 
+                isSubscribed={isSubscribed} 
+                freeScanLimit={freeScanLimit} 
+              />
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <div className="text-center">
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-2">
@@ -489,6 +521,16 @@ export const MealEstimator: React.FC = () => {
 
         {/* Install Prompt */}
         <InstallPrompt />
+
+        {/* Paywall Modal */}
+        <PaywallModal
+          open={showPaywall}
+          onOpenChange={setShowPaywall}
+          onSubscribe={() => {
+            openPaymentLink();
+            setShowPaywall(false);
+          }}
+        />
       </div>
     </div>
   );
