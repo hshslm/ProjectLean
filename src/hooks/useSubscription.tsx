@@ -9,6 +9,7 @@ const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/8x23cv2qV2EgdxVcck6c00x';
 interface SubscriptionState {
   scanCount: number;
   isSubscribed: boolean;
+  isCoachingClient: boolean;
   loading: boolean;
   canScan: boolean;
   remainingScans: number;
@@ -20,6 +21,7 @@ export const useSubscription = () => {
   const [state, setState] = useState<SubscriptionState>({
     scanCount: 0,
     isSubscribed: false,
+    isCoachingClient: false,
     loading: true,
     canScan: true,
     remainingScans: FREE_SCAN_LIMIT,
@@ -47,19 +49,23 @@ export const useSubscription = () => {
       }
 
       // Cast to access new columns
-      const profile = data as { scan_count?: number; is_subscribed?: boolean } | null;
+      const profile = data as { scan_count?: number; is_subscribed?: boolean; is_coaching_client?: boolean } | null;
       const scanCount = profile?.scan_count ?? 0;
       const isSubscribed = profile?.is_subscribed ?? false;
+      const isCoachingClient = profile?.is_coaching_client ?? false;
       
+      // Coaching clients get unlimited access
       // For subscribers: they get 50 scans total, remaining = 50 - used
       // For free users: they get 10 scans total, remaining = 10 - used
-      const totalScans = isSubscribed ? PAID_SCAN_LIMIT : FREE_SCAN_LIMIT;
-      const remainingScans = Math.max(0, totalScans - scanCount);
-      const canScan = remainingScans > 0;
+      const hasAccess = isSubscribed || isCoachingClient;
+      const totalScans = hasAccess ? PAID_SCAN_LIMIT : FREE_SCAN_LIMIT;
+      const remainingScans = isCoachingClient ? 999 : Math.max(0, totalScans - scanCount);
+      const canScan = isCoachingClient || remainingScans > 0;
 
       setState({
         scanCount,
         isSubscribed,
+        isCoachingClient,
         loading: false,
         canScan,
         remainingScans,
@@ -77,6 +83,19 @@ export const useSubscription = () => {
 
   const incrementScanCount = async (): Promise<boolean> => {
     if (!user) return false;
+
+    // Coaching clients have unlimited scans
+    if (state.isCoachingClient) {
+      // Still increment for tracking, but always allow
+      const newCount = state.scanCount + 1;
+      await supabase
+        .from('profiles')
+        .update({ scan_count: newCount } as Record<string, unknown>)
+        .eq('user_id', user.id);
+      
+      setState(prev => ({ ...prev, scanCount: newCount }));
+      return true;
+    }
 
     // Check if under limit (both free and paid users have limits now)
     const limit = state.isSubscribed ? PAID_SCAN_LIMIT : FREE_SCAN_LIMIT;

@@ -78,6 +78,12 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_coaching_client: boolean
+          is_subscribed: boolean
+          scan_count: number
+          stripe_customer_id: string | null
+          subscription_expires_at: string | null
+          subscription_updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -86,6 +92,12 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          is_coaching_client?: boolean
+          is_subscribed?: boolean
+          scan_count?: number
+          stripe_customer_id?: string | null
+          subscription_expires_at?: string | null
+          subscription_updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -94,6 +106,12 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          is_coaching_client?: boolean
+          is_subscribed?: boolean
+          scan_count?: number
+          stripe_customer_id?: string | null
+          subscription_expires_at?: string | null
+          subscription_updated_at?: string | null
           user_id?: string
         }
         Relationships: []
