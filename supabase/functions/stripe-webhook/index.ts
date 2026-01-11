@@ -11,6 +11,10 @@ const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
 
+// Only process events for the Project Lean AI Meal Tracker product
+const MEAL_TRACKER_PRODUCT_ID = "prod_TltJhHN2HGhoaq";
+const MEAL_TRACKER_PRICE_ID = "price_1SoLWcEEn5vGaL1PyAqAWoc9";
+
 serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
@@ -29,10 +33,22 @@ serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        
+        // Check if this checkout is for our meal tracker product
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+        const isMealTrackerPurchase = lineItems.data.some(
+          (item: Stripe.LineItem) => item.price?.id === MEAL_TRACKER_PRICE_ID || item.price?.product === MEAL_TRACKER_PRODUCT_ID
+        );
+
+        if (!isMealTrackerPurchase) {
+          console.log("Checkout not for Meal Tracker product, skipping");
+          break;
+        }
+
         const customerEmail = session.customer_email || session.customer_details?.email;
 
         if (customerEmail) {
-          console.log("Checkout completed for:", customerEmail);
+          console.log("Meal Tracker checkout completed for:", customerEmail);
 
           // Reset scan count to 0 on payment (giving them fresh 50 scans)
           const { error } = await supabaseAdmin
@@ -60,22 +76,36 @@ serve(async (req) => {
         const customerId = invoice.customer as string;
 
         // Only reset for subscription invoices (not one-time payments)
-        if (invoice.subscription) {
-          console.log("Invoice payment succeeded for customer:", customerId);
+        if (!invoice.subscription) {
+          console.log("Not a subscription invoice, skipping");
+          break;
+        }
 
-          const { error } = await supabaseAdmin
-            .from("profiles")
-            .update({
-              scan_count: 0,
-              subscription_updated_at: new Date().toISOString(),
-            })
-            .eq("stripe_customer_id", customerId);
+        // Check if this invoice is for the meal tracker subscription
+        const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const isMealTrackerSubscription = subscription.items.data.some(
+          (item: Stripe.SubscriptionItem) => item.price.id === MEAL_TRACKER_PRICE_ID || item.price.product === MEAL_TRACKER_PRODUCT_ID
+        );
 
-          if (error) {
-            console.error("Error resetting scan count:", error);
-          } else {
-            console.log("Reset scan count for customer:", customerId);
-          }
+        if (!isMealTrackerSubscription) {
+          console.log("Invoice not for Meal Tracker subscription, skipping");
+          break;
+        }
+
+        console.log("Meal Tracker invoice payment succeeded for customer:", customerId);
+
+        const { error } = await supabaseAdmin
+          .from("profiles")
+          .update({
+            scan_count: 0,
+            subscription_updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_customer_id", customerId);
+
+        if (error) {
+          console.error("Error resetting scan count:", error);
+        } else {
+          console.log("Reset scan count for customer:", customerId);
         }
         break;
       }
@@ -83,11 +113,21 @@ serve(async (req) => {
       case "customer.subscription.deleted":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
+        
+        // Check if this subscription is for the meal tracker
+        const isMealTrackerSubscription = subscription.items.data.some(
+          (item: Stripe.SubscriptionItem) => item.price.id === MEAL_TRACKER_PRICE_ID || item.price.product === MEAL_TRACKER_PRODUCT_ID
+        );
 
+        if (!isMealTrackerSubscription) {
+          console.log("Subscription update not for Meal Tracker, skipping");
+          break;
+        }
+
+        const customerId = subscription.customer as string;
         const isActive = subscription.status === "active" || subscription.status === "trialing";
 
-        console.log("Subscription update for customer:", customerId, "Active:", isActive);
+        console.log("Meal Tracker subscription update for customer:", customerId, "Active:", isActive);
 
         const { error } = await supabaseAdmin
           .from("profiles")
