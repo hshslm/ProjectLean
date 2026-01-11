@@ -134,7 +134,9 @@ Deno.serve(async (req) => {
                 <a href="${appUrl}/auth" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Log In Now</a>
               </div>
               
-              <p style="font-size: 14px; color: #6b7280; margin-top: 30px;">If you have any questions, just reply to this email. We're here to help!</p>
+              <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you ever need to cancel your subscription, you can do so from your account settings or <a href="https://billing.stripe.com/p/login/4gw6rbcv63Gl4gw4gg" style="color: #667eea; text-decoration: underline;">manage your subscription here</a>.</p>
+              
+              <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you have any questions, just reply to this email. We're here to help!</p>
               
               <p style="margin-bottom: 0;">Best regards,<br><strong>The Project Lean Team</strong></p>
             </div>

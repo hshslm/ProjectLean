@@ -30,7 +30,7 @@ export const PaywallModal = ({ open, onOpenChange, onSubscribe }: PaywallModalPr
 
         <div className="space-y-6 py-4">
           <div className="text-center">
-            <div className="text-4xl font-bold text-primary">$9.99</div>
+            <div className="text-4xl font-bold text-primary">25 AED</div>
             <div className="text-muted-foreground">per month</div>
           </div>
 

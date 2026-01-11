@@ -291,6 +291,16 @@ export const MealEstimator: React.FC = () => {
                 isSubscribed={isSubscribed} 
                 totalScans={totalScans} 
               />
+              {isSubscribed && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open('https://billing.stripe.com/p/login/4gw6rbcv63Gl4gw4gg', '_blank')}
+                  title="Manage Subscription"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="w-4 h-4" />
               </Button>
