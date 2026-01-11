@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,28 +22,21 @@ Deno.serve(async (req) => {
       );
     }
     
-    const token = authHeader.replace('Bearer ', '');
+    const jwt = authHeader.replace('Bearer ', '');
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
     
-    // Create admin client with service role key
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
+    // Verify the requesting user - pass JWT as the argument
+    const { data: userData, error: authError } = await adminClient.auth.getUser(jwt);
     
-    // Verify the requesting user by passing the JWT token directly
-    const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
-    
-    console.log('User verification:', requestingUser?.id, authError?.message);
-    
-    if (authError || !requestingUser) {
+    if (authError || !userData?.user) {
       console.error('Auth error:', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    const requestingUser = userData.user;
 
     // Check if requesting user is admin
     const { data: roleData } = await adminClient
