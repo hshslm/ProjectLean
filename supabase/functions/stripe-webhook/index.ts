@@ -34,20 +34,36 @@ serve(async (req) => {
         if (customerEmail) {
           console.log("Checkout completed for:", customerEmail);
 
-          // Update user's subscription status
+          // First, get the current profile to check if they've already received paid scans
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("scan_count, is_subscribed")
+            .eq("email", customerEmail)
+            .single();
+
+          // Only add 50 scans on first payment (not renewals)
+          // We check if is_subscribed was false before this payment
+          const wasSubscribed = profile?.is_subscribed ?? false;
+          const currentScans = profile?.scan_count ?? 0;
+          
+          // If first time subscribing, give them 50 scans (resetting from free tier)
+          // If already subscribed (renewal), don't add more scans
+          const newScanCount = wasSubscribed ? currentScans : 50;
+
           const { error } = await supabaseAdmin
             .from("profiles")
             .update({
               is_subscribed: true,
               stripe_customer_id: session.customer as string,
               subscription_updated_at: new Date().toISOString(),
+              scan_count: newScanCount,
             })
             .eq("email", customerEmail);
 
           if (error) {
             console.error("Error updating profile:", error);
           } else {
-            console.log("Successfully updated subscription for:", customerEmail);
+            console.log("Successfully updated subscription for:", customerEmail, "Scans:", newScanCount);
           }
         }
         break;

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 const FREE_SCAN_LIMIT = 10;
+const PAID_SCAN_LIMIT = 50;
 const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/8x23cv2qV2EgdxVcck6c00x';
 
 interface SubscriptionState {
@@ -11,6 +12,7 @@ interface SubscriptionState {
   loading: boolean;
   canScan: boolean;
   remainingScans: number;
+  totalScans: number;
 }
 
 export const useSubscription = () => {
@@ -21,6 +23,7 @@ export const useSubscription = () => {
     loading: true,
     canScan: true,
     remainingScans: FREE_SCAN_LIMIT,
+    totalScans: FREE_SCAN_LIMIT,
   });
 
   const fetchSubscriptionStatus = useCallback(async () => {
@@ -47,8 +50,12 @@ export const useSubscription = () => {
       const profile = data as { scan_count?: number; is_subscribed?: boolean } | null;
       const scanCount = profile?.scan_count ?? 0;
       const isSubscribed = profile?.is_subscribed ?? false;
-      const canScan = isSubscribed || scanCount < FREE_SCAN_LIMIT;
-      const remainingScans = Math.max(0, FREE_SCAN_LIMIT - scanCount);
+      
+      // For subscribers: they get 50 scans total, remaining = 50 - used
+      // For free users: they get 10 scans total, remaining = 10 - used
+      const totalScans = isSubscribed ? PAID_SCAN_LIMIT : FREE_SCAN_LIMIT;
+      const remainingScans = Math.max(0, totalScans - scanCount);
+      const canScan = remainingScans > 0;
 
       setState({
         scanCount,
@@ -56,6 +63,7 @@ export const useSubscription = () => {
         loading: false,
         canScan,
         remainingScans,
+        totalScans,
       });
     } catch (err) {
       console.error('Error:', err);
@@ -70,11 +78,9 @@ export const useSubscription = () => {
   const incrementScanCount = async (): Promise<boolean> => {
     if (!user) return false;
 
-    // If subscribed, no limit
-    if (state.isSubscribed) return true;
-
-    // Check if under limit
-    if (state.scanCount >= FREE_SCAN_LIMIT) {
+    // Check if under limit (both free and paid users have limits now)
+    const limit = state.isSubscribed ? PAID_SCAN_LIMIT : FREE_SCAN_LIMIT;
+    if (state.scanCount >= limit) {
       return false;
     }
 
@@ -91,12 +97,12 @@ export const useSubscription = () => {
         return false;
       }
 
-      const canScan = newCount < FREE_SCAN_LIMIT;
+      const remainingScans = Math.max(0, limit - newCount);
       setState(prev => ({
         ...prev,
         scanCount: newCount,
-        canScan,
-        remainingScans: Math.max(0, FREE_SCAN_LIMIT - newCount),
+        canScan: remainingScans > 0,
+        remainingScans,
       }));
 
       return true;

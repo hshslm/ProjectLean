@@ -39,7 +39,7 @@ export const PaywallModal = ({ open, onOpenChange, onSubscribe }: PaywallModalPr
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Zap className="h-4 w-4 text-primary" />
               </div>
-              <span>Unlimited meal scans</span>
+              <span>50 meal scans included</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">

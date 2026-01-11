@@ -76,7 +76,7 @@ export const MealEstimator: React.FC = () => {
     canScan, 
     isSubscribed, 
     remainingScans, 
-    freeScanLimit, 
+    totalScans,
     incrementScanCount, 
     openPaymentLink,
     refetch: refetchSubscription 
@@ -289,7 +289,7 @@ export const MealEstimator: React.FC = () => {
               <ScanCounter 
                 remainingScans={remainingScans} 
                 isSubscribed={isSubscribed} 
-                freeScanLimit={freeScanLimit} 
+                totalScans={totalScans} 
               />
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="w-4 h-4" />

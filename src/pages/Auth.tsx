@@ -10,8 +10,10 @@ import projectLeanLogo from '@/assets/project-lean-logo.png';
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { user, signIn } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,13 +30,29 @@ const Auth = () => {
       return;
     }
 
+    if (isSignUp && !fullName) {
+      toast.error('Please enter your name');
+      return;
+    }
+
     setIsLoading(true);
-    const { error } = await signIn(email, password);
-    
-    if (error) {
-      toast.error(error.message || 'Invalid login credentials');
+
+    if (isSignUp) {
+      const { error } = await signUp(email, password, fullName);
+      if (error) {
+        toast.error(error.message || 'Failed to create account');
+      } else {
+        toast.success('Account created! You can now sign in.');
+        setIsSignUp(false);
+        setPassword('');
+      }
     } else {
-      navigate('/');
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast.error(error.message || 'Invalid login credentials');
+      } else {
+        navigate('/');
+      }
     }
     
     setIsLoading(false);
@@ -50,14 +68,29 @@ const Auth = () => {
             className="h-16 mx-auto mb-6"
           />
           <h1 className="font-display text-2xl font-bold text-foreground">
-            Welcome back
+            {isSignUp ? 'Create your account' : 'Welcome back'}
           </h1>
           <p className="text-muted-foreground text-sm mt-2">
-            Sign in to continue
+            {isSignUp ? 'Get 10 free meal scans to start' : 'Sign in to continue'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                disabled={isLoading}
+                className="rounded-xl"
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -91,9 +124,28 @@ const Auth = () => {
             className="w-full"
             disabled={isLoading}
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading 
+              ? (isSignUp ? 'Creating account...' : 'Signing in...') 
+              : (isSignUp ? 'Create Account' : 'Sign in')
+            }
           </Button>
         </form>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setPassword('');
+            }}
+            className="text-sm text-primary hover:underline"
+          >
+            {isSignUp 
+              ? 'Already have an account? Sign in' 
+              : "Don't have an account? Sign up for free"
+            }
+          </button>
+        </div>
       </div>
     </div>
   );
