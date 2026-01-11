@@ -13,8 +13,11 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
     const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
@@ -23,10 +26,16 @@ Deno.serve(async (req) => {
     }
     
     const token = authHeader.replace('Bearer ', '');
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
     
-    // Verify the requesting user
-    const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
+    // Create client with the user's JWT to verify them
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    // Verify the requesting user using their session
+    const { data: { user: requestingUser }, error: authError } = await userClient.auth.getUser();
+    
+    console.log('User verification result:', requestingUser?.id, authError?.message);
     
     if (authError || !requestingUser) {
       console.error('Auth error:', authError);
@@ -35,6 +44,9 @@ Deno.serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    // Create admin client for privileged operations
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Check if requesting user is admin
     const { data: roleData } = await adminClient
