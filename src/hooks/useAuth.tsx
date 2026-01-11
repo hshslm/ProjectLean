@@ -94,10 +94,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth?reset=true`,
-    });
-    return { error: error as Error | null };
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-password-reset`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+      
+      if (!response.ok) {
+        const data = await response.json();
+        return { error: new Error(data.error || 'Failed to send reset email') };
+      }
+      
+      return { error: null };
+    } catch (error) {
+      return { error: error as Error };
+    }
   };
 
   return (
