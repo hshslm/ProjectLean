@@ -9,7 +9,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Users, LogOut, Eye, Mail, Crown, Camera } from 'lucide-react';
+import { Plus, Users, LogOut, Eye, Mail, Crown, Camera, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 
 interface Client {
@@ -31,6 +42,7 @@ const Admin = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [resendingFor, setResendingFor] = useState<string | null>(null);
+  const [deletingFor, setDeletingFor] = useState<string | null>(null);
   const [newClient, setNewClient] = useState({
     email: '',
     password: '',
@@ -144,6 +156,25 @@ const Admin = () => {
       toast.error(error.message || 'Failed to resend login details');
     } finally {
       setResendingFor(null);
+    }
+  };
+
+  const handleDeleteClient = async (clientUserId: string, clientEmail: string) => {
+    setDeletingFor(clientUserId);
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-client', {
+        body: { clientUserId },
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast.success(`${clientEmail} has been deleted`);
+      fetchClients();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete client');
+    } finally {
+      setDeletingFor(null);
     }
   };
 
@@ -321,6 +352,35 @@ const Admin = () => {
                           <Eye className="w-4 h-4 mr-2" />
                           View
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              disabled={deletingFor === client.user_id}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Client</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete <strong>{client.full_name || client.email}</strong>? This action cannot be undone and will permanently remove their account and all meal logs.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteClient(client.user_id, client.email)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {deletingFor === client.user_id ? 'Deleting...' : 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </CardContent>
