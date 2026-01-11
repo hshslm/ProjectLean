@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createRemoteJWKSet, jwtVerify } from 'https://esm.sh/jose@5.2.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,26 +24,36 @@ Deno.serve(async (req) => {
     }
     
     const jwt = authHeader.replace('Bearer ', '');
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
     
-    // Verify the requesting user - pass JWT as the argument
-    const { data: userData, error: authError } = await adminClient.auth.getUser(jwt);
+    // Verify JWT using JWKS (works with ES256 signing keys)
+    const JWKS = createRemoteJWKSet(new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`));
     
-    if (authError || !userData?.user) {
-      console.error('Auth error:', authError);
+    let payload;
+    try {
+      const { payload: verifiedPayload } = await jwtVerify(jwt, JWKS, {
+        issuer: `${supabaseUrl}/auth/v1`,
+        audience: 'authenticated',
+      });
+      payload = verifiedPayload;
+    } catch (jwtError) {
+      console.error('JWT verification failed:', jwtError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    const requestingUser = userData.user;
+    const requestingUserId = payload.sub as string;
+    console.log('Verified user:', requestingUserId);
+    
+    // Create admin client for privileged operations
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Check if requesting user is admin
     const { data: roleData } = await adminClient
       .from('user_roles')
       .select('role')
-      .eq('user_id', requestingUser.id)
+      .eq('user_id', requestingUserId)
       .eq('role', 'admin')
       .maybeSingle();
 
@@ -63,7 +74,7 @@ Deno.serve(async (req) => {
     }
 
     // Prevent admin from deleting themselves
-    if (clientUserId === requestingUser.id) {
+    if (clientUserId === requestingUserId) {
       return new Response(
         JSON.stringify({ error: 'Cannot delete your own account' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
