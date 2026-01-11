@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,11 +13,8 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
     const authHeader = req.headers.get('Authorization');
-    console.log('Auth header present:', !!authHeader);
-    
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
@@ -27,15 +24,18 @@ Deno.serve(async (req) => {
     
     const token = authHeader.replace('Bearer ', '');
     
-    // Create client with the user's JWT to verify them
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } }
+    // Create admin client with service role key
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
     });
     
-    // Verify the requesting user using their session
-    const { data: { user: requestingUser }, error: authError } = await userClient.auth.getUser();
+    // Verify the requesting user by passing the JWT token directly
+    const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
     
-    console.log('User verification result:', requestingUser?.id, authError?.message);
+    console.log('User verification:', requestingUser?.id, authError?.message);
     
     if (authError || !requestingUser) {
       console.error('Auth error:', authError);
@@ -44,9 +44,6 @@ Deno.serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    // Create admin client for privileged operations
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Check if requesting user is admin
     const { data: roleData } = await adminClient
