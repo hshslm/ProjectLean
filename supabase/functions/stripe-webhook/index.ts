@@ -34,36 +34,47 @@ serve(async (req) => {
         if (customerEmail) {
           console.log("Checkout completed for:", customerEmail);
 
-          // First, get the current profile to check if they've already received paid scans
-          const { data: profile } = await supabaseAdmin
-            .from("profiles")
-            .select("scan_count, is_subscribed")
-            .eq("email", customerEmail)
-            .single();
-
-          // Only add 50 scans on first payment (not renewals)
-          // We check if is_subscribed was false before this payment
-          const wasSubscribed = profile?.is_subscribed ?? false;
-          const currentScans = profile?.scan_count ?? 0;
-          
-          // If first time subscribing, give them 50 scans (resetting from free tier)
-          // If already subscribed (renewal), don't add more scans
-          const newScanCount = wasSubscribed ? currentScans : 50;
-
+          // Reset scan count to 0 on payment (giving them fresh 50 scans)
           const { error } = await supabaseAdmin
             .from("profiles")
             .update({
               is_subscribed: true,
               stripe_customer_id: session.customer as string,
               subscription_updated_at: new Date().toISOString(),
-              scan_count: newScanCount,
+              scan_count: 0,
             })
             .eq("email", customerEmail);
 
           if (error) {
             console.error("Error updating profile:", error);
           } else {
-            console.log("Successfully updated subscription for:", customerEmail, "Scans:", newScanCount);
+            console.log("Successfully updated subscription for:", customerEmail, "Scans reset to 0");
+          }
+        }
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        // Handle subscription renewals - reset scans on each billing cycle
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+
+        // Only reset for subscription invoices (not one-time payments)
+        if (invoice.subscription) {
+          console.log("Invoice payment succeeded for customer:", customerId);
+
+          const { error } = await supabaseAdmin
+            .from("profiles")
+            .update({
+              scan_count: 0,
+              subscription_updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_customer_id", customerId);
+
+          if (error) {
+            console.error("Error resetting scan count:", error);
+          } else {
+            console.log("Reset scan count for customer:", customerId);
           }
         }
         break;
