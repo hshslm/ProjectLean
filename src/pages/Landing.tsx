@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Camera, Zap, Target, ChevronRight, Check, Sparkles, Play } from 'lucide-react';
+import { Camera, Zap, Target, ChevronRight, Check, Sparkles, Play, CheckCircle } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import demoVideo from '@/assets/demo-video.mp4';
 import screenshotMeals from '@/assets/screenshot-meals.png';
@@ -160,31 +160,66 @@ const Landing = () => {
       </section>
 
       {/* Accuracy Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-card rounded-2xl p-8 md:p-10 shadow-soft border border-border">
-            <h3 className="text-2xl font-bold text-center mb-6">
+      <section className="py-20 px-4 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-br from-sage/5 via-transparent to-coral/5" />
+        <div className="absolute top-10 left-10 w-72 h-72 bg-sage/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-72 h-72 bg-coral/10 rounded-full blur-3xl" />
+        
+        <div className="max-w-5xl mx-auto relative">
+          <div className="text-center mb-12">
+            <span className="inline-block px-4 py-1.5 bg-sage/10 text-sage-dark rounded-full text-sm font-medium mb-4">
+              Transparency First
+            </span>
+            <h3 className="text-3xl md:text-4xl font-display font-bold mb-4">
               Honest About Accuracy
             </h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="text-center p-6 rounded-xl bg-secondary/50">
-                <div className="text-4xl font-bold text-primary mb-2">70-80%</div>
-                <p className="text-sm font-medium mb-2">AI-Only Estimation</p>
-                <p className="text-xs text-muted-foreground">
-                  Food identification accuracy. Macro estimates may vary ±20-30% due to portion ambiguity.
-                </p>
-              </div>
-              <div className="text-center p-6 rounded-xl bg-primary/10">
-                <div className="text-4xl font-bold text-primary mb-2">85-95%</div>
-                <p className="text-sm font-medium mb-2">With Your Input</p>
-                <p className="text-xs text-muted-foreground">
-                  Add weight, adjust portions, or note ingredients for significantly more accurate results.
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              We believe in showing you ranges, not false precision
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            {/* AI Only Card */}
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-charcoal-muted/20 to-charcoal-muted/5 rounded-3xl transform group-hover:scale-[1.02] transition-transform duration-300" />
+              <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl p-8 border border-border shadow-soft">
+                <div className="w-14 h-14 bg-secondary rounded-2xl flex items-center justify-center mb-6">
+                  <Camera className="w-7 h-7 text-charcoal-muted" />
+                </div>
+                <div className="text-5xl font-display font-bold bg-gradient-to-r from-charcoal to-charcoal-muted bg-clip-text text-transparent mb-3">
+                  70-80%
+                </div>
+                <p className="text-lg font-semibold mb-2">AI-Only Estimation</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Food identification accuracy from photos alone. Macro estimates may vary ±20-30% due to portion ambiguity.
                 </p>
               </div>
             </div>
-            <p className="text-center text-sm text-muted-foreground mt-6">
-              That's why we show ranges, not false precision. We believe in transparency.
-            </p>
+            
+            {/* With Input Card */}
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-sage/30 to-coral/20 rounded-3xl transform group-hover:scale-[1.02] transition-transform duration-300" />
+              <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl p-8 border border-sage/30 shadow-soft">
+                <div className="w-14 h-14 bg-gradient-to-br from-sage to-sage-dark rounded-2xl flex items-center justify-center mb-6">
+                  <Sparkles className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-5xl font-display font-bold bg-gradient-to-r from-sage-dark to-sage bg-clip-text text-transparent mb-3">
+                  85-95%
+                </div>
+                <p className="text-lg font-semibold mb-2">With Your Input</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Add weight, adjust portions, or note ingredients for significantly more accurate tracking results.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-10 text-center">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-cream rounded-full border border-border">
+              <CheckCircle className="w-4 h-4 text-sage" />
+              <span className="text-sm font-medium">Ranges show confidence, not guesswork</span>
+            </div>
           </div>
         </div>
       </section>
