@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Camera, Zap, Target, ChevronRight, Check, Sparkles, Play } from 'lucide-react';
-import projectLeanIcon from '/pwa-192x192.png';
+import projectLeanLogo from '@/assets/project-lean-logo.png';
 import demoVideo from '@/assets/raw-demo.mp4';
 import { useState, useRef } from 'react';
 
@@ -14,7 +14,7 @@ const Landing = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={projectLeanIcon} alt="Project Lean" className="h-10 w-10 rounded-xl" />
+            <img src={projectLeanLogo} alt="Project Lean" className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/auth">
@@ -309,7 +309,7 @@ const Landing = () => {
       <footer className="py-8 px-4 border-t border-border">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <img src={projectLeanIcon} alt="Project Lean" className="h-8 w-8 rounded-lg opacity-70" />
+            <img src={projectLeanLogo} alt="Project Lean" className="h-6 w-auto opacity-70" />
           </div>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Project Lean. All rights reserved.
