@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Camera, Sparkles, TrendingUp, Lock } from 'lucide-react';
+import { Camera, Sparkles, TrendingUp, Lock, Mail } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 
 const Auth = () => {
@@ -15,6 +16,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isResendVerification, setIsResendVerification] = useState(false);
   const { user, signIn, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
 
@@ -24,11 +26,36 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  const handleResendVerification = async () => {
+    if (!email) {
+      toast.error('Please enter your email');
+      return;
+    }
+
+    setIsLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    });
+
+    if (error) {
+      toast.error(error.message || 'Failed to resend verification email');
+    } else {
+      toast.success('Verification email sent! Check your inbox.');
+    }
+    setIsLoading(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email) {
       toast.error('Please enter your email');
+      return;
+    }
+
+    if (isResendVerification) {
+      await handleResendVerification();
       return;
     }
 
@@ -62,14 +89,19 @@ const Auth = () => {
       if (error) {
         toast.error(error.message || 'Failed to create account');
       } else {
-        toast.success('Account created! You can now sign in.');
+        toast.success('Account created! Check your email to verify your account.');
         setIsSignUp(false);
         setPassword('');
       }
     } else {
       const { error } = await signIn(email, password);
       if (error) {
-        toast.error(error.message || 'Invalid login credentials');
+        // Check if the error is about email not confirmed
+        if (error.message?.includes('Email not confirmed')) {
+          toast.error('Please verify your email before signing in. Check your inbox or resend the verification email.');
+        } else {
+          toast.error(error.message || 'Invalid login credentials');
+        }
       } else {
         navigate('/app');
       }
@@ -95,19 +127,37 @@ const Auth = () => {
               className="h-12 mx-auto mb-6"
             />
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-              {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create your account' : 'Your AI Tracker is waiting'}
+              {isResendVerification 
+                ? 'Resend Verification' 
+                : isForgotPassword 
+                  ? 'Reset Password' 
+                  : isSignUp 
+                    ? 'Create your account' 
+                    : 'Your AI Tracker is waiting'}
             </h1>
             <p className="text-muted-foreground">
-              {isForgotPassword 
-                ? 'Enter your email to receive a reset link' 
-                : isSignUp 
-                  ? 'Get 6 free meal scans to start' 
-                  : 'Sign in to continue tracking'}
+              {isResendVerification
+                ? "Didn't receive the email? We'll send it again"
+                : isForgotPassword 
+                  ? 'Enter your email to receive a reset link' 
+                  : isSignUp 
+                    ? 'Get 6 free meal scans to start' 
+                    : 'Sign in to continue tracking'}
             </p>
           </div>
 
+          {/* Resend verification info */}
+          {isResendVerification && (
+            <div className="mb-6 p-4 bg-sage/10 rounded-2xl flex items-start gap-3">
+              <Mail className="w-5 h-5 text-sage-dark mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground">
+                Enter the email you signed up with and we'll send a new verification link.
+              </p>
+            </div>
+          )}
+
           {/* Visual hint - 3 icon row (only show on sign in) */}
-          {!isForgotPassword && !isSignUp && (
+          {!isForgotPassword && !isSignUp && !isResendVerification && (
             <div className="mb-8">
               <p className="text-xs font-medium text-muted-foreground text-center mb-3 uppercase tracking-wide">How it works</p>
               <div className="flex items-center justify-center gap-3 py-4 px-3 bg-secondary/30 rounded-2xl">
@@ -173,7 +223,7 @@ const Auth = () => {
               />
             </div>
 
-            {!isForgotPassword && (
+            {!isForgotPassword && !isResendVerification && (
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                 <Input
@@ -196,13 +246,13 @@ const Auth = () => {
               disabled={isLoading}
             >
               {isLoading 
-                ? (isForgotPassword ? 'Sending...' : isSignUp ? 'Creating account...' : 'Signing in...') 
-                : (isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Start Tracking →')
+                ? (isResendVerification ? 'Sending...' : isForgotPassword ? 'Sending...' : isSignUp ? 'Creating account...' : 'Signing in...') 
+                : (isResendVerification ? 'Resend Verification Email' : isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Start Tracking →')
               }
             </Button>
 
             {/* Trust line */}
-            {!isForgotPassword && (
+            {!isForgotPassword && !isResendVerification && (
               <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground pt-1">
                 <Lock className="w-3 h-3" />
                 <span>Your meals, macros, and data are private and secure</span>
@@ -210,14 +260,21 @@ const Auth = () => {
             )}
           </form>
 
-          {!isSignUp && !isForgotPassword && (
-            <div className="text-center mt-5">
+          {!isSignUp && !isForgotPassword && !isResendVerification && (
+            <div className="text-center mt-5 space-y-2">
               <button
                 type="button"
                 onClick={() => setIsForgotPassword(true)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors block w-full"
               >
                 Forgot your password?
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsResendVerification(true)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors block w-full"
+              >
+                Didn't receive verification email?
               </button>
             </div>
           )}
@@ -228,18 +285,20 @@ const Auth = () => {
               onClick={() => {
                 if (isForgotPassword) {
                   setIsForgotPassword(false);
+                } else if (isResendVerification) {
+                  setIsResendVerification(false);
                 } else {
                   setIsSignUp(!isSignUp);
                   setPassword('');
                 }
               }}
               className={`text-sm transition-colors ${
-                isForgotPassword || isSignUp 
+                isForgotPassword || isSignUp || isResendVerification
                   ? 'font-medium text-coral hover:text-coral-light' 
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {isForgotPassword 
+              {isForgotPassword || isResendVerification
                 ? 'Back to sign in'
                 : isSignUp 
                   ? 'Already have an account? Sign in' 
