@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
-import projectLeanLogo from '@/assets/project-lean-logo.png';
+import projectLeanIcon from '/pwa-192x192.png';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiPhotoUpload } from '@/components/MultiPhotoUpload';
@@ -409,9 +409,9 @@ export const MealEstimator: React.FC = () => {
         <header className="mb-8 animate-fade-up">
           <div className="flex items-center justify-between mb-4">
             <img 
-              src={projectLeanLogo} 
+              src={projectLeanIcon} 
               alt="Project Lean" 
-              className="h-12 sm:h-16"
+              className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl"
             />
             <div className="flex items-center gap-1">
               <ScanCounter 
