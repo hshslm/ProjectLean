@@ -1,9 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Camera, Zap, Target, ChevronRight, Check, Sparkles } from 'lucide-react';
+import { Camera, Zap, Target, ChevronRight, Check, Sparkles, Play } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
+import demoVideo from '@/assets/raw-demo.mp4';
+import { useState, useRef } from 'react';
 
 const Landing = () => {
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -49,6 +53,55 @@ const Landing = () => {
               </Button>
             </Link>
             <p className="text-sm text-muted-foreground">6 free scans • No credit card required</p>
+          </div>
+
+          {/* Demo Video */}
+          <div className="mt-16 max-w-xs mx-auto animate-fade-up" style={{ animationDelay: '0.4s' }}>
+            <div className="relative rounded-[2.5rem] overflow-hidden shadow-elevated bg-foreground p-2">
+              <div className="rounded-[2rem] overflow-hidden bg-black">
+                <div className="aspect-[9/19.5] relative">
+                  <video
+                    ref={videoRef}
+                    src={demoVideo}
+                    className="w-full h-full object-cover"
+                    loop
+                    muted
+                    playsInline
+                    onClick={() => {
+                      if (videoRef.current) {
+                        if (videoRef.current.paused) {
+                          videoRef.current.play();
+                          setIsVideoPlaying(true);
+                        } else {
+                          videoRef.current.pause();
+                          setIsVideoPlaying(false);
+                        }
+                      }
+                    }}
+                  />
+                  {!isVideoPlaying && (
+                    <button
+                      onClick={() => {
+                        if (videoRef.current) {
+                          videoRef.current.play();
+                          setIsVideoPlaying(true);
+                        }
+                      }}
+                      className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity hover:bg-black/50"
+                    >
+                      <div className="h-16 w-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                        <Play className="h-7 w-7 text-primary ml-1" fill="currentColor" />
+                      </div>
+                    </button>
+                  )}
+                </div>
+              </div>
+              {/* Phone notch */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-6 bg-foreground rounded-full" />
+            </div>
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              See it in action
+            </p>
           </div>
         </div>
       </section>
