@@ -1,12 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Camera, Zap, Target, ChevronRight, Check, Sparkles, Play } from 'lucide-react';
+import { Camera, Zap, Target, ChevronRight, Check, Sparkles } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
-import demoVideo from '@/assets/demo-video.mp4';
-import { useState } from 'react';
 
 const Landing = () => {
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -52,51 +49,6 @@ const Landing = () => {
               </Button>
             </Link>
             <p className="text-sm text-muted-foreground">6 free scans • No credit card required</p>
-          </div>
-
-          {/* Demo Video */}
-          <div className="mt-16 max-w-sm mx-auto animate-fade-up" style={{ animationDelay: '0.4s' }}>
-            <div className="relative rounded-3xl overflow-hidden shadow-elevated bg-card border border-border">
-              <div className="aspect-[9/16] relative">
-                <video
-                  src={demoVideo}
-                  className="w-full h-full object-cover"
-                  loop
-                  muted
-                  playsInline
-                  autoPlay={isVideoPlaying}
-                  onClick={(e) => {
-                    const video = e.currentTarget;
-                    if (video.paused) {
-                      video.play();
-                      setIsVideoPlaying(true);
-                    } else {
-                      video.pause();
-                      setIsVideoPlaying(false);
-                    }
-                  }}
-                />
-                {!isVideoPlaying && (
-                  <button
-                    onClick={() => {
-                      setIsVideoPlaying(true);
-                      const video = document.querySelector('video');
-                      video?.play();
-                    }}
-                    className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity hover:bg-black/40"
-                  >
-                    <div className="h-16 w-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                      <Play className="h-7 w-7 text-primary ml-1" fill="currentColor" />
-                    </div>
-                  </button>
-                )}
-              </div>
-              <div className="absolute bottom-4 left-4 right-4 text-center">
-                <p className="text-xs text-white/80 font-medium drop-shadow-lg">
-                  See it in action
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
