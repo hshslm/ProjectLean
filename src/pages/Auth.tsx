@@ -19,7 +19,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/app');
     }
   }, [user, navigate]);
 
@@ -70,7 +70,7 @@ const Auth = () => {
       if (error) {
         toast.error(error.message || 'Invalid login credentials');
       } else {
-        navigate('/');
+        navigate('/app');
       }
     }
     
