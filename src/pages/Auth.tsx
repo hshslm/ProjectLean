@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { Camera, Sparkles, TrendingUp, Lock } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 
 const Auth = () => {
@@ -87,23 +88,49 @@ const Auth = () => {
         {/* Card container */}
         <div className="bg-card/80 backdrop-blur-sm rounded-3xl shadow-elevated border border-border/50 p-8 md:p-10">
           {/* Logo */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <img 
               src={projectLeanLogo} 
               alt="Project Lean" 
-              className="h-14 mx-auto mb-8"
+              className="h-12 mx-auto mb-6"
             />
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-              {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create your account' : 'Welcome back'}
+              {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create your account' : 'Your AI Tracker is waiting'}
             </h1>
             <p className="text-muted-foreground">
               {isForgotPassword 
                 ? 'Enter your email to receive a reset link' 
                 : isSignUp 
                   ? 'Get 6 free meal scans to start' 
-                  : 'Sign in to continue'}
+                  : 'Sign in to continue tracking'}
             </p>
           </div>
+
+          {/* Visual hint - 3 icon row (only show on sign in) */}
+          {!isForgotPassword && !isSignUp && (
+            <div className="flex items-center justify-center gap-4 mb-8 py-4 px-2 bg-secondary/30 rounded-2xl">
+              <div className="flex flex-col items-center gap-1.5 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center">
+                  <Camera className="w-5 h-5 text-sage-dark" />
+                </div>
+                <span className="text-xs text-muted-foreground text-center">Snap meal</span>
+              </div>
+              <div className="text-muted-foreground/40">→</div>
+              <div className="flex flex-col items-center gap-1.5 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-coral/10 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-coral" />
+                </div>
+                <span className="text-xs text-muted-foreground text-center">AI calculates</span>
+              </div>
+              <div className="text-muted-foreground/40">→</div>
+              <div className="flex flex-col items-center gap-1.5 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-sage-dark" />
+                </div>
+                <span className="text-xs text-muted-foreground text-center">See progress</span>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignUp && !isForgotPassword && (
@@ -158,13 +185,21 @@ const Auth = () => {
             >
               {isLoading 
                 ? (isForgotPassword ? 'Sending...' : isSignUp ? 'Creating account...' : 'Signing in...') 
-                : (isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Sign in')
+                : (isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Start Tracking →')
               }
             </Button>
+
+            {/* Trust line */}
+            {!isForgotPassword && (
+              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground pt-1">
+                <Lock className="w-3 h-3" />
+                <span>Your meals, macros, and data are private and secure</span>
+              </div>
+            )}
           </form>
 
           {!isSignUp && !isForgotPassword && (
-            <div className="text-center mt-6">
+            <div className="text-center mt-5">
               <button
                 type="button"
                 onClick={() => setIsForgotPassword(true)}
@@ -175,7 +210,7 @@ const Auth = () => {
             </div>
           )}
 
-          <div className="text-center mt-6 pt-6 border-t border-border/50">
+          <div className="text-center mt-5 pt-5 border-t border-border/50">
             <button
               type="button"
               onClick={() => {
@@ -186,7 +221,11 @@ const Auth = () => {
                   setPassword('');
                 }
               }}
-              className="text-sm font-medium text-coral hover:text-coral-light transition-colors"
+              className={`text-sm transition-colors ${
+                isForgotPassword || isSignUp 
+                  ? 'font-medium text-coral hover:text-coral-light' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               {isForgotPassword 
                 ? 'Back to sign in'
@@ -197,6 +236,11 @@ const Auth = () => {
             </button>
           </div>
         </div>
+
+        {/* Powered by line */}
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Powered by <span className="font-medium">Project Lean</span>
+        </p>
       </div>
     </div>
   );
