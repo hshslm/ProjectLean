@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Camera, Zap, Target, ChevronRight, Check, Sparkles, Play } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import demoVideo from '@/assets/demo-video.mp4';
+import screenshotMeals from '@/assets/screenshot-meals.png';
+import screenshotGoals from '@/assets/screenshot-goals.png';
 import { useState, useRef } from 'react';
 
 const Landing = () => {
@@ -152,6 +154,54 @@ const Landing = () => {
                 <p className="text-muted-foreground">{item.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* App Showcase */}
+      <section className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            See The App In Action
+          </h2>
+          <p className="text-muted-foreground text-center mb-16 max-w-xl mx-auto">
+            Track your meals and hit your goals with ease
+          </p>
+          
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12">
+            {/* Screenshot 1 - Meals */}
+            <div className="max-w-[280px] animate-fade-up">
+              <div className="relative rounded-[2.5rem] overflow-hidden shadow-elevated bg-foreground p-2">
+                <div className="rounded-[2rem] overflow-hidden">
+                  <img 
+                    src={screenshotMeals} 
+                    alt="Meal tracking with daily totals" 
+                    className="w-full h-auto"
+                  />
+                </div>
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-6 bg-foreground rounded-full" />
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                Track meals & see totals
+              </p>
+            </div>
+            
+            {/* Screenshot 2 - Goals */}
+            <div className="max-w-[280px] animate-fade-up" style={{ animationDelay: '0.1s' }}>
+              <div className="relative rounded-[2.5rem] overflow-hidden shadow-elevated bg-foreground p-2">
+                <div className="rounded-[2rem] overflow-hidden">
+                  <img 
+                    src={screenshotGoals} 
+                    alt="Daily goals tracking" 
+                    className="w-full h-auto"
+                  />
+                </div>
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-6 bg-foreground rounded-full" />
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                Set & track daily goals
+              </p>
+            </div>
           </div>
         </div>
       </section>
