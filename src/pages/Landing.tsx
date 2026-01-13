@@ -5,6 +5,7 @@ import projectLeanLogo from '@/assets/project-lean-logo.png';
 import demoVideo from '@/assets/demo-video.mp4';
 import screenshotMeals from '@/assets/screenshot-meals.png';
 import screenshotGoals from '@/assets/screenshot-goals.png';
+import screenshotDialog from '@/assets/screenshot-dialog.png';
 import { useState, useRef } from 'react';
 
 const Landing = () => {
@@ -158,6 +159,36 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Accuracy Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-card rounded-2xl p-8 md:p-10 shadow-soft border border-border">
+            <h3 className="text-2xl font-bold text-center mb-6">
+              Honest About Accuracy
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="text-center p-6 rounded-xl bg-secondary/50">
+                <div className="text-4xl font-bold text-primary mb-2">70-80%</div>
+                <p className="text-sm font-medium mb-2">AI-Only Estimation</p>
+                <p className="text-xs text-muted-foreground">
+                  Food identification accuracy. Macro estimates may vary ±20-30% due to portion ambiguity.
+                </p>
+              </div>
+              <div className="text-center p-6 rounded-xl bg-primary/10">
+                <div className="text-4xl font-bold text-primary mb-2">85-95%</div>
+                <p className="text-sm font-medium mb-2">With Your Input</p>
+                <p className="text-xs text-muted-foreground">
+                  Add weight, adjust portions, or note ingredients for significantly more accurate results.
+                </p>
+              </div>
+            </div>
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              That's why we show ranges, not false precision. We believe in transparency.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* App Showcase */}
       <section className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
@@ -168,9 +199,9 @@ const Landing = () => {
             Track your meals and hit your goals with ease
           </p>
           
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-10">
             {/* Screenshot 1 - Meals */}
-            <div className="max-w-[280px] animate-fade-up">
+            <div className="max-w-[240px] animate-fade-up">
               <div className="relative rounded-[2.5rem] overflow-hidden shadow-elevated bg-foreground p-2">
                 <div className="rounded-[2rem] overflow-hidden">
                   <img 
@@ -179,7 +210,7 @@ const Landing = () => {
                     className="w-full h-auto"
                   />
                 </div>
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-6 bg-foreground rounded-full" />
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-foreground rounded-full" />
               </div>
               <p className="text-center text-sm text-muted-foreground mt-4">
                 Track meals & see totals
@@ -187,7 +218,7 @@ const Landing = () => {
             </div>
             
             {/* Screenshot 2 - Goals */}
-            <div className="max-w-[280px] animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            <div className="max-w-[240px] animate-fade-up" style={{ animationDelay: '0.1s' }}>
               <div className="relative rounded-[2.5rem] overflow-hidden shadow-elevated bg-foreground p-2">
                 <div className="rounded-[2rem] overflow-hidden">
                   <img 
@@ -196,10 +227,24 @@ const Landing = () => {
                     className="w-full h-auto"
                   />
                 </div>
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-6 bg-foreground rounded-full" />
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-foreground rounded-full" />
               </div>
               <p className="text-center text-sm text-muted-foreground mt-4">
                 Set & track daily goals
+              </p>
+            </div>
+
+            {/* Screenshot 3 - Dialog */}
+            <div className="max-w-[300px] animate-fade-up" style={{ animationDelay: '0.2s' }}>
+              <div className="rounded-2xl overflow-hidden shadow-elevated border border-border">
+                <img 
+                  src={screenshotDialog} 
+                  alt="Goals settings dialog" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                Set personalized goals
               </p>
             </div>
           </div>
