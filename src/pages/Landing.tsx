@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Camera, Zap, Target, ChevronRight, Check, Sparkles, Play } from 'lucide-react';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
-import demoVideo from '@/assets/raw-demo.mp4';
+import demoVideo from '@/assets/demo-video.mp4';
 import { useState, useRef } from 'react';
 
 const Landing = () => {
