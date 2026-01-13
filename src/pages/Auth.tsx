@@ -108,26 +108,38 @@ const Auth = () => {
 
           {/* Visual hint - 3 icon row (only show on sign in) */}
           {!isForgotPassword && !isSignUp && (
-            <div className="flex items-center justify-center gap-4 mb-8 py-4 px-2 bg-secondary/30 rounded-2xl">
-              <div className="flex flex-col items-center gap-1.5 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
-                <div className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-sage-dark" />
+            <div className="mb-8">
+              <p className="text-xs font-medium text-muted-foreground text-center mb-3 uppercase tracking-wide">How it works</p>
+              <div className="flex items-center justify-center gap-3 py-4 px-3 bg-secondary/30 rounded-2xl">
+                <div className="flex flex-col items-center gap-2 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                  <div className="relative">
+                    <span className="absolute -top-1 -left-1 w-4 h-4 bg-sage text-white text-[10px] font-bold rounded-full flex items-center justify-center">1</span>
+                    <div className="w-11 h-11 rounded-xl bg-sage/10 flex items-center justify-center">
+                      <Camera className="w-5 h-5 text-sage-dark" />
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium text-foreground text-center leading-tight">Photo<br/>your meal</span>
                 </div>
-                <span className="text-xs text-muted-foreground text-center">Snap meal</span>
-              </div>
-              <div className="text-muted-foreground/40 opacity-0 animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>→</div>
-              <div className="flex flex-col items-center gap-1.5 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
-                <div className="w-10 h-10 rounded-xl bg-coral/10 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-coral" />
+                <div className="text-sage font-bold opacity-0 animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>→</div>
+                <div className="flex flex-col items-center gap-2 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+                  <div className="relative">
+                    <span className="absolute -top-1 -left-1 w-4 h-4 bg-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center">2</span>
+                    <div className="w-11 h-11 rounded-xl bg-coral/10 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-coral" />
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium text-foreground text-center leading-tight">Get instant<br/>macros</span>
                 </div>
-                <span className="text-xs text-muted-foreground text-center">AI calculates</span>
-              </div>
-              <div className="text-muted-foreground/40 opacity-0 animate-fade-up" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>→</div>
-              <div className="flex flex-col items-center gap-1.5 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
-                <div className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-sage-dark" />
+                <div className="text-sage font-bold opacity-0 animate-fade-up" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>→</div>
+                <div className="flex flex-col items-center gap-2 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+                  <div className="relative">
+                    <span className="absolute -top-1 -left-1 w-4 h-4 bg-sage text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+                    <div className="w-11 h-11 rounded-xl bg-sage/10 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-sage-dark" />
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium text-foreground text-center leading-tight">Track<br/>progress</span>
                 </div>
-                <span className="text-xs text-muted-foreground text-center">See progress</span>
               </div>
             </div>
           )}
