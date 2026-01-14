@@ -168,7 +168,7 @@ const Auth = () => {
                       <Camera className="w-5 h-5 text-sage-dark" />
                     </div>
                   </div>
-                  <span className="text-xs font-medium text-foreground text-center leading-tight">Photo<br/>your meal</span>
+                  <span className="text-xs font-medium text-foreground text-center leading-tight">Photo of<br/>your meal</span>
                 </div>
                 <div className="text-sage font-bold opacity-0 animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>→</div>
                 <div className="flex flex-col items-center gap-2 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
