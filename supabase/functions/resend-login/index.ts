@@ -132,14 +132,14 @@ Deno.serve(async (req) => {
               
               <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>iPhone:</strong></p>
               <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 15px 0; padding-left: 20px;">
-                <li>Open <a href="https://projectlean.app" style="color: #dc2626;">projectlean.app</a> in Safari</li>
+                <li>Open <a href="https://tracker.projectlean.app" style="color: #dc2626;">tracker.projectlean.app</a> in Safari</li>
                 <li>Tap the Share button (square with arrow)</li>
                 <li>Scroll down and tap "Add to Home Screen"</li>
               </ol>
               
               <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>Android:</strong></p>
               <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 0 0; padding-left: 20px;">
-                <li>Open <a href="https://projectlean.app" style="color: #dc2626;">projectlean.app</a> in Chrome</li>
+                <li>Open <a href="https://tracker.projectlean.app" style="color: #dc2626;">tracker.projectlean.app</a> in Chrome</li>
                 <li>Tap the menu (3 dots) in the top right</li>
                 <li>Tap "Add to Home Screen" or "Install App"</li>
               </ol>
