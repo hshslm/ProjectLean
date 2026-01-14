@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -32,27 +32,29 @@ Deno.serve(async (req) => {
     const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: authHeader,
         },
       },
     });
     
-    // Verify the requesting user using their own token
-    const { data: { user: requestingUser }, error: authError } = await userClient.auth.getUser();
+    // Verify the requesting user using getClaims for proper JWT validation
+    const { data: claimsData, error: authError } = await userClient.auth.getClaims(token);
     
-    if (authError || !requestingUser) {
+    if (authError || !claimsData?.claims) {
       console.error('Auth error:', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    const requestingUserId = claimsData.claims.sub;
 
     // Check if requesting user is admin
     const { data: roleData } = await adminClient
       .from('user_roles')
       .select('role')
-      .eq('user_id', requestingUser.id)
+      .eq('user_id', requestingUserId)
       .eq('role', 'admin')
       .maybeSingle();
 
