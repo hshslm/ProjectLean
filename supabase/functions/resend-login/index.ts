@@ -28,10 +28,20 @@ Deno.serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     
-    // Verify the requesting user
-    const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
+    // Create a client with the user's token to verify their identity
+    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
+    
+    // Verify the requesting user using their own token
+    const { data: { user: requestingUser }, error: authError } = await userClient.auth.getUser();
     
     if (authError || !requestingUser) {
+      console.error('Auth error:', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
