@@ -89,7 +89,29 @@ const Auth = () => {
       if (error) {
         toast.error(error.message || 'Failed to create account');
       } else {
-        toast.success('Account created! Check your email to verify your account.');
+        // Send welcome email with login details
+        try {
+          await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              },
+              body: JSON.stringify({
+                email,
+                password,
+                fullName,
+              }),
+            }
+          );
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+          // Don't block signup if email fails
+        }
+        
+        toast.success('Account created! Check your email for your login details.');
         setIsSignUp(false);
         setPassword('');
       }
