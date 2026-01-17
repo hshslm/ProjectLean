@@ -10,7 +10,6 @@ const corsHeaders = {
 
 interface WelcomeEmailRequest {
   email: string;
-  password: string;
   fullName?: string;
 }
 
@@ -20,21 +19,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, password, fullName }: WelcomeEmailRequest = await req.json();
+    const { email, fullName }: WelcomeEmailRequest = await req.json();
 
-    if (!email || !password) {
+    if (!email) {
       return new Response(
-        JSON.stringify({ error: 'Email and password are required' }),
+        JSON.stringify({ error: 'Email is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const appUrl = req.headers.get('origin') || 'https://snap-macro-sight.lovable.app';
     
+    // Send welcome email (NO PASSWORD - user already set their password during signup)
     const emailResponse = await resend.emails.send({
       from: 'Project Lean <noreply@projectleaneg.com>',
       to: [email],
-      subject: 'Welcome to Project Lean - Your Account Details',
+      subject: 'Welcome to Project Lean!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -51,14 +51,6 @@ Deno.serve(async (req) => {
             <p style="font-size: 16px;">Hi ${fullName || 'there'},</p>
             
             <p style="font-size: 16px;">Your account has been created and you're ready to start tracking your meals with AI-powered macro analysis!</p>
-            
-            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #374151;">Your Login Details</h3>
-              <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
-              <p style="margin: 10px 0;"><strong>Password:</strong> ${password}</p>
-            </div>
-            
-            <p style="font-size: 14px; color: #6b7280;">Keep these credentials safe. You can change your password anytime from your account settings.</p>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${appUrl}/auth" style="background: linear-gradient(135deg, #8B9A7D 0%, #6B7A5D 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Log In Now</a>

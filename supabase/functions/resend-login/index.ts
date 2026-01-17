@@ -88,29 +88,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate a new password
-    const newPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
-
-    // Update the user's password
-    const { error: updateError } = await adminClient.auth.admin.updateUserById(clientUserId, {
-      password: newPassword,
+    // Generate a password reset link (secure - no plaintext password)
+    const appUrl = req.headers.get('origin') || 'https://projectlean.app';
+    
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'recovery',
+      email: profile.email,
+      options: {
+        redirectTo: `${appUrl}/reset-password`,
+      },
     });
 
-    if (updateError) {
-      console.error('Error updating password:', updateError);
+    if (linkError) {
+      console.error('Error generating password reset link:', linkError);
       return new Response(
-        JSON.stringify({ error: 'Failed to reset password' }),
+        JSON.stringify({ error: 'Failed to generate reset link' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Send email with new credentials
-    const appUrl = req.headers.get('origin') || 'https://projectlean.app';
-    
+    const resetLink = linkData?.properties?.action_link;
+
+    // Send email with secure reset link (NO PASSWORD)
     const emailResponse = await resend.emails.send({
-      from: 'Project Lean <noreply@projectlean.app>',
+      from: 'Project Lean <noreply@projectleaneg.com>',
       to: [profile.email],
-      subject: 'Your Project Lean Login Details',
+      subject: 'Your Project Lean Login Link',
       html: `
         <!DOCTYPE html>
         <html>
@@ -119,45 +122,39 @@ Deno.serve(async (req) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Project Lean 🔐</h1>
+          <div style="background: linear-gradient(135deg, #8B9A7D 0%, #6B7A5D 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Project Lean Login 🔐</h1>
           </div>
           
           <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
             <p style="font-size: 16px;">Hi ${profile.full_name || 'there'},</p>
             
-            <p style="font-size: 16px;">Here are your login credentials for the Project Lean Macro Tracker:</p>
-            
-            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #374151;">Your Login Details</h3>
-              <p style="margin: 10px 0;"><strong>Email:</strong> ${profile.email}</p>
-              <p style="margin: 10px 0;"><strong>Password:</strong> ${newPassword}</p>
-            </div>
+            <p style="font-size: 16px;">Your coach has sent you a login link for Project Lean. Click the button below to access your account:</p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="https://projectlean.app/auth" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Log In Now</a>
+              <a href="${resetLink}" style="background: linear-gradient(135deg, #8B9A7D 0%, #6B7A5D 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Your Account</a>
             </div>
 
-            <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border: 1px solid #fecaca; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #991b1b;">📱 Install the App on Your Phone</h3>
+            <p style="font-size: 14px; color: #6b7280;">This link will expire in 24 hours for security. If you need a new link, ask your coach to resend it.</p>
+
+            <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #166534;">📱 Install the App on Your Phone</h3>
               <p style="font-size: 14px; color: #374151; margin-bottom: 10px;">For the best experience, add Project Lean to your home screen:</p>
               
               <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>iPhone:</strong></p>
               <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 15px 0; padding-left: 20px;">
-                <li>Open <a href="https://tracker.projectlean.app" style="color: #dc2626;">tracker.projectlean.app</a> in Safari</li>
+                <li>Open <a href="https://tracker.projectlean.app" style="color: #166534;">tracker.projectlean.app</a> in Safari</li>
                 <li>Tap the Share button (square with arrow)</li>
                 <li>Scroll down and tap "Add to Home Screen"</li>
               </ol>
               
               <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>Android:</strong></p>
               <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 0 0; padding-left: 20px;">
-                <li>Open <a href="https://tracker.projectlean.app" style="color: #dc2626;">tracker.projectlean.app</a> in Chrome</li>
+                <li>Open <a href="https://tracker.projectlean.app" style="color: #166534;">tracker.projectlean.app</a> in Chrome</li>
                 <li>Tap the menu (3 dots) in the top right</li>
                 <li>Tap "Add to Home Screen" or "Install App"</li>
               </ol>
             </div>
-            
-            <p style="font-size: 14px; color: #6b7280;">We recommend changing your password after logging in.</p>
             
             <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you didn't request this, please contact your coach.</p>
             
@@ -168,7 +165,7 @@ Deno.serve(async (req) => {
       `,
     });
 
-    console.log('Login details email sent:', emailResponse);
+    console.log('Login link email sent:', emailResponse);
 
     return new Response(
       JSON.stringify({ success: true, email: profile.email }),
