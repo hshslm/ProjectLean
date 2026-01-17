@@ -319,6 +319,10 @@ export const MealEstimator: React.FC = () => {
       
       // Save to meal_logs
       if (user && data.macros) {
+        // Use local date to ensure meal is logged to correct day in user's timezone
+        const now = new Date();
+        const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        
         const { error: saveError } = await supabase
           .from('meal_logs')
           .insert({
@@ -335,6 +339,7 @@ export const MealEstimator: React.FC = () => {
             confidence: data.confidence?.level || null,
             notes: notes.trim() || null,
             image_url: photos[0]?.preview || null,
+            meal_date: localDate,
           });
         
         if (saveError) {
