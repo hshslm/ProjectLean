@@ -2,12 +2,13 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles } from 'lucide-react';
 
 interface ScanCounterProps {
-  remainingScans: number;
+  usedScans: number;
   isSubscribed: boolean;
   totalScans: number;
 }
 
-export const ScanCounter = ({ remainingScans, isSubscribed, totalScans }: ScanCounterProps) => {
+export const ScanCounter = ({ usedScans, isSubscribed, totalScans }: ScanCounterProps) => {
+  const remainingScans = totalScans - usedScans;
   const isLow = remainingScans <= 3;
 
   return (
@@ -22,7 +23,7 @@ export const ScanCounter = ({ remainingScans, isSubscribed, totalScans }: ScanCo
       }
     >
       {isSubscribed && <Sparkles className="h-3 w-3 mr-1" />}
-      {remainingScans}/{totalScans} scans
+      {usedScans}/{totalScans} scans
     </Badge>
   );
 };

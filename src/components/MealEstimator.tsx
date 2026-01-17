@@ -85,8 +85,8 @@ export const MealEstimator: React.FC = () => {
   const { user, signOut } = useAuth();
   const { 
     canScan, 
-    isSubscribed, 
-    remainingScans, 
+    isSubscribed,
+    scanCount,
     totalScans,
     incrementScanCount, 
     openPaymentLink,
@@ -314,10 +314,8 @@ export const MealEstimator: React.FC = () => {
 
       setResult(data);
       
-      // Increment scan count (only for free users)
-      if (!isSubscribed) {
-        await incrementScanCount();
-      }
+      // Increment scan count for all users
+      await incrementScanCount();
       
       // Save to meal_logs
       if (user && data.macros) {
@@ -415,7 +413,7 @@ export const MealEstimator: React.FC = () => {
             />
             <div className="flex items-center gap-1">
               <ScanCounter 
-                remainingScans={remainingScans} 
+                usedScans={scanCount} 
                 isSubscribed={isSubscribed} 
                 totalScans={totalScans} 
               />
