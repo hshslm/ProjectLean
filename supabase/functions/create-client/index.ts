@@ -97,14 +97,28 @@ Deno.serve(async (req) => {
       .update({ created_by: requestingUser.id })
       .eq('user_id', newUser.user.id);
 
-    // Send welcome email with login credentials
+    // Generate a password reset link so user can set their own password
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
+      options: {
+        redirectTo: `${req.headers.get('origin') || 'https://projectlean.app'}/reset-password`,
+      },
+    });
+
+    if (linkError) {
+      console.error('Error generating password reset link:', linkError);
+    }
+
+    // Send welcome email with secure link (NO PASSWORD)
     const appUrl = req.headers.get('origin') || 'https://projectlean.app';
+    const resetLink = linkData?.properties?.action_link || `${appUrl}/auth`;
     
     try {
       const emailResponse = await resend.emails.send({
         from: 'Project Lean <noreply@projectleaneg.com>',
         to: [email],
-        subject: 'Welcome to Project Lean - Your Account Details',
+        subject: 'Welcome to Project Lean - Set Up Your Account',
         html: `
           <!DOCTYPE html>
           <html>
@@ -123,16 +137,16 @@ Deno.serve(async (req) => {
               <p style="font-size: 16px;">Your account has been created and you're ready to start tracking your meals!</p>
               
               <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #374151;">Your Login Details</h3>
+                <h3 style="margin-top: 0; color: #374151;">Your Account</h3>
                 <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
-                <p style="margin: 10px 0;"><strong>Password:</strong> ${password}</p>
+                <p style="margin: 10px 0; color: #6b7280;">Click the button below to set your password and get started.</p>
               </div>
-              
-              <p style="font-size: 14px; color: #6b7280;">We recommend changing your password after your first login.</p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${appUrl}/auth" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Log In Now</a>
+                <a href="${resetLink}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Set Your Password & Log In</a>
               </div>
+              
+              <p style="font-size: 14px; color: #6b7280;">This link will expire in 24 hours. If you need a new link, ask your coach to resend it.</p>
               
               <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you ever need to cancel your subscription, you can do so from your account settings or <a href="https://billing.stripe.com/p/login/4gw6rbcv63Gl4gw4gg" style="color: #667eea; text-decoration: underline;">manage your subscription here</a>.</p>
               

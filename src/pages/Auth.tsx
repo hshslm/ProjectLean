@@ -89,7 +89,7 @@ const Auth = () => {
       if (error) {
         toast.error(error.message || 'Failed to create account');
       } else {
-        // Send welcome email with login details
+        // Send welcome email (no password - user already set it during signup)
         try {
           await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`,
@@ -101,7 +101,6 @@ const Auth = () => {
               },
               body: JSON.stringify({
                 email,
-                password,
                 fullName,
               }),
             }
@@ -111,7 +110,7 @@ const Auth = () => {
           // Don't block signup if email fails
         }
         
-        toast.success('Account created! Check your email for your login details.');
+        toast.success('Account created! You can now sign in.');
         setIsSignUp(false);
         setPassword('');
       }
