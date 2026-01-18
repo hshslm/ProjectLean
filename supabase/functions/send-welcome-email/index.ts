@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     
     // Send welcome email (NO PASSWORD - user already set their password during signup)
     const emailResponse = await resend.emails.send({
-      from: 'Project Lean <noreply@projectleaneg.com>',
+      from: 'Project Lean <noreply@projectlean.app>',
       to: [email],
       subject: 'Welcome to Project Lean!',
       html: `
