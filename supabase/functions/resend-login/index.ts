@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
 
     // Send email with secure reset link (NO PASSWORD)
     const emailResponse = await resend.emails.send({
-      from: 'Project Lean <noreply@projectleaneg.com>',
+      from: 'Project Lean <noreply@projectlean.app>',
       to: [profile.email],
       subject: 'Your Project Lean Login Link',
       html: `
