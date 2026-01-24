@@ -121,37 +121,37 @@ Deno.serve(async (req) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: #DC2626; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
             <img src="https://tracker.projectlean.app/pwa-192x192.png" alt="Project Lean" style="width: 60px; height: 60px; margin-bottom: 10px;">
             <h1 style="color: white; margin: 0; font-size: 28px;">Project Lean Login 🔐</h1>
           </div>
           
-          <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
-            <p style="font-size: 16px;">Hi ${profile.full_name || 'there'},</p>
+          <div style="background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+            <p style="font-size: 16px; color: #1a1a1a;">Hi ${profile.full_name || 'there'},</p>
             
-            <p style="font-size: 16px;">Your coach has sent you a login link for Project Lean. Click the button below to access your account:</p>
+            <p style="font-size: 16px; color: #1a1a1a;">Your coach has sent you a login link for Project Lean. Click the button below to access your account:</p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetLink}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Your Account</a>
+              <a href="${resetLink}" style="background: #DC2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Your Account</a>
             </div>
 
             <p style="font-size: 14px; color: #6b7280;">This link will expire in 24 hours for security. If you need a new link, ask your coach to resend it.</p>
 
-            <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #166534;">📱 Install the App on Your Phone</h3>
-              <p style="font-size: 14px; color: #374151; margin-bottom: 10px;">For the best experience, add Project Lean to your home screen:</p>
+            <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border: 1px solid #fecaca; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #DC2626;">📱 Install the App on Your Phone</h3>
+              <p style="font-size: 14px; color: #1a1a1a; margin-bottom: 10px;">For the best experience, add Project Lean to your home screen:</p>
               
-              <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>iPhone:</strong></p>
-              <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 15px 0; padding-left: 20px;">
-                <li>Open <a href="https://tracker.projectlean.app" style="color: #166534;">tracker.projectlean.app</a> in Safari</li>
+              <p style="font-size: 14px; color: #1a1a1a; margin: 8px 0;"><strong>iPhone:</strong></p>
+              <ol style="font-size: 13px; color: #4b5563; margin: 5px 0 15px 0; padding-left: 20px;">
+                <li>Open <a href="https://tracker.projectlean.app" style="color: #DC2626;">tracker.projectlean.app</a> in Safari</li>
                 <li>Tap the Share button (square with arrow)</li>
                 <li>Scroll down and tap "Add to Home Screen"</li>
               </ol>
               
-              <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>Android:</strong></p>
-              <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 0 0; padding-left: 20px;">
-                <li>Open <a href="https://tracker.projectlean.app" style="color: #166534;">tracker.projectlean.app</a> in Chrome</li>
+              <p style="font-size: 14px; color: #1a1a1a; margin: 8px 0;"><strong>Android:</strong></p>
+              <ol style="font-size: 13px; color: #4b5563; margin: 5px 0 0 0; padding-left: 20px;">
+                <li>Open <a href="https://tracker.projectlean.app" style="color: #DC2626;">tracker.projectlean.app</a> in Chrome</li>
                 <li>Tap the menu (3 dots) in the top right</li>
                 <li>Tap "Add to Home Screen" or "Install App"</li>
               </ol>
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
             
             <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you didn't request this, please contact your coach.</p>
             
-            <p style="margin-bottom: 0; margin-top: 30px;">Best regards,<br><strong>The Project Lean Team</strong></p>
+            <p style="margin-bottom: 0; margin-top: 30px; color: #1a1a1a;">Best regards,<br><strong>The Project Lean Team</strong></p>
           </div>
         </body>
         </html>
