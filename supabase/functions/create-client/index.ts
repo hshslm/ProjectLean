@@ -147,6 +147,25 @@ Deno.serve(async (req) => {
               </div>
               
               <p style="font-size: 14px; color: #6b7280;">This link will expire in 24 hours. If you need a new link, ask your coach to resend it.</p>
+
+              <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #166534;">📱 Install the App on Your Phone</h3>
+                <p style="font-size: 14px; color: #374151; margin-bottom: 10px;">For the best experience, add Project Lean to your home screen:</p>
+                
+                <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>iPhone:</strong></p>
+                <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 15px 0; padding-left: 20px;">
+                  <li>Open <a href="https://tracker.projectlean.app" style="color: #166534;">tracker.projectlean.app</a> in Safari</li>
+                  <li>Tap the Share button (square with arrow)</li>
+                  <li>Scroll down and tap "Add to Home Screen"</li>
+                </ol>
+                
+                <p style="font-size: 14px; color: #374151; margin: 8px 0;"><strong>Android:</strong></p>
+                <ol style="font-size: 13px; color: #6b7280; margin: 5px 0 0 0; padding-left: 20px;">
+                  <li>Open <a href="https://tracker.projectlean.app" style="color: #166534;">tracker.projectlean.app</a> in Chrome</li>
+                  <li>Tap the menu (3 dots) in the top right</li>
+                  <li>Tap "Add to Home Screen" or "Install App"</li>
+                </ol>
+              </div>
               
               <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you ever need to cancel your subscription, you can do so from your account settings or <a href="https://billing.stripe.com/p/login/4gw6rbcv63Gl4gw4gg" style="color: #667eea; text-decoration: underline;">manage your subscription here</a>.</p>
               
