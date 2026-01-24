@@ -122,7 +122,8 @@ Deno.serve(async (req) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #8B9A7D 0%, #6B7A5D 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <img src="https://tracker.projectlean.app/pwa-192x192.png" alt="Project Lean" style="width: 60px; height: 60px; margin-bottom: 10px;">
             <h1 style="color: white; margin: 0; font-size: 28px;">Project Lean Login 🔐</h1>
           </div>
           
@@ -132,7 +133,7 @@ Deno.serve(async (req) => {
             <p style="font-size: 16px;">Your coach has sent you a login link for Project Lean. Click the button below to access your account:</p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetLink}" style="background: linear-gradient(135deg, #8B9A7D 0%, #6B7A5D 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Your Account</a>
+              <a href="${resetLink}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Your Account</a>
             </div>
 
             <p style="font-size: 14px; color: #6b7280;">This link will expire in 24 hours for security. If you need a new link, ask your coach to resend it.</p>
