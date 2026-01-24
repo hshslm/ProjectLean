@@ -1,0 +1,2 @@
+-- Drop the overly permissive policy that allows any authenticated user to read all notification settings
+DROP POLICY IF EXISTS "Require authentication for notification_settings" ON public.notification_settings;
