@@ -88,30 +88,33 @@ Deno.serve(async (req) => {
       to: [email],
       subject: 'Reset Your Project Lean Password',
       html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-          <div style="text-align: center; margin-bottom: 32px;">
-            <h1 style="color: #1a1a1a; font-size: 24px; margin: 0;">Project Lean</h1>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: #DC2626; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <img src="https://tracker.projectlean.app/project-lean-logo.png" alt="Project Lean" style="width: 180px; height: auto; margin-bottom: 10px;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Reset Your Password 🔐</h1>
           </div>
-          <div style="background: #ffffff; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
-            <h2 style="color: #1a1a1a; font-size: 20px; margin: 0 0 16px;">Reset Your Password</h2>
-            <p style="color: #666666; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-              Hi ${userName},<br><br>
-              We received a request to reset your password. Click the button below to choose a new password:
-            </p>
-            <div style="text-align: center;">
-              <a href="${resetUrl}" 
-                 style="display: inline-block; background: #FF6B5B; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                Reset Password
-              </a>
+          
+          <div style="background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+            <p style="font-size: 16px; color: #1a1a1a;">Hi ${userName},</p>
+            
+            <p style="font-size: 16px; color: #1a1a1a;">We received a request to reset your password. Click the button below to choose a new password:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" style="background: #DC2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Reset Password</a>
             </div>
-            <p style="color: #999999; font-size: 14px; margin: 24px 0 0;">
-              This link will expire in 1 hour. If you didn't request this, you can safely ignore this email.
-            </p>
+
+            <p style="font-size: 14px; color: #6b7280;">This link will expire in 1 hour. If you didn't request this, you can safely ignore this email.</p>
+            
+            <p style="margin-bottom: 0; margin-top: 30px; color: #1a1a1a;">Best regards,<br><strong>The Project Lean Team</strong></p>
           </div>
-          <p style="color: #999999; font-size: 12px; text-align: center; margin-top: 32px;">
-            © ${new Date().getFullYear()} Project Lean. All rights reserved.
-          </p>
-        </div>
+        </body>
+        </html>
       `,
     });
 
