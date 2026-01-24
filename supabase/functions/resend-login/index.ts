@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
       type: 'recovery',
       email: profile.email,
       options: {
-        redirectTo: `${appUrl}/reset-password`,
+        redirectTo: `${appUrl}/auth/reset-password`,
       },
     });
 
