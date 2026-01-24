@@ -98,11 +98,14 @@ Deno.serve(async (req) => {
       .eq('user_id', newUser.user.id);
 
     // Generate a password reset link so user can set their own password
+    // Always use production URL for client-facing emails
+    const appUrl = 'https://tracker.projectlean.app';
+    
     const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: `${req.headers.get('origin') || 'https://projectlean.app'}/auth/reset-password`,
+        redirectTo: `${appUrl}/auth/reset-password`,
       },
     });
 
@@ -111,7 +114,6 @@ Deno.serve(async (req) => {
     }
 
     // Send welcome email with secure link (NO PASSWORD)
-    const appUrl = req.headers.get('origin') || 'https://projectlean.app';
     const resetLink = linkData?.properties?.action_link || `${appUrl}/auth`;
     
     try {
