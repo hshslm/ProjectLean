@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: `${req.headers.get('origin') || 'https://projectlean.app'}/reset-password`,
+        redirectTo: `${req.headers.get('origin') || 'https://projectlean.app'}/auth/reset-password`,
       },
     });
 
