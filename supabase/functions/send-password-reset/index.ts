@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: #DC2626; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <img src="https://snap-macro-sight.lovable.app/project-lean-logo.png" alt="Project Lean" style="width: 180px; height: auto; margin-bottom: 10px;">
+            <img src="https://snap-macro-sight.lovable.app/email-logo.png" alt="Project Lean" style="width: 200px; height: auto; margin-bottom: 10px;">
             <h1 style="color: white; margin: 0; font-size: 28px;">Reset Your Password 🔐</h1>
           </div>
           
