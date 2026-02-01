@@ -97,24 +97,31 @@ Deno.serve(async (req) => {
       .update({ created_by: requestingUser.id })
       .eq('user_id', newUser.user.id);
 
-    // Generate a password reset link so user can set their own password
-    // Always use production URL for client-facing emails
+    // Generate a custom invitation token with 24-hour expiry
     const appUrl = 'https://tracker.projectlean.app';
     
-    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-      type: 'recovery',
-      email: email,
-      options: {
-        redirectTo: `${appUrl}/auth/reset-password`,
-      },
-    });
+    // Create a secure random token
+    const tokenBytes = new Uint8Array(32);
+    crypto.getRandomValues(tokenBytes);
+    const invitationToken = Array.from(tokenBytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
-    if (linkError) {
-      console.error('Error generating password reset link:', linkError);
+    // Store the invitation in the database
+    const { error: inviteError } = await adminClient
+      .from('client_invitations')
+      .insert({
+        user_id: newUser.user.id,
+        token: invitationToken,
+        email: email,
+      });
+
+    if (inviteError) {
+      console.error('Error creating invitation:', inviteError);
     }
 
-    // Send welcome email with secure link (NO PASSWORD)
-    const resetLink = linkData?.properties?.action_link || `${appUrl}/auth`;
+    // Create the invitation link
+    const inviteLink = `${appUrl}/set-password?token=${invitationToken}`;
     
     try {
       const emailResponse = await resend.emails.send({
@@ -146,7 +153,7 @@ Deno.serve(async (req) => {
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${resetLink}" style="background: #DC2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Set Your Password & Log In</a>
+                <a href="${inviteLink}" style="background: #DC2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Set Your Password & Log In</a>
               </div>
               
               <p style="font-size: 14px; color: #6b7280;">This link will expire in 24 hours. If you need a new link, ask your coach to resend it.</p>
