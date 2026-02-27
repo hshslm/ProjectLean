@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.validate-invitation]
 verify_jwt = false
+
+[functions.karim-coach]
+verify_jwt = false

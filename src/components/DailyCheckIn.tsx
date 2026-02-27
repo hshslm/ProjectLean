@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Check, Dumbbell, Footprints, Moon, Utensils, Beef, ChevronLeft, ChevronRight, Brain } from 'lucide-react';
+import { Check, Dumbbell, Footprints, Moon, Utensils, Beef, ChevronLeft, ChevronRight, Brain, Loader2, MessageSquare } from 'lucide-react';
 import { format, isToday, addDays, subDays } from 'date-fns';
 
 const COGNITIVE_PATTERNS = [
@@ -65,6 +64,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  
+  // AI Coaching state
+  const [coachingResponse, setCoachingResponse] = useState<string | null>(null);
+  const [isLoadingCoaching, setIsLoadingCoaching] = useState(false);
 
   useEffect(() => {
     fetchCheckin();
@@ -74,12 +77,26 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
     setIsLoading(true);
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     
-    const { data, error } = await (supabase
-      .from('daily_checkins' as any)
-      .select('*')
-      .eq('user_id', userId)
-      .eq('checkin_date', dateStr)
-      .maybeSingle() as any);
+    // Fetch check-in and coaching response in parallel
+    const [checkinResult, coachingResult] = await Promise.all([
+      (supabase
+        .from('daily_checkins' as any)
+        .select('*')
+        .eq('user_id', userId)
+        .eq('checkin_date', dateStr)
+        .maybeSingle() as any),
+      (supabase
+        .from('coaching_responses' as any)
+        .select('response_text')
+        .eq('user_id', userId)
+        .eq('checkin_date', dateStr)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle() as any),
+    ]);
+
+    const { data } = checkinResult;
+    const { data: coachingData } = coachingResult;
 
     if (data) {
       setCheckin({
@@ -110,6 +127,8 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
       setExistingId(null);
       setHasSubmitted(false);
     }
+
+    setCoachingResponse(coachingData?.response_text || null);
     setIsLoading(false);
   };
 
@@ -120,15 +139,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
   const togglePattern = (patternId: string) => {
     setCheckin(prev => {
       const current = prev.cognitive_patterns;
-      
-      // If "none" is selected, clear everything else
       if (patternId === 'none') {
         return { ...prev, cognitive_patterns: current.includes('none') ? [] : ['none'] };
       }
-      
-      // If selecting a pattern while "none" is active, remove "none"
       let updated = current.filter(p => p !== 'none');
-      
       if (updated.includes(patternId)) {
         updated = updated.filter(p => p !== patternId);
       } else if (updated.length < 2) {
@@ -137,9 +151,59 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
         toast.error('Maximum 2 patterns allowed');
         return prev;
       }
-      
       return { ...prev, cognitive_patterns: updated };
     });
+  };
+
+  const fetchCoachingResponse = async (checkinData: CheckInData, checkinId: string) => {
+    setIsLoadingCoaching(true);
+    
+    try {
+      // Fetch 7-day history for context
+      const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd');
+      const today = format(new Date(), 'yyyy-MM-dd');
+      
+      const { data: history } = await (supabase
+        .from('daily_checkins' as any)
+        .select('*')
+        .eq('user_id', userId)
+        .gte('checkin_date', sevenDaysAgo)
+        .lt('checkin_date', today)
+        .order('checkin_date', { ascending: false }) as any);
+
+      const { data, error } = await supabase.functions.invoke('karim-coach', {
+        body: {
+          checkin: checkinData,
+          history: history || [],
+        },
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      const responseText = data.response;
+      setCoachingResponse(responseText);
+
+      // Save coaching response to DB
+      await (supabase
+        .from('coaching_responses' as any)
+        .insert({
+          user_id: userId,
+          checkin_id: checkinId,
+          checkin_date: format(selectedDate, 'yyyy-MM-dd'),
+          response_text: responseText,
+        }) as any);
+
+    } catch (error: any) {
+      console.error('Coaching error:', error);
+      if (error.message?.includes('Rate limited')) {
+        toast.error('AI coaching is temporarily busy. Try again in a moment.');
+      } else {
+        toast.error('Could not generate coaching response');
+      }
+    } finally {
+      setIsLoadingCoaching(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -167,26 +231,39 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
     };
 
     let error;
+    let savedId = existingId;
+    
     if (existingId) {
       ({ error } = await (supabase
         .from('daily_checkins' as any)
         .update(payload)
         .eq('id', existingId) as any));
     } else {
-      ({ error } = await (supabase
+      const result = await (supabase
         .from('daily_checkins' as any)
-        .insert(payload) as any));
+        .insert(payload)
+        .select('id')
+        .single() as any);
+      error = result.error;
+      savedId = result.data?.id || null;
     }
 
     if (error) {
       toast.error('Failed to save check-in');
       console.error(error);
-    } else {
-      toast.success(existingId ? 'Check-in updated' : 'Check-in saved');
-      setHasSubmitted(true);
-      fetchCheckin();
+      setIsSaving(false);
+      return;
     }
+
+    toast.success(existingId ? 'Check-in updated' : 'Check-in saved');
+    setHasSubmitted(true);
+    setExistingId(savedId);
     setIsSaving(false);
+
+    // Trigger AI coaching response
+    if (savedId) {
+      fetchCoachingResponse(checkin, savedId);
+    }
   };
 
   const habitsCompleted = HABITS.filter(h => checkin[h.key]).length;
@@ -222,6 +299,30 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
         </div>
       ) : (
         <>
+          {/* Karim AI Coaching Response */}
+          {(coachingResponse || isLoadingCoaching) && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  <CardTitle className="text-sm font-semibold text-primary">Karim</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoadingCoaching ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Analyzing your check-in...</span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {coachingResponse}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Habit Tracking */}
           <Card>
             <CardHeader className="pb-3">
@@ -265,9 +366,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-sm text-muted-foreground mb-2 block">
-                  Mood (1-10)
-                </Label>
+                <Label className="text-sm text-muted-foreground mb-2 block">Mood (1-10)</Label>
                 <div className="flex gap-1">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
                     <button
@@ -285,9 +384,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
                 </div>
               </div>
               <div>
-                <Label className="text-sm text-muted-foreground mb-2 block">
-                  Stress (1-10)
-                </Label>
+                <Label className="text-sm text-muted-foreground mb-2 block">Stress (1-10)</Label>
                 <div className="flex gap-1">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
                     <button
@@ -349,9 +446,9 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
             size="lg"
             className="w-full"
             onClick={handleSubmit}
-            disabled={isSaving}
+            disabled={isSaving || isLoadingCoaching}
           >
-            {isSaving ? 'Saving...' : hasSubmitted ? 'Update Check-In' : 'Complete Check-In'}
+            {isSaving ? 'Saving...' : isLoadingCoaching ? 'Getting coaching...' : hasSubmitted ? 'Update Check-In' : 'Complete Check-In'}
           </Button>
         </>
       )}
