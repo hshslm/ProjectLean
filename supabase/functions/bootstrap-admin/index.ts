@@ -11,6 +11,17 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const { email, password, secret } = await req.json();
+
+    // Require a bootstrap secret to prevent unauthorized access
+    const bootstrapSecret = Deno.env.get('BOOTSTRAP_SECRET');
+    if (!bootstrapSecret || secret !== bootstrapSecret) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized. Invalid bootstrap secret.' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
@@ -36,8 +47,6 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const { email, password } = await req.json();
 
     if (!email || !password) {
       return new Response(
