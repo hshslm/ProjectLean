@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed } from 'lucide-react';
+import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3 } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ import { SaveTemplateDialog } from '@/components/SaveTemplateDialog';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { DailyCheckIn } from '@/components/DailyCheckIn';
+import { WeeklyInsights } from '@/components/WeeklyInsights';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -109,7 +110,7 @@ export const MealEstimator: React.FC = () => {
   
   // View state: 'estimate' or 'history'
   const [view, setView] = useState<'estimate' | 'history'>('history');
-  const [activeTab, setActiveTab] = useState<'meals' | 'checkin'>('meals');
+  const [activeTab, setActiveTab] = useState<'meals' | 'checkin' | 'insights'>('meals');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
   const [weeklyLogs, setWeeklyLogs] = useState<MealLog[]>([]);
@@ -465,7 +466,7 @@ export const MealEstimator: React.FC = () => {
           <div className="flex gap-1 bg-muted rounded-xl p-1">
             <button
               onClick={() => { setActiveTab('meals'); setView('history'); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'meals'
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -476,7 +477,7 @@ export const MealEstimator: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('checkin')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'checkin'
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -485,9 +486,22 @@ export const MealEstimator: React.FC = () => {
               <ClipboardCheck className="w-4 h-4" />
               Check-In
             </button>
+            <button
+              onClick={() => setActiveTab('insights')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'insights'
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              Insights
+            </button>
           </div>
 
-          {activeTab === 'checkin' ? (
+          {activeTab === 'insights' ? (
+            <WeeklyInsights userId={user!.id} />
+          ) : activeTab === 'checkin' ? (
             <DailyCheckIn userId={user!.id} />
           ) : view === 'history' && !result ? (
             <>
