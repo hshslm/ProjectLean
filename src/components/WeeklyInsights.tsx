@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subDays } from 'date-fns';
-import { Flame, Brain, TrendingUp, SmilePlus, Zap, HeartPulse, Trophy, Shield, AlertTriangle, Target, Sparkles } from 'lucide-react';
+import { Flame, Brain, TrendingUp, SmilePlus, Zap, HeartPulse, Trophy, Shield, AlertTriangle, Target, Sparkles, MessageSquareText, Loader2, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface CheckInDay {
   checkin_date: string;
@@ -46,6 +48,8 @@ interface WeeklyInsightsProps {
 export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
   const [data, setData] = useState<CheckInDay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
   useEffect(() => {
     fetchWeeklyData();
@@ -258,6 +262,29 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
     };
   });
 
+  const generateSummary = async () => {
+    setIsSummaryLoading(true);
+    try {
+      const { data: fnData, error } = await supabase.functions.invoke('weekly-summary', {
+        body: {
+          weekData: data,
+          weeklyTheme: weeklyTheme.label,
+          recoveryScore,
+          recoveryOpportunities,
+          recoveries,
+        },
+      });
+      if (error) throw error;
+      if (fnData?.error) throw new Error(fnData.error);
+      setAiSummary(fnData.summary);
+    } catch (e: any) {
+      console.error('Summary error:', e);
+      toast.error(e.message || 'Failed to generate summary');
+    } finally {
+      setIsSummaryLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Weekly Behavior Theme Banner */}
@@ -268,6 +295,51 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
             <p className={`text-sm font-bold ${weeklyTheme.colorClass}`}>{weeklyTheme.label}</p>
             <p className="text-xs text-muted-foreground">{weeklyTheme.description}</p>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* AI Coaching Summary */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageSquareText className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base font-semibold">Coach's Weekly Summary</CardTitle>
+            </div>
+            {aiSummary && (
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={generateSummary} disabled={isSummaryLoading}>
+                <RefreshCw className={`w-3.5 h-3.5 ${isSummaryLoading ? 'animate-spin' : ''}`} />
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {aiSummary ? (
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{aiSummary}</p>
+          ) : (
+            <div className="text-center py-2">
+              <Button
+                onClick={generateSummary}
+                disabled={isSummaryLoading}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                {isSummaryLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Generate AI Summary
+                  </>
+                )}
+              </Button>
+              <p className="text-[10px] text-muted-foreground mt-2">Personalized coaching insight powered by AI</p>
+            </div>
+          )}
         </CardContent>
       </Card>
       <div className="grid grid-cols-2 gap-3">

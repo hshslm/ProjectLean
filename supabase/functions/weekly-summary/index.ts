@@ -1,0 +1,146 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
+const SYSTEM_PROMPT = `You are Karim Zaki — a performance-driven fitness and behavior coach writing a personalized weekly summary for your client.
+
+PERSONALITY & TONE:
+- Performance-driven, behavior-focused, identity-based
+- Strategic and direct — no fluff, no emojis
+- Calm confidence. Never patronizing.
+- Write as if composing a brief weekly coaching note to a real client.
+
+STRUCTURE (follow this exactly):
+1. Open with the WEEKLY THEME (one word/phrase that captures the week, e.g. "Consistency", "Recovery", "Rebuilding")
+2. 2-3 sentences summarizing what went well
+3. 1-2 sentences on the main area to improve
+4. Close with ONE specific action item for next week
+
+RULES:
+- Keep total response under 120 words
+- Never shame. Never use generic motivation.
+- Connect behavior to identity ("You trained 5/7 days — that's an athlete's schedule.")
+- If recovery happened after a bad day, highlight resilience
+- If patterns are recurring, name them directly and offer a structural fix
+- If mood/stress data exists, weave it into the narrative naturally
+- Use markdown: bold the theme, use line breaks between sections`;
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { weekData, weeklyTheme, recoveryScore, recoveryOpportunities, recoveries } = await req.json();
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    if (!weekData || weekData.length === 0) {
+      return new Response(JSON.stringify({ error: "No check-in data provided" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const habitKeys = ['protein_hit', 'steps_hit', 'training_hit', 'sleep_hit', 'aligned_eating_hit'];
+    const daysTracked = weekData.length;
+
+    // Habit rates
+    const habitRates = habitKeys.map(key => {
+      const count = weekData.filter((d: any) => d[key]).length;
+      return `${key.replace('_hit', '').replace('_', ' ')}: ${count}/${daysTracked}`;
+    }).join(", ");
+
+    // Average habits per day
+    const avgHabits = weekData.reduce((sum: number, day: any) => {
+      return sum + habitKeys.filter(k => day[k]).length;
+    }, 0) / daysTracked;
+
+    // Pattern frequency
+    const patternCounts: Record<string, number> = {};
+    weekData.forEach((day: any) => {
+      (day.cognitive_patterns || []).forEach((p: string) => {
+        if (p !== 'none') patternCounts[p] = (patternCounts[p] || 0) + 1;
+      });
+    });
+    const patterns = Object.entries(patternCounts)
+      .sort(([, a], [, b]) => (b as number) - (a as number))
+      .map(([p, c]) => `${p}: ${c}x`)
+      .join(", ") || "None";
+
+    // Mood & stress
+    const moodDays = weekData.filter((d: any) => d.mood_score != null);
+    const stressDays = weekData.filter((d: any) => d.stress_score != null);
+    const avgMood = moodDays.length > 0
+      ? (moodDays.reduce((s: number, d: any) => s + d.mood_score, 0) / moodDays.length).toFixed(1)
+      : "N/A";
+    const avgStress = stressDays.length > 0
+      ? (stressDays.reduce((s: number, d: any) => s + d.stress_score, 0) / stressDays.length).toFixed(1)
+      : "N/A";
+
+    const resetCount = weekData.filter((d: any) => d.reset_protocol_used).length;
+
+    const userMessage = `WEEKLY CHECK-IN DATA:
+Days tracked: ${daysTracked}/7
+Average habits/day: ${avgHabits.toFixed(1)}/5
+Habit breakdown: ${habitRates}
+Weekly theme detected: ${weeklyTheme || "Unknown"}
+Recovery score: ${recoveryScore ?? "N/A"}/100
+Recoveries: ${recoveries ?? 0} out of ${recoveryOpportunities ?? 0} tough days
+Avg mood: ${avgMood}/10
+Avg stress: ${avgStress}/10
+Cognitive patterns this week: ${patterns}
+Reset protocol used: ${resetCount}x
+
+Generate a personalized weekly coaching summary for this client.`;
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: userMessage },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limited. Try again in a moment." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const text = await response.text();
+      console.error("AI gateway error:", response.status, text);
+      return new Response(JSON.stringify({ error: "AI summary unavailable" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const data = await response.json();
+    const summary = data.choices?.[0]?.message?.content || "No summary generated.";
+
+    return new Response(JSON.stringify({ summary }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
+  } catch (e) {
+    console.error("weekly-summary error:", e);
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
