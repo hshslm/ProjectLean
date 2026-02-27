@@ -454,11 +454,11 @@ export const MealEstimator: React.FC = () => {
             </div>
           </div>
           <div className="text-center">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-2">
-              Meal Macro Estimator
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-1">
+              The Lean Brain™
             </h1>
-            <p className="text-muted-foreground max-w-sm mx-auto text-sm">
-              Get a quick estimate to make informed decisions.
+            <p className="text-muted-foreground max-w-sm mx-auto text-xs">
+              A behavior intelligence system inside Project Lean.
             </p>
           </div>
         </header>
