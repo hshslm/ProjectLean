@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3 } from 'lucide-react';
+import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3, LifeBuoy } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,8 @@ import { NotificationSettings } from '@/components/NotificationSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { DailyCheckIn } from '@/components/DailyCheckIn';
 import { WeeklyInsights } from '@/components/WeeklyInsights';
+import { ResetProtocol } from '@/components/ResetProtocol';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -111,6 +113,7 @@ export const MealEstimator: React.FC = () => {
   // View state: 'estimate' or 'history'
   const [view, setView] = useState<'estimate' | 'history'>('history');
   const [activeTab, setActiveTab] = useState<'meals' | 'checkin' | 'insights'>('meals');
+  const [showResetSheet, setShowResetSheet] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
   const [weeklyLogs, setWeeklyLogs] = useState<MealLog[]>([]);
@@ -769,6 +772,33 @@ export const MealEstimator: React.FC = () => {
             userId={user.id}
           />
         )}
+
+        {/* Floating Reset Protocol Button + Sheet */}
+        <Sheet open={showResetSheet} onOpenChange={setShowResetSheet}>
+          <SheetTrigger asChild>
+            <button
+              className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-destructive text-destructive-foreground shadow-lg flex items-center justify-center hover:bg-destructive/90 transition-all active:scale-95"
+              aria-label="Reset Protocol"
+            >
+              <LifeBuoy className="w-6 h-6" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
+            <SheetHeader className="pb-2">
+              <SheetTitle className="text-base">Reset Protocol</SheetTitle>
+              <p className="text-xs text-muted-foreground">
+                Feeling off track? Walk through these 5 steps to reset your mindset.
+              </p>
+            </SheetHeader>
+            <ResetProtocol
+              onComplete={() => {
+                toast.success('Reset Protocol complete. You recovered.');
+              }}
+              isCompleted={false}
+              defaultExpanded={true}
+            />
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

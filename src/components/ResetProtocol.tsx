@@ -29,12 +29,13 @@ const RESET_STEPS = [
 interface ResetProtocolProps {
   onComplete: () => void;
   isCompleted: boolean;
+  defaultExpanded?: boolean;
 }
 
-export const ResetProtocol: React.FC<ResetProtocolProps> = ({ onComplete, isCompleted }) => {
+export const ResetProtocol: React.FC<ResetProtocolProps> = ({ onComplete, isCompleted, defaultExpanded = false }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   const handleStepComplete = (stepIndex: number) => {
     if (!completedSteps.includes(stepIndex)) {
