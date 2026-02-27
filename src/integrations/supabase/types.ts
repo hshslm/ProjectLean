@@ -44,6 +44,57 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_checkins: {
+        Row: {
+          aligned_eating_hit: boolean
+          checkin_date: string
+          cognitive_patterns: string[]
+          created_at: string
+          id: string
+          mood_score: number | null
+          protein_hit: boolean
+          reset_protocol_used: boolean
+          sleep_hit: boolean
+          steps_hit: boolean
+          stress_score: number | null
+          training_hit: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aligned_eating_hit?: boolean
+          checkin_date?: string
+          cognitive_patterns?: string[]
+          created_at?: string
+          id?: string
+          mood_score?: number | null
+          protein_hit?: boolean
+          reset_protocol_used?: boolean
+          sleep_hit?: boolean
+          steps_hit?: boolean
+          stress_score?: number | null
+          training_hit?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aligned_eating_hit?: boolean
+          checkin_date?: string
+          cognitive_patterns?: string[]
+          created_at?: string
+          id?: string
+          mood_score?: number | null
+          protein_hit?: boolean
+          reset_protocol_used?: boolean
+          sleep_hit?: boolean
+          steps_hit?: boolean
+          stress_score?: number | null
+          training_hit?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meal_logs: {
         Row: {
           calories_high: number

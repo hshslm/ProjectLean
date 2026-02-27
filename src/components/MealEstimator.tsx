@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import { MealTemplates } from '@/components/MealTemplates';
 import { SaveTemplateDialog } from '@/components/SaveTemplateDialog';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { useAuth } from '@/hooks/useAuth';
+import { DailyCheckIn } from '@/components/DailyCheckIn';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -108,6 +109,7 @@ export const MealEstimator: React.FC = () => {
   
   // View state: 'estimate' or 'history'
   const [view, setView] = useState<'estimate' | 'history'>('history');
+  const [activeTab, setActiveTab] = useState<'meals' | 'checkin'>('meals');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
   const [weeklyLogs, setWeeklyLogs] = useState<MealLog[]>([]);
@@ -459,10 +461,38 @@ export const MealEstimator: React.FC = () => {
 
         {/* Main Content */}
         <main className="space-y-6">
-          {view === 'history' && !result ? (
+          {/* Tab Navigation */}
+          <div className="flex gap-1 bg-muted rounded-xl p-1">
+            <button
+              onClick={() => { setActiveTab('meals'); setView('history'); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'meals'
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <UtensilsCrossed className="w-4 h-4" />
+              Meals
+            </button>
+            <button
+              onClick={() => setActiveTab('checkin')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'checkin'
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ClipboardCheck className="w-4 h-4" />
+              Check-In
+            </button>
+          </div>
+
+          {activeTab === 'checkin' ? (
+            <DailyCheckIn userId={user!.id} />
+          ) : view === 'history' && !result ? (
             <>
-              {/* Date Navigation */}
               <div className="flex items-center justify-center gap-4">
+
                 <Button variant="ghost" size="icon" onClick={handlePrevDay}>
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
