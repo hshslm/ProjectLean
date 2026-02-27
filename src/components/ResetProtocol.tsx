@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, RotateCcw } from 'lucide-react';
+import { Check, RotateCcw, Footprints, GlassWater, Beef } from 'lucide-react';
 
 const RESET_STEPS = [
   {
@@ -18,7 +18,12 @@ const RESET_STEPS = [
   },
   {
     title: 'Next Best Action',
-    description: 'What\'s one thing you can do in the next 30 minutes? A walk, a glass of water, a protein-rich snack. Pick one.',
+    description: 'Pick one thing you can do in the next 30 minutes:',
+    actions: [
+      { label: 'Go for a walk', icon: Footprints },
+      { label: 'Drink water', icon: GlassWater },
+      { label: 'Protein snack', icon: Beef },
+    ],
   },
   {
     title: 'Recommit to Today',
@@ -85,10 +90,8 @@ export const ResetProtocol: React.FC<ResetProtocolProps> = ({ onComplete, isComp
             const isCurrent = index === currentStep && !allDone;
 
             return (
-              <button
+              <div
                 key={index}
-                onClick={() => handleStepComplete(index)}
-                disabled={isDone}
                 className={`w-full text-left p-3 rounded-xl border transition-all duration-200 ${
                   isDone
                     ? 'bg-primary/10 border-primary/20'
@@ -97,28 +100,55 @@ export const ResetProtocol: React.FC<ResetProtocolProps> = ({ onComplete, isComp
                       : 'bg-muted/30 border-transparent opacity-60'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold ${
-                    isDone
-                      ? 'bg-primary text-primary-foreground'
-                      : isCurrent
-                        ? 'bg-destructive text-destructive-foreground'
-                        : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {isDone ? <Check className="w-3 h-3" /> : index + 1}
-                  </div>
-                  <div>
-                    <p className={`text-sm font-medium ${isDone ? 'text-foreground' : 'text-foreground'}`}>
-                      {step.title}
-                    </p>
-                    {(isCurrent || isDone) && (
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        {step.description}
+                <button
+                  onClick={() => !('actions' in step) && handleStepComplete(index)}
+                  disabled={isDone || ('actions' in step)}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold ${
+                      isDone
+                        ? 'bg-primary text-primary-foreground'
+                        : isCurrent
+                          ? 'bg-destructive text-destructive-foreground'
+                          : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {isDone ? <Check className="w-3 h-3" /> : index + 1}
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDone ? 'text-foreground' : 'text-foreground'}`}>
+                        {step.title}
                       </p>
-                    )}
+                      {(isCurrent || isDone) && (
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                          {step.description}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+
+                {/* Action buttons for step 4 */}
+                {'actions' in step && isCurrent && !isDone && (
+                  <div className="flex gap-2 mt-3 ml-9">
+                    {step.actions.map((action) => {
+                      const Icon = action.icon;
+                      return (
+                        <Button
+                          key={action.label}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1.5 border-destructive/30 hover:bg-destructive/10 hover:text-destructive text-xs h-9"
+                          onClick={() => handleStepComplete(index)}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          {action.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
 
