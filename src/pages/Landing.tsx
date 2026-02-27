@@ -33,9 +33,9 @@ const Landing = () => {
       <section className="pt-32 pb-24 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Upgrade Your Thinking.
+            Behavior Intelligence for
             <br />
-            <span className="text-primary">Not Just Your Diet.</span>
+            <span className="text-primary">Real-World Fat Loss.</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
