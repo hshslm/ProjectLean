@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, subDays } from 'date-fns';
 import { Flame, Brain, TrendingUp, SmilePlus, Zap, HeartPulse, Trophy, Shield, AlertTriangle, Target, Sparkles, MessageSquareText, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
 
 interface CheckInDay {
   checkin_date: string;
@@ -315,7 +316,9 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
         </CardHeader>
         <CardContent>
           {aiSummary ? (
-            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{aiSummary}</p>
+            <div className="prose prose-sm max-w-none text-foreground [&>p]:mb-3 [&>p:last-child]:mb-0 [&_strong]:text-foreground">
+              <ReactMarkdown>{aiSummary}</ReactMarkdown>
+            </div>
           ) : (
             <div className="text-center py-2">
               <Button
