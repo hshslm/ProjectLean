@@ -52,6 +52,136 @@ const Landing = () => {
             <p className="text-sm text-muted-foreground">79 AED/month — Cancel anytime</p>
           </div>
 
+        </div>
+      </section>
+
+      {/* APP SHOWCASE — Screenshots + Video */}
+      <section className="py-24 px-4 bg-secondary/50">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            See It In Action
+          </h2>
+          <p className="text-muted-foreground text-center mb-16 max-w-xl mx-auto">
+            Track meals, check in daily, and get behavior intelligence — all in one place.
+          </p>
+          
+          <div className="flex flex-col md:flex-row items-start justify-center gap-10 md:gap-8">
+            {/* Meal Tracker Screenshots */}
+            <div className="flex flex-col items-center gap-6">
+              <div className="flex gap-4">
+                <div className="max-w-[200px]">
+                  <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                    <div className="rounded-[1.75rem] overflow-hidden">
+                      <img src={screenshotMeals} alt="Meal tracking with daily totals" className="w-full h-auto" />
+                    </div>
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+                  </div>
+                  <p className="text-center text-xs text-muted-foreground mt-3">Meal Tracking</p>
+                </div>
+                <div className="max-w-[200px]">
+                  <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                    <div className="rounded-[1.75rem] overflow-hidden">
+                      <img src={screenshotGoals} alt="Daily goals tracking" className="w-full h-auto" />
+                    </div>
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+                  </div>
+                  <p className="text-center text-xs text-muted-foreground mt-3">Goal Progress</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Behavior Insights Mockup */}
+            <div className="max-w-[220px]">
+              <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                <div className="rounded-[1.75rem] overflow-hidden bg-background">
+                  <div className="p-4 space-y-3" style={{ minHeight: '420px' }}>
+                    <div className="text-center pb-2">
+                      <p className="text-xs text-muted-foreground font-medium">Insights</p>
+                    </div>
+                    <div className="bg-primary/10 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-primary">🎯 Consistency Week</p>
+                      <p className="text-[10px] text-muted-foreground">Strong habits — keep it rolling.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { icon: Flame, val: '4', label: 'Day Streak' },
+                        { icon: Zap, val: '3.9', label: 'Avg Habits/Day' },
+                        { icon: TrendingUp, val: '7/7', label: 'Days Tracked' },
+                        { icon: Heart, val: '93', label: 'Recovery Score' },
+                      ].map((s) => (
+                        <div key={s.label} className="bg-card rounded-lg p-3 border border-border text-center">
+                          <s.icon className="h-4 w-4 text-primary mx-auto mb-1" />
+                          <p className="text-lg font-bold text-foreground">{s.val}</p>
+                          <p className="text-[9px] text-muted-foreground">{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <p className="text-xs font-semibold text-foreground mb-2">Pattern Frequency</p>
+                      {[
+                        { name: 'All-or-nothing', count: '1x' },
+                        { name: 'Emotional eating', count: '1x' },
+                        { name: '"Ruined the day"', count: '1x' },
+                      ].map((p) => (
+                        <div key={p.name} className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] text-muted-foreground">{p.name}</span>
+                          <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded">{p.count}</span>
+                        </div>
+                      ))}
+                      <p className="text-[9px] text-primary mt-2">4 clean days with no negative patterns</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+              </div>
+              <p className="text-center text-xs text-muted-foreground mt-3">Behavior Insights</p>
+            </div>
+
+            {/* Check-In Mockup */}
+            <div className="max-w-[220px]">
+              <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                <div className="rounded-[1.75rem] overflow-hidden bg-background">
+                  <div className="p-4 space-y-3" style={{ minHeight: '420px' }}>
+                    <div className="text-center pb-2">
+                      <p className="text-xs text-muted-foreground font-medium">Check-In</p>
+                    </div>
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <MessageSquare className="h-3 w-3 text-primary" />
+                        <p className="text-[10px] font-semibold text-primary">Karim</p>
+                      </div>
+                      <p className="text-[10px] text-foreground leading-relaxed">
+                        The all-or-nothing mindset is a structural trap. Next time the schedule breaks, execute a fifteen-minute movement session instead of skipping entirely. Consistency is found in your minimum standards.
+                      </p>
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs font-semibold text-foreground">Daily Habits</p>
+                        <span className="text-[10px] text-primary font-medium">5/5</span>
+                      </div>
+                      {['Protein', 'Steps', 'Sleep', 'Training', 'Aligned Eating'].map((h) => (
+                        <div key={h} className="flex items-center gap-2 mb-1.5">
+                          <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5 text-primary" />
+                          </div>
+                          <span className="text-[10px] text-foreground">{h}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <p className="text-xs font-semibold text-foreground mb-2">Today's Pattern</p>
+                      <div className="inline-block bg-primary/10 text-primary text-[10px] px-2 py-1 rounded">
+                        No negative pattern today ✓
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+              </div>
+              <p className="text-center text-xs text-muted-foreground mt-3">AI Coaching Check-In</p>
+            </div>
+          </div>
+
           {/* Demo Video */}
           <div className="mt-16 max-w-xs mx-auto">
             <div className="relative rounded-[2.5rem] overflow-hidden shadow-elevated bg-foreground p-2">
@@ -95,7 +225,7 @@ const Landing = () => {
               </div>
               <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-6 bg-foreground rounded-full" />
             </div>
-            <p className="text-center text-sm text-muted-foreground mt-4">See it in action</p>
+            <p className="text-center text-sm text-muted-foreground mt-4">Watch the full demo</p>
           </div>
         </div>
       </section>
@@ -196,165 +326,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* APP SHOWCASE — Screenshots */}
-      <section className="py-24 px-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            See It In Action
-          </h2>
-          <p className="text-muted-foreground text-center mb-16 max-w-xl mx-auto">
-            Track meals, check in daily, and get behavior intelligence — all in one place.
-          </p>
-          
-          <div className="flex flex-col md:flex-row items-start justify-center gap-10 md:gap-8">
-            {/* Meal Tracker Screenshots */}
-            <div className="flex flex-col items-center gap-6">
-              <div className="flex gap-4">
-                <div className="max-w-[200px]">
-                  <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
-                    <div className="rounded-[1.75rem] overflow-hidden">
-                      <img src={screenshotMeals} alt="Meal tracking with daily totals" className="w-full h-auto" />
-                    </div>
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
-                  </div>
-                  <p className="text-center text-xs text-muted-foreground mt-3">Meal Tracking</p>
-                </div>
-                <div className="max-w-[200px]">
-                  <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
-                    <div className="rounded-[1.75rem] overflow-hidden">
-                      <img src={screenshotGoals} alt="Daily goals tracking" className="w-full h-auto" />
-                    </div>
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
-                  </div>
-                  <p className="text-center text-xs text-muted-foreground mt-3">Goal Progress</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Behavior Insights Mockup */}
-            <div className="flex flex-col items-center gap-6">
-              <div className="max-w-[240px]">
-                <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
-                  <div className="rounded-[1.75rem] overflow-hidden bg-background">
-                    {/* Mock Insights Screen */}
-                    <div className="p-4 space-y-3" style={{ minHeight: '420px' }}>
-                      {/* Header */}
-                      <div className="text-center pb-2">
-                        <p className="text-xs text-muted-foreground font-medium">Insights</p>
-                      </div>
-                      
-                      {/* Consistency Week Banner */}
-                      <div className="bg-primary/10 rounded-lg p-3">
-                        <p className="text-xs font-semibold text-primary">🎯 Consistency Week</p>
-                        <p className="text-[10px] text-muted-foreground">Strong habits — keep it rolling.</p>
-                      </div>
-                      
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-card rounded-lg p-3 border border-border text-center">
-                          <Flame className="h-4 w-4 text-primary mx-auto mb-1" />
-                          <p className="text-lg font-bold text-foreground">4</p>
-                          <p className="text-[9px] text-muted-foreground">Day Streak</p>
-                        </div>
-                        <div className="bg-card rounded-lg p-3 border border-border text-center">
-                          <Zap className="h-4 w-4 text-primary mx-auto mb-1" />
-                          <p className="text-lg font-bold text-foreground">3.9</p>
-                          <p className="text-[9px] text-muted-foreground">Avg Habits/Day</p>
-                        </div>
-                        <div className="bg-card rounded-lg p-3 border border-border text-center">
-                          <TrendingUp className="h-4 w-4 text-primary mx-auto mb-1" />
-                          <p className="text-lg font-bold text-foreground">7/7</p>
-                          <p className="text-[9px] text-muted-foreground">Days Tracked</p>
-                        </div>
-                        <div className="bg-card rounded-lg p-3 border border-border text-center">
-                          <Heart className="h-4 w-4 text-primary mx-auto mb-1" />
-                          <p className="text-lg font-bold text-foreground">93</p>
-                          <p className="text-[9px] text-muted-foreground">Recovery Score</p>
-                        </div>
-                      </div>
-                      
-                      {/* Pattern Frequency */}
-                      <div className="bg-card rounded-lg p-3 border border-border">
-                        <p className="text-xs font-semibold text-foreground mb-2">Pattern Frequency</p>
-                        <div className="space-y-1.5">
-                          {[
-                            { name: 'All-or-nothing', count: '1x' },
-                            { name: 'Emotional eating', count: '1x' },
-                            { name: '"Ruined the day"', count: '1x' },
-                          ].map((p) => (
-                            <div key={p.name} className="flex justify-between items-center">
-                              <span className="text-[10px] text-muted-foreground">{p.name}</span>
-                              <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded">{p.count}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-[9px] text-primary mt-2">4 clean days with no negative patterns</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
-                </div>
-                <p className="text-center text-xs text-muted-foreground mt-3">Behavior Insights</p>
-              </div>
-            </div>
-            
-            {/* Check-In Mockup */}
-            <div className="flex flex-col items-center gap-6">
-              <div className="max-w-[240px]">
-                <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
-                  <div className="rounded-[1.75rem] overflow-hidden bg-background">
-                    <div className="p-4 space-y-3" style={{ minHeight: '420px' }}>
-                      {/* Header */}
-                      <div className="text-center pb-2">
-                        <p className="text-xs text-muted-foreground font-medium">Check-In</p>
-                      </div>
-                      
-                      {/* Coaching Response */}
-                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <MessageSquare className="h-3 w-3 text-primary" />
-                          <p className="text-[10px] font-semibold text-primary">Karim</p>
-                        </div>
-                        <p className="text-[10px] text-foreground leading-relaxed">
-                          The all-or-nothing mindset is a structural trap. Next time the schedule breaks, execute a fifteen-minute movement session instead of skipping entirely. Consistency is found in your minimum standards.
-                        </p>
-                      </div>
-                      
-                      {/* Daily Habits */}
-                      <div className="bg-card rounded-lg p-3 border border-border">
-                        <div className="flex justify-between items-center mb-2">
-                          <p className="text-xs font-semibold text-foreground">Daily Habits</p>
-                          <span className="text-[10px] text-primary font-medium">5/5</span>
-                        </div>
-                        <div className="space-y-2">
-                          {['Protein', 'Steps', 'Sleep', 'Training', 'Aligned Eating'].map((h) => (
-                            <div key={h} className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Check className="h-2.5 w-2.5 text-primary" />
-                              </div>
-                              <span className="text-[10px] text-foreground">{h}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Patterns */}
-                      <div className="bg-card rounded-lg p-3 border border-border">
-                        <p className="text-xs font-semibold text-foreground mb-2">Today's Pattern</p>
-                        <div className="inline-block bg-primary/10 text-primary text-[10px] px-2 py-1 rounded">
-                          No negative pattern today ✓
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
-                </div>
-                <p className="text-center text-xs text-muted-foreground mt-3">AI Coaching Check-In</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* SECTION 5 — WHAT IT TARGETS */}
       <section className="py-24 px-4 bg-secondary/50">
