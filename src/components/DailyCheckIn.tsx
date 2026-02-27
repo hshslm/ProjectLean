@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Check, Dumbbell, Footprints, Moon, Utensils, Beef, ChevronLeft, ChevronRight, Brain, Loader2, MessageSquare } from 'lucide-react';
+import { ResetProtocol } from './ResetProtocol';
 import { format, isToday, addDays, subDays } from 'date-fns';
 
 const COGNITIVE_PATTERNS = [
@@ -267,6 +268,8 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
   };
 
   const habitsCompleted = HABITS.filter(h => checkin[h.key]).length;
+  const TRIGGER_PATTERNS = ['all-or-nothing', 'ruined-day', 'emotional-eating'];
+  const showResetProtocol = checkin.cognitive_patterns.some(p => TRIGGER_PATTERNS.includes(p));
 
   return (
     <div className="space-y-4">
@@ -439,6 +442,14 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Reset Protocol */}
+          {showResetProtocol && (
+            <ResetProtocol
+              onComplete={() => setCheckin(prev => ({ ...prev, reset_protocol_used: true }))}
+              isCompleted={checkin.reset_protocol_used}
+            />
+          )}
 
           {/* Submit */}
           <Button
