@@ -44,6 +44,33 @@ export type Database = {
         }
         Relationships: []
       }
+      coaching_responses: {
+        Row: {
+          checkin_date: string
+          checkin_id: string
+          created_at: string
+          id: string
+          response_text: string
+          user_id: string
+        }
+        Insert: {
+          checkin_date: string
+          checkin_id: string
+          created_at?: string
+          id?: string
+          response_text: string
+          user_id: string
+        }
+        Update: {
+          checkin_date?: string
+          checkin_id?: string
+          created_at?: string
+          id?: string
+          response_text?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           aligned_eating_hit: boolean
