@@ -381,9 +381,149 @@ const Landing = () => {
             ))}
           </div>
           
-          <p className="text-center font-semibold text-foreground text-lg">
+          <p className="text-center font-semibold text-foreground text-lg mb-12">
             Recovery speed matters more than mistakes.
           </p>
+
+          {/* Behavior Dashboard Mockups */}
+          <div className="flex flex-col md:flex-row items-start justify-center gap-8">
+            {/* Insights Mockup */}
+            <div className="max-w-[220px] mx-auto">
+              <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                <div className="rounded-[1.75rem] overflow-hidden bg-background">
+                  <div className="p-4 space-y-3" style={{ minHeight: '400px' }}>
+                    <div className="text-center pb-1">
+                      <p className="text-xs text-muted-foreground font-medium">Insights</p>
+                    </div>
+                    <div className="bg-primary/10 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-primary">🎯 Consistency Week</p>
+                      <p className="text-[10px] text-muted-foreground">Strong habits — keep it rolling.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { icon: Flame, val: '4', label: 'Day Streak' },
+                        { icon: Zap, val: '3.9', label: 'Avg Habits/Day' },
+                        { icon: TrendingUp, val: '7/7', label: 'Days Tracked' },
+                        { icon: Heart, val: '93', label: 'Recovery Score' },
+                      ].map((s) => (
+                        <div key={s.label} className="bg-card rounded-lg p-2.5 border border-border text-center">
+                          <s.icon className="h-3.5 w-3.5 text-primary mx-auto mb-1" />
+                          <p className="text-base font-bold text-foreground">{s.val}</p>
+                          <p className="text-[8px] text-muted-foreground">{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <p className="text-xs font-semibold text-foreground mb-2">Pattern Frequency</p>
+                      {[
+                        { name: 'All-or-nothing', count: '1x' },
+                        { name: 'Emotional eating', count: '1x' },
+                        { name: '"Ruined the day"', count: '1x' },
+                      ].map((p) => (
+                        <div key={p.name} className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] text-muted-foreground">{p.name}</span>
+                          <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded">{p.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+              </div>
+              <p className="text-center text-xs text-muted-foreground mt-3">Weekly Insights</p>
+            </div>
+
+            {/* Check-In Mockup */}
+            <div className="max-w-[220px] mx-auto">
+              <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                <div className="rounded-[1.75rem] overflow-hidden bg-background">
+                  <div className="p-4 space-y-3" style={{ minHeight: '400px' }}>
+                    <div className="text-center pb-1">
+                      <p className="text-xs text-muted-foreground font-medium">Check-In</p>
+                    </div>
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <MessageSquare className="h-3 w-3 text-primary" />
+                        <p className="text-[10px] font-semibold text-primary">Karim</p>
+                      </div>
+                      <p className="text-[10px] text-foreground leading-relaxed">
+                        The all-or-nothing mindset is a structural trap. Consistency is found in your minimum standards, not your peak performance.
+                      </p>
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs font-semibold text-foreground">Daily Habits</p>
+                        <span className="text-[10px] text-primary font-medium">5/5</span>
+                      </div>
+                      {['Protein', 'Steps', 'Sleep', 'Training', 'Aligned Eating'].map((h) => (
+                        <div key={h} className="flex items-center gap-2 mb-1.5">
+                          <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5 text-primary" />
+                          </div>
+                          <span className="text-[10px] text-foreground">{h}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <p className="text-xs font-semibold text-foreground mb-2">Today's Pattern</p>
+                      <div className="inline-block bg-primary/10 text-primary text-[10px] px-2 py-1 rounded">
+                        No negative pattern today ✓
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+              </div>
+              <p className="text-center text-xs text-muted-foreground mt-3">AI Coaching</p>
+            </div>
+
+            {/* Mood & Patterns Mockup */}
+            <div className="max-w-[220px] mx-auto">
+              <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                <div className="rounded-[1.75rem] overflow-hidden bg-background">
+                  <div className="p-4 space-y-3" style={{ minHeight: '400px' }}>
+                    <div className="text-center pb-1">
+                      <p className="text-xs text-muted-foreground font-medium">Behavior Map</p>
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <p className="text-xs font-semibold text-foreground mb-2">Mood & Stress</p>
+                      <div className="flex gap-1 items-end h-12 mb-1">
+                        {[8,7,4,5,7,6,8].map((v, i) => (
+                          <div key={i} className="flex-1 bg-primary rounded-sm" style={{ height: `${v * 10}%` }} />
+                        ))}
+                      </div>
+                      <p className="text-[9px] text-muted-foreground">Avg Mood: 6.4/10</p>
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <p className="text-xs font-semibold text-foreground mb-2">Stress Levels</p>
+                      <div className="flex gap-1 items-end h-12 mb-1">
+                        {[3,4,8,6,4,5,2].map((v, i) => (
+                          <div key={i} className="flex-1 bg-primary/40 rounded-sm" style={{ height: `${v * 10}%` }} />
+                        ))}
+                      </div>
+                      <p className="text-[9px] text-muted-foreground">Avg Stress: 4.6/10</p>
+                    </div>
+                    <div className="bg-card rounded-lg p-3 border border-border">
+                      <p className="text-xs font-semibold text-foreground mb-2">Recovery Score</p>
+                      <div className="flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-primary" />
+                        <div className="flex-1 bg-secondary rounded-full h-2">
+                          <div className="bg-primary rounded-full h-2" style={{ width: '93%' }} />
+                        </div>
+                        <span className="text-xs font-bold text-foreground">93</span>
+                      </div>
+                      <p className="text-[9px] text-muted-foreground mt-1">Bounced back 2 out of 2 tough days</p>
+                    </div>
+                    <div className="bg-primary/10 rounded-lg p-2.5">
+                      <p className="text-[9px] text-primary font-medium">Reset Protocol used 1x this week</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+              </div>
+              <p className="text-center text-xs text-muted-foreground mt-3">Trigger Map</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -408,12 +548,6 @@ const Landing = () => {
               </div>
             ))}
           </div>
-          
-          <p className="text-center text-muted-foreground">
-            If you want full coaching,{' '}
-            <span className="font-semibold text-foreground">Project Lean Performance</span>{' '}
-            may be better for you.
-          </p>
         </div>
       </section>
 
@@ -428,7 +562,7 @@ const Landing = () => {
             {[
               'Daily AI Behavior Coaching',
               'Pattern Detection Engine',
-              '10-Minute Reset Protocol',
+              '5-Minute Reset Protocol',
               'Weekly Behavior Themes',
               'Macro Photo Estimation',
               'Trigger Mapping System',
@@ -441,8 +575,7 @@ const Landing = () => {
             ))}
           </div>
           
-          <div className="text-center space-y-2">
-            <p className="text-muted-foreground">Comparable coaching tools cost 200–400 AED/month.</p>
+          <div className="text-center">
             <p className="text-2xl font-bold text-foreground">The Lean Brain™: 79 AED/month.</p>
           </div>
         </div>
@@ -455,8 +588,7 @@ const Landing = () => {
             Simple Pricing
           </h2>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Standard */}
+          <div className="max-w-md mx-auto">
             <div className="bg-card rounded-2xl p-8 border border-border shadow-soft">
               <h3 className="text-xl font-semibold mb-2">The Lean Brain™</h3>
               <div className="text-4xl font-bold text-foreground mb-1">79 AED</div>
@@ -472,29 +604,6 @@ const Landing = () => {
               <Link to="/auth" className="block">
                 <Button className="w-full h-12 font-semibold">
                   Start Using The Lean Brain™
-                </Button>
-              </Link>
-            </div>
-            
-            {/* Founding Member */}
-            <div className="bg-foreground text-background rounded-2xl p-8 shadow-elevated relative overflow-hidden">
-              <div className="absolute top-4 right-4 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                Limited Spots
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Founding Member</h3>
-              <div className="text-4xl font-bold mb-1">69 AED</div>
-              <p className="text-sm opacity-70 mb-6">per month — locked in</p>
-              <ul className="space-y-3 mb-8">
-                {['Everything in standard', 'Founding member pricing forever', 'Early access to new features'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 opacity-90">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/auth" className="block">
-                <Button className="w-full h-12 font-semibold bg-primary hover:bg-primary/90">
-                  Claim Founding Access
                 </Button>
               </Link>
             </div>
