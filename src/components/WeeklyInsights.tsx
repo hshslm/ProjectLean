@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subDays } from 'date-fns';
-import { Flame, Brain, TrendingUp, SmilePlus, Zap, HeartPulse } from 'lucide-react';
+import { Flame, Brain, TrendingUp, SmilePlus, Zap, HeartPulse, Trophy, Shield, AlertTriangle, Target, Sparkles } from 'lucide-react';
 
 interface CheckInDay {
   checkin_date: string;
@@ -202,6 +202,48 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
     else { recoveryLabel = 'Developing'; recoveryColor = 'text-destructive'; }
   }
 
+  // --- Weekly Behavior Theme ---
+  type WeeklyTheme = {
+    label: string;
+    description: string;
+    icon: React.ReactNode;
+    colorClass: string;
+    bgClass: string;
+  };
+
+  const detectWeeklyTheme = (): WeeklyTheme => {
+    const avgHabitsPerDay = avgHabits;
+    const hasHighConsistency = avgHabitsPerDay >= 3.5 && daysTracked >= 5;
+    const hasRecovery = recoveryScore !== null && recoveryScore >= 60 && recoveryOpportunities >= 2;
+    const hasHighStress = avgStress !== null && avgStress >= 6;
+    const hasLowMood = avgMood !== null && avgMood <= 4;
+    const hasManyPatterns = sortedPatterns.length >= 3 || Object.values(patternCounts).reduce((a, b) => a + b, 0) >= 5;
+    const perfectWeek = avgHabitsPerDay >= 4.5 && daysTracked >= 6 && sortedPatterns.length === 0;
+    const buildingWeek = avgHabitsPerDay >= 2 && avgHabitsPerDay < 3.5 && daysTracked >= 4;
+
+    if (perfectWeek) {
+      return { label: 'Perfect Week', description: 'Crushed every habit — elite consistency.', icon: <Trophy className="w-5 h-5" />, colorClass: 'text-primary', bgClass: 'bg-primary/10 border-primary/20' };
+    }
+    if (hasHighConsistency) {
+      return { label: 'Consistency Week', description: 'Strong habits across the board — keep it rolling.', icon: <Target className="w-5 h-5" />, colorClass: 'text-primary', bgClass: 'bg-primary/10 border-primary/20' };
+    }
+    if (hasRecovery) {
+      return { label: 'Recovery Week', description: 'Bounced back after setbacks — resilience on display.', icon: <Shield className="w-5 h-5" />, colorClass: 'text-primary', bgClass: 'bg-primary/10 border-primary/20' };
+    }
+    if (hasHighStress || hasLowMood) {
+      return { label: 'Stress Week', description: 'Tough week mentally — focus on basics and self-care.', icon: <AlertTriangle className="w-5 h-5" />, colorClass: 'text-amber-600', bgClass: 'bg-amber-500/10 border-amber-500/20' };
+    }
+    if (hasManyPatterns) {
+      return { label: 'Pattern Week', description: 'Multiple cognitive patterns surfaced — awareness is step one.', icon: <Brain className="w-5 h-5" />, colorClass: 'text-amber-600', bgClass: 'bg-amber-500/10 border-amber-500/20' };
+    }
+    if (buildingWeek) {
+      return { label: 'Building Week', description: 'Making progress — small gains add up.', icon: <Sparkles className="w-5 h-5" />, colorClass: 'text-primary', bgClass: 'bg-primary/10 border-primary/20' };
+    }
+    return { label: 'Getting Started', description: 'Keep checking in to unlock your weekly theme.', icon: <Zap className="w-5 h-5" />, colorClass: 'text-muted-foreground', bgClass: 'bg-muted border-border' };
+  };
+
+  const weeklyTheme = detectWeeklyTheme();
+
   // Build 7-day grid data
   const today = new Date();
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -218,7 +260,16 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
 
   return (
     <div className="space-y-4">
-      {/* Overview Stats */}
+      {/* Weekly Behavior Theme Banner */}
+      <Card className={`border ${weeklyTheme.bgClass}`}>
+        <CardContent className="py-4 px-4 flex items-center gap-3">
+          <div className={weeklyTheme.colorClass}>{weeklyTheme.icon}</div>
+          <div className="min-w-0">
+            <p className={`text-sm font-bold ${weeklyTheme.colorClass}`}>{weeklyTheme.label}</p>
+            <p className="text-xs text-muted-foreground">{weeklyTheme.description}</p>
+          </div>
+        </CardContent>
+      </Card>
       <div className="grid grid-cols-2 gap-3">
         <Card className="text-center">
           <CardContent className="pt-4 pb-3 px-2">
