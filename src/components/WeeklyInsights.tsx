@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subDays } from 'date-fns';
-import { Flame, Brain, TrendingUp, SmilePlus, Zap } from 'lucide-react';
+import { Flame, Brain, TrendingUp, SmilePlus, Zap, HeartPulse } from 'lucide-react';
 
 interface CheckInDay {
   checkin_date: string;
@@ -143,6 +143,65 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
   // Reset protocol usage
   const resetCount = data.filter(d => d.reset_protocol_used).length;
 
+  // --- Recovery Score ---
+  // A "bad day" = 0-1 habits OR has negative patterns (not 'none')
+  // Recovery = bouncing back the next day to 3+ habits
+  const NEGATIVE_PATTERNS = ['all-or-nothing', 'ruined-day', 'emotional-eating', 'start-tomorrow', 'over-restricting'];
+  
+  let recoveryOpportunities = 0;
+  let recoveries = 0;
+  let resetBonus = 0;
+
+  for (let i = 0; i < data.length - 1; i++) {
+    const day = data[i];
+    const nextDay = data[i + 1];
+    const dayHabits = habitKeys.filter(k => day[k]).length;
+    const hasNegativePattern = (day.cognitive_patterns || []).some(p => NEGATIVE_PATTERNS.includes(p));
+    const isBadDay = dayHabits <= 1 || hasNegativePattern;
+
+    if (isBadDay) {
+      recoveryOpportunities++;
+      const nextDayHabits = habitKeys.filter(k => nextDay[k]).length;
+      if (nextDayHabits >= 3) {
+        recoveries++;
+      }
+      if (day.reset_protocol_used) {
+        resetBonus++;
+      }
+    }
+  }
+
+  // Also check if the last day itself had a reset protocol (bonus even without next-day data)
+  const lastDay = data[data.length - 1];
+  if (lastDay?.reset_protocol_used) {
+    const lastDayHabits = habitKeys.filter(k => lastDay[k]).length;
+    const hasNeg = (lastDay.cognitive_patterns || []).some(p => NEGATIVE_PATTERNS.includes(p));
+    if ((lastDayHabits <= 1 || hasNeg) && recoveryOpportunities === 0) {
+      // Edge case: only one bad day, no next day yet
+    }
+  }
+
+  let recoveryScore: number | null = null;
+  let recoveryLabel = '';
+  let recoveryColor = '';
+
+  if (recoveryOpportunities > 0) {
+    // Base: % of successful recoveries. Reset bonus adds up to 15 points.
+    const baseScore = (recoveries / recoveryOpportunities) * 85;
+    const bonusScore = Math.min((resetBonus / recoveryOpportunities) * 15, 15);
+    recoveryScore = Math.round(baseScore + bonusScore);
+  } else if (daysTracked >= 2) {
+    // No bad days = perfect recovery
+    recoveryScore = 100;
+  }
+
+  if (recoveryScore !== null) {
+    if (recoveryScore >= 80) { recoveryLabel = 'Elite'; recoveryColor = 'text-primary'; }
+    else if (recoveryScore >= 60) { recoveryLabel = 'Strong'; recoveryColor = 'text-primary'; }
+    else if (recoveryScore >= 40) { recoveryLabel = 'Building'; recoveryColor = 'text-amber-600'; }
+    else { recoveryLabel = 'Developing'; recoveryColor = 'text-destructive'; }
+  }
+
   // Build 7-day grid data
   const today = new Date();
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -160,7 +219,7 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
   return (
     <div className="space-y-4">
       {/* Overview Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <Card className="text-center">
           <CardContent className="pt-4 pb-3 px-2">
             <Flame className="w-5 h-5 text-primary mx-auto mb-1" />
@@ -182,7 +241,63 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
             <p className="text-[10px] text-muted-foreground">Days Tracked</p>
           </CardContent>
         </Card>
+        <Card className="text-center">
+          <CardContent className="pt-4 pb-3 px-2">
+            <HeartPulse className="w-5 h-5 text-primary mx-auto mb-1" />
+            {recoveryScore !== null ? (
+              <>
+                <p className={`text-2xl font-bold ${recoveryColor}`}>{recoveryScore}</p>
+                <p className="text-[10px] text-muted-foreground">Recovery Score</p>
+              </>
+            ) : (
+              <>
+                <p className="text-2xl font-bold text-muted-foreground">—</p>
+                <p className="text-[10px] text-muted-foreground">Recovery Score</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Recovery Score Detail */}
+      {recoveryScore !== null && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <HeartPulse className="w-4 h-4 text-primary" />
+                <CardTitle className="text-base font-semibold">Recovery Score</CardTitle>
+              </div>
+              <Badge variant="secondary" className={`text-xs ${recoveryColor}`}>
+                {recoveryLabel}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Score bar */}
+            <div className="h-3 bg-muted rounded-full overflow-hidden mb-3">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${
+                  recoveryScore >= 60 ? 'bg-primary' : recoveryScore >= 40 ? 'bg-amber-500' : 'bg-destructive'
+                }`}
+                style={{ width: `${recoveryScore}%` }}
+              />
+            </div>
+            <div className="space-y-1.5 text-xs text-muted-foreground">
+              {recoveryOpportunities > 0 ? (
+                <>
+                  <p>Bounced back {recoveries} out of {recoveryOpportunities} tough day{recoveryOpportunities > 1 ? 's' : ''}</p>
+                  {resetBonus > 0 && (
+                    <p className="text-primary">+{resetBonus} Reset Protocol bonus{resetBonus > 1 ? 'es' : ''}</p>
+                  )}
+                </>
+              ) : (
+                <p>No tough days this week — perfect consistency.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 7-Day Habit Grid */}
       <Card>
