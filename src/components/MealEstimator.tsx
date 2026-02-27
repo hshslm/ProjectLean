@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3, LifeBuoy } from 'lucide-react';
+import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3, LifeBuoy, Sparkles } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiPhotoUpload } from '@/components/MultiPhotoUpload';
 import { MacroResults } from '@/components/MacroResults';
@@ -88,11 +89,8 @@ interface UserGoals {
 export const MealEstimator: React.FC = () => {
   const { user, signOut } = useAuth();
   const { 
-    canScan, 
+    hasAccess, 
     isSubscribed,
-    scanCount,
-    totalScans,
-    incrementScanCount, 
     openPaymentLink,
     refetch: refetchSubscription 
   } = useSubscription();
@@ -265,8 +263,8 @@ export const MealEstimator: React.FC = () => {
       return;
     }
 
-    // Check if user can scan (has free scans left or is subscribed)
-    if (!canScan) {
+    // Check if user has an active subscription
+    if (!hasAccess) {
       setShowPaywall(true);
       return;
     }
@@ -319,9 +317,6 @@ export const MealEstimator: React.FC = () => {
       }
 
       setResult(data);
-      
-      // Increment scan count for all users
-      await incrementScanCount();
       
       // Save to meal_logs
       if (user && data.macros) {
@@ -423,11 +418,11 @@ export const MealEstimator: React.FC = () => {
               className="h-12 sm:h-16"
             />
             <div className="flex items-center gap-1">
-              <ScanCounter 
-                usedScans={scanCount} 
-                isSubscribed={isSubscribed} 
-                totalScans={totalScans} 
-              />
+              {isSubscribed && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                  <Sparkles className="h-3 w-3 mr-1" /> Pro
+                </Badge>
+              )}
               {user && <NotificationSettings userId={user.id} />}
               {user && (
                 <GoalSettings

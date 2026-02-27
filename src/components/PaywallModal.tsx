@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Check, Sparkles, Zap, TrendingUp } from 'lucide-react';
+import { Check, Sparkles, Brain, UtensilsCrossed } from 'lucide-react';
 
 interface PaywallModalProps {
   open: boolean;
@@ -24,7 +24,7 @@ export const PaywallModal = ({ open, onOpenChange, onSubscribe }: PaywallModalPr
             Upgrade to Pro
           </DialogTitle>
           <DialogDescription className="text-center">
-            You've used all 6 free scans. Upgrade to continue tracking your meals.
+            Subscribe to unlock the full Lean Brain™ experience.
           </DialogDescription>
         </DialogHeader>
 
@@ -37,21 +37,21 @@ export const PaywallModal = ({ open, onOpenChange, onSubscribe }: PaywallModalPr
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Zap className="h-4 w-4 text-primary" />
+                <UtensilsCrossed className="h-4 w-4 text-primary" />
               </div>
-              <span>50 meal scans included</span>
+              <span>Unlimited meal scans</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-primary" />
+                <Brain className="h-4 w-4 text-primary" />
               </div>
-              <span>Full meal history & tracking</span>
+              <span>AI coaching & weekly insights</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Check className="h-4 w-4 text-primary" />
               </div>
-              <span>AI-powered macro estimates</span>
+              <span>Full meal history & tracking</span>
             </div>
           </div>
 
