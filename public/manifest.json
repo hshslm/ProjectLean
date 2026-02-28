@@ -1,7 +1,7 @@
 {
-  "name": "Project Lean – Meal Macro Estimator",
-  "short_name": "Project Lean",
-  "description": "Get quick calorie and macro estimates for your meals. No tracking, no judgment.",
+  "name": "The Lean Brain™",
+  "short_name": "Lean Brain",
+  "description": "Behavior intelligence for real-world fat loss. AI-powered coaching and macro estimation.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FAFAFA",
