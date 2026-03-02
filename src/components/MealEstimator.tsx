@@ -32,6 +32,8 @@ import { WeeklyInsights } from '@/components/WeeklyInsights';
 import { ResetProtocol } from '@/components/ResetProtocol';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useSubscription } from '@/hooks/useSubscription';
+import { CoachingUpsell } from '@/components/CoachingUpsell';
+import { MilestoneUpsellModal } from '@/components/MilestoneUpsellModal';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { Ingredient } from '@/components/IngredientBreakdown';
@@ -91,6 +93,7 @@ export const MealEstimator: React.FC = () => {
   const { 
     hasAccess, 
     isSubscribed,
+    isCoachingClient,
     openPaymentLink,
     refetch: refetchSubscription 
   } = useSubscription();
@@ -548,6 +551,11 @@ export const MealEstimator: React.FC = () => {
                 />
               )}
 
+              {/* Coaching Upsell - show to subscribers who aren't already coaching clients */}
+              {!isLoadingHistory && !isCoachingClient && (
+                <CoachingUpsell />
+              )}
+
               {/* Action Buttons */}
               <div className="flex gap-2">
                 <Button
@@ -757,6 +765,8 @@ export const MealEstimator: React.FC = () => {
             setShowPaywall(false);
           }}
         />
+
+        {user && !isCoachingClient && <MilestoneUpsellModal userId={user.id} />}
 
         {/* Save Template Dialog */}
         {user && (
