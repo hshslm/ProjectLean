@@ -362,15 +362,17 @@ const Admin = () => {
                           <Mail className="w-4 h-4 mr-2" />
                           {resendingFor === client.user_id ? 'Sending...' : 'Resend Login'}
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSendRenewal(client.email)}
-                          disabled={renewalFor === client.email}
-                        >
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          {renewalFor === client.email ? 'Sending...' : 'Renewal'}
-                        </Button>
+                        {!client.is_coaching_client && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSendRenewal(client.email)}
+                            disabled={renewalFor === client.email}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            {renewalFor === client.email ? 'Sending...' : 'Renewal'}
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
