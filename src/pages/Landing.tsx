@@ -49,7 +49,7 @@ const Landing = () => {
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <p className="text-sm text-muted-foreground">79 AED/month — Cancel anytime</p>
+            <p className="text-sm text-muted-foreground">Early Access / Founders Pricing — 79 AED/month</p>
           </div>
 
         </div>
@@ -576,7 +576,7 @@ const Landing = () => {
           </div>
           
           <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">The Lean Brain™: 79 AED/month.</p>
+            <p className="text-2xl font-bold text-foreground">Early Access / Founders Pricing — 79 AED/month.</p>
           </div>
         </div>
       </section>
@@ -590,6 +590,7 @@ const Landing = () => {
           
           <div className="max-w-md mx-auto">
             <div className="bg-card rounded-2xl p-8 border border-border shadow-soft">
+              <p className="text-xs text-primary font-medium uppercase tracking-wide mb-2">Early Access / Founders Pricing</p>
               <h3 className="text-xl font-semibold mb-2">The Lean Brain™</h3>
               <div className="text-4xl font-bold text-foreground mb-1">79 AED</div>
               <p className="text-sm text-muted-foreground mb-6">per month</p>
