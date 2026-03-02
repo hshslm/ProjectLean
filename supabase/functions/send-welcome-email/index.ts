@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
           
           <!-- Header -->
           <div style="background: #C23B22; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <img src="https://snap-macro-sight.lovable.app/email-logo.png" alt="Project Lean" style="height: 40px; margin-bottom: 12px;" />
+            <img src="https://snap-macro-sight.lovable.app/email-logo-white.png" alt="Project Lean" style="height: 40px; margin-bottom: 12px;" />
             <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">Welcome to The Lean Brain™</h1>
           </div>
           
