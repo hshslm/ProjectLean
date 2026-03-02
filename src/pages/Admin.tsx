@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Users, LogOut, Eye, Mail, Crown, Camera, Trash2 } from 'lucide-react';
+import { Plus, Users, LogOut, Eye, Mail, Crown, Camera, Trash2, RefreshCw } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +42,7 @@ const Admin = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [resendingFor, setResendingFor] = useState<string | null>(null);
+  const [renewalFor, setRenewalFor] = useState<string | null>(null);
   const [deletingFor, setDeletingFor] = useState<string | null>(null);
   const [newClient, setNewClient] = useState({
     email: '',
@@ -156,6 +157,23 @@ const Admin = () => {
       toast.error(error.message || 'Failed to resend login details');
     } finally {
       setResendingFor(null);
+    }
+  };
+  const handleSendRenewal = async (clientEmail: string) => {
+    setRenewalFor(clientEmail);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-renewal-email', {
+        body: { email: clientEmail },
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast.success(`Renewal email sent to ${clientEmail}`);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send renewal email');
+    } finally {
+      setRenewalFor(null);
     }
   };
 
@@ -343,6 +361,15 @@ const Admin = () => {
                         >
                           <Mail className="w-4 h-4 mr-2" />
                           {resendingFor === client.user_id ? 'Sending...' : 'Resend Login'}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSendRenewal(client.email)}
+                          disabled={renewalFor === client.email}
+                        >
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          {renewalFor === client.email ? 'Sending...' : 'Renewal'}
                         </Button>
                         <Button
                           variant="ghost"
