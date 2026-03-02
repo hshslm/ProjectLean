@@ -153,8 +153,8 @@ const Auth = () => {
                 : isForgotPassword 
                   ? 'Reset Password' 
                   : isSignUp 
-                    ? 'Create your account' 
-                    : 'Your AI Tracker is waiting'}
+                    ? 'Join The Lean Brain™' 
+                    : 'The Lean Brain™'}
             </h1>
             <p className="text-muted-foreground">
               {isResendVerification
@@ -162,8 +162,8 @@ const Auth = () => {
                 : isForgotPassword 
                   ? 'Enter your email to receive a reset link' 
                   : isSignUp 
-                    ? 'Get 6 free meal scans to start' 
-                    : 'Sign in to continue tracking'}
+                    ? 'Your behavior intelligence system awaits' 
+                    : 'Sign in to your behavior intelligence system'}
             </p>
           </div>
 
@@ -184,14 +184,14 @@ const Auth = () => {
               <div className="flex items-center justify-center gap-3 py-4 px-3 bg-secondary/30 rounded-2xl">
                 <div className="flex flex-col items-center gap-2 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
                   <div className="relative">
-                    <span className="absolute -top-1 -left-1 w-4 h-4 bg-sage text-white text-[10px] font-bold rounded-full flex items-center justify-center">1</span>
-                    <div className="w-11 h-11 rounded-xl bg-sage/10 flex items-center justify-center">
-                      <Camera className="w-5 h-5 text-sage-dark" />
+                    <span className="absolute -top-1 -left-1 w-4 h-4 bg-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center">1</span>
+                    <div className="w-11 h-11 rounded-xl bg-coral/10 flex items-center justify-center">
+                      <Camera className="w-5 h-5 text-coral" />
                     </div>
                   </div>
-                  <span className="text-xs font-medium text-foreground text-center leading-tight">Photo of<br/>your meal</span>
+                  <span className="text-xs font-medium text-foreground text-center leading-tight">Daily<br/>check-in</span>
                 </div>
-                <div className="text-sage font-bold opacity-0 animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>→</div>
+                <div className="text-coral font-bold opacity-0 animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>→</div>
                 <div className="flex flex-col items-center gap-2 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
                   <div className="relative">
                     <span className="absolute -top-1 -left-1 w-4 h-4 bg-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center">2</span>
@@ -199,17 +199,17 @@ const Auth = () => {
                       <Sparkles className="w-5 h-5 text-coral" />
                     </div>
                   </div>
-                  <span className="text-xs font-medium text-foreground text-center leading-tight">Get instant<br/>macros</span>
+                  <span className="text-xs font-medium text-foreground text-center leading-tight">Detect<br/>patterns</span>
                 </div>
-                <div className="text-sage font-bold opacity-0 animate-fade-up" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>→</div>
+                <div className="text-coral font-bold opacity-0 animate-fade-up" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>→</div>
                 <div className="flex flex-col items-center gap-2 flex-1 opacity-0 animate-fade-up" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
                   <div className="relative">
-                    <span className="absolute -top-1 -left-1 w-4 h-4 bg-sage text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
-                    <div className="w-11 h-11 rounded-xl bg-sage/10 flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-sage-dark" />
+                    <span className="absolute -top-1 -left-1 w-4 h-4 bg-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+                    <div className="w-11 h-11 rounded-xl bg-coral/10 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-coral" />
                     </div>
                   </div>
-                  <span className="text-xs font-medium text-foreground text-center leading-tight">Track<br/>progress</span>
+                  <span className="text-xs font-medium text-foreground text-center leading-tight">Build<br/>consistency</span>
                 </div>
               </div>
             </div>
@@ -268,7 +268,7 @@ const Auth = () => {
             >
               {isLoading 
                 ? (isResendVerification ? 'Sending...' : isForgotPassword ? 'Sending...' : isSignUp ? 'Creating account...' : 'Signing in...') 
-                : (isResendVerification ? 'Resend Verification Email' : isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Start Tracking →')
+                : (isResendVerification ? 'Resend Verification Email' : isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Sign In →')
               }
             </Button>
 
@@ -276,7 +276,7 @@ const Auth = () => {
             {!isForgotPassword && !isResendVerification && (
               <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground pt-1">
                 <Lock className="w-3 h-3" />
-                <span>Your meals, macros, and data are private and secure</span>
+                <span>Your data is private and secure</span>
               </div>
             )}
           </form>
@@ -331,7 +331,7 @@ const Auth = () => {
 
         {/* Powered by line */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Powered by <span className="font-medium">Project Lean</span>
+          Behavior Intelligence by <span className="font-medium">Project Lean</span>
         </p>
       </div>
     </div>
