@@ -36,12 +36,11 @@ Deno.serve(async (req) => {
 
     const userName = profile?.full_name || email.split('@')[0];
     const appUrl = 'https://tracker.projectlean.app';
-    const paymentLink = 'https://buy.stripe.com/14AbJ14z3fr23Xl1xG6c00B';
 
     const emailResponse = await resend.emails.send({
       from: 'Project Lean <noreply@projectlean.app>',
       to: [email],
-      subject: 'Your Lean Brain™ Subscription — Time to Renew',
+      subject: 'Your Lean Brain™ Subscription Has Renewed',
       html: `
         <!DOCTYPE html>
         <html>
@@ -54,37 +53,42 @@ Deno.serve(async (req) => {
           <!-- Header -->
           <div style="background: #C23B22; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
             <img src="https://snap-macro-sight.lovable.app/email-logo-white.png" alt="Project Lean" style="height: 40px; margin-bottom: 12px;" />
-            <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">Time to Renew 🔄</h1>
+            <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">Subscription Renewed</h1>
           </div>
           
           <div style="background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
             
             <p style="font-size: 16px; margin-top: 0;">Hi ${userName},</p>
             
-            <p style="font-size: 15px;">A new month is here — and so is your next opportunity to stay consistent.</p>
+            <p style="font-size: 15px;">Your Lean Brain™ subscription has renewed for another month.</p>
             
-            <p style="font-size: 15px;">Your <strong>Lean Brain™</strong> subscription is due for renewal. Click below to continue your access for another month.</p>
+            <p style="font-size: 15px;">Good.</p>
+            
+            <p style="font-size: 15px;">Now use it properly.</p>
+            
+            <p style="font-size: 15px;">This month, focus on one thing:</p>
+            
+            <p style="font-size: 15px;"><strong>Reduce the time between mistake and correction.</strong></p>
+            
+            <p style="font-size: 15px;">That's your edge.</p>
 
-            <!-- Price -->
-            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin: 24px 0; text-align: center;">
-              <p style="margin: 0 0 4px 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280;">Monthly Subscription</p>
-              <p style="margin: 0; font-size: 28px; font-weight: 700; color: #C23B22;">79 AED<span style="font-size: 14px; color: #6b7280; font-weight: 400;">/month</span></p>
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin: 24px 0;">
+              <p style="margin: 0 0 8px 0; font-size: 15px;">Open the dashboard.</p>
+              <p style="margin: 0 0 8px 0; font-size: 15px;">Run your daily check-ins.</p>
+              <p style="margin: 0; font-size: 15px;">Study your patterns.</p>
             </div>
+
+            <p style="font-size: 15px;">You don't need more motivation.</p>
+            
+            <p style="font-size: 15px;">You need structure.</p>
+            
+            <p style="font-size: 15px;">The Lean Brain™ gives you that.</p>
 
             <div style="text-align: center; margin: 28px 0;">
-              <a href="${paymentLink}" style="background: #C23B22; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block;">Renew Now</a>
+              <a href="${appUrl}" style="background: #C23B22; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block;">Open The Lean Brain™</a>
             </div>
-
-            <div style="background: #FFF8F6; padding: 16px; border-radius: 8px; border-left: 4px solid #C23B22; margin: 24px 0;">
-              <p style="margin: 0; font-size: 14px; color: #374151;">
-                <strong>Remember:</strong> Consistency compounds. Every month you stay in the system, your recovery speed improves and all-or-nothing thinking weakens. Don't break the chain.
-              </p>
-            </div>
-
-            <p style="font-size: 14px; color: #6b7280;">Already renewed? You can ignore this email. Your access continues automatically.</p>
 
             <p style="font-size: 14px; color: #374151; margin-top: 24px; margin-bottom: 0;">
-              See you inside.<br><br>
               — <strong>Karim</strong>
             </p>
           </div>
