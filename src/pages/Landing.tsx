@@ -61,7 +61,7 @@ const Landing = () => {
             See It In Action
           </h2>
           <p className="text-muted-foreground text-center mb-16 max-w-xl mx-auto">
-            Track meals, check in daily, and get behavior intelligence — all in one place.
+            Check in daily, spot your patterns, and get a direct correction — all in one place.
           </p>
           
           <div className="flex flex-col md:flex-row items-start justify-center gap-10 md:gap-8">
