@@ -33,23 +33,22 @@ const Landing = () => {
       <section className="pt-32 pb-24 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Behavior Intelligence for
+            You Don't Have a Knowledge Problem.
             <br />
-            <span className="text-primary">Real-World Fat Loss.</span>
+            <span className="text-primary">You Have a Pattern Problem.</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            The Lean Brain™ is your AI-powered behavior system designed to eliminate all-or-nothing thinking, emotional eating, and inconsistency — for good.
+            You've lost weight before. You know what to do. But at 10pm, after a bad day, the plan breaks — and nothing catches you. That's what Lean Brain fixes.
           </p>
           
           <div className="flex flex-col items-center gap-4">
             <Link to="/auth">
               <Button size="lg" className="h-14 px-8 text-lg font-semibold shadow-elevated">
-                Start Using The Lean Brain™
+                Fix the Pattern — 79 AED/month
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <p className="text-sm text-muted-foreground">Early Access / Founders Pricing — 79 AED/month</p>
           </div>
 
         </div>
@@ -230,75 +229,36 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* SECTION 2 — THE REAL PROBLEM */}
+      {/* SECTION 2 — THE PROBLEM */}
       <section className="py-24 px-4 bg-secondary/50">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 leading-tight">
-            You Don't Have a Knowledge Problem.
+            The issue isn't your diet.
             <br />
-            <span className="text-primary">You Have a Pattern Problem.</span>
+            <span className="text-primary">It's what happens when things go wrong.</span>
           </h2>
           
           <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
-            <p>You know how to lose fat. You've done it before.</p>
-            <p>But you fall into:</p>
+            <p>Every restart looks the same. One bad meal becomes a bad day. One bad day becomes a bad week. Not because you lack discipline — because you have no system for the drift.</p>
             
-            <ul className="space-y-3 pl-6">
-              {[
-                'All-or-nothing thinking',
-                '"I already ruined the day"',
-                'Emotional eating',
-                'Restarting every Monday',
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            
-            <p className="font-medium text-foreground">
-              The issue isn't calories.<br />
-              It's the way you think when things go wrong.
-            </p>
             <p className="font-semibold text-foreground text-xl">
-              That's what The Lean Brain™ fixes.
+              Lean Brain catches you before the spiral completes.
             </p>
           </div>
         </div>
       </section>
 
-      {/* SECTION 3 — WHAT IS THE LEAN BRAIN™ */}
+      {/* SECTION 3 — WHAT IT IS */}
       <section className="py-24 px-4">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-10">
-            What Is The Lean Brain™?
+            This is not a tracker. <span className="text-primary">This is a correction system.</span>
           </h2>
           
-          <p className="text-lg text-muted-foreground text-center mb-10">
-            The Lean Brain™ is a behavior intelligence system that:
-          </p>
-          
-          <div className="grid sm:grid-cols-2 gap-4 mb-10">
-            {[
-              { icon: BarChart3, text: 'Tracks your daily execution' },
-              { icon: Brain, text: 'Detects your cognitive patterns' },
-              { icon: AlertTriangle, text: 'Identifies your risk triggers' },
-              { icon: Zap, text: 'Coaches your recovery speed' },
-              { icon: Target, text: 'Builds consistency without perfection' },
-            ].map((item) => (
-              <div key={item.text} className="flex items-center gap-4 p-5 rounded-xl bg-card border border-border">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="h-5 w-5 text-primary" />
-                </div>
-                <span className="font-medium text-foreground">{item.text}</span>
-              </div>
-            ))}
-          </div>
-          
-          <div className="text-center space-y-1">
-            <p className="text-muted-foreground">This is not a macro tracker.</p>
-            <p className="text-xl font-semibold text-foreground">This is your decision system.</p>
+          <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
+            <p>Lean Brain detects the thinking pattern behind the decision — before the damage is done.</p>
+            <p>Every day, you check in. If a pattern shows up — all-or-nothing, emotional eating, "I already ruined it" — Lean Brain names it, reframes it, and tells you exactly what to do next.</p>
+            <p className="font-semibold text-foreground">No guilt. No motivation speech. Just a direct correction and a next move.</p>
           </div>
         </div>
       </section>
@@ -307,15 +267,15 @@ const Landing = () => {
       <section className="py-24 px-4 bg-secondary/50">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-            Simple. Fast. Intelligent.
+            60 seconds a day. <span className="text-primary">Every day.</span>
           </h2>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { step: '01', text: 'Complete a 60-second daily check-in.' },
-              { step: '02', text: 'Select which thought pattern showed up (if any).' },
-              { step: '03', text: "Receive a direct AI response in Karim's coaching style." },
-              { step: '04', text: 'Get weekly behavior insights and a focus theme.' },
+              { step: '01', text: 'Complete your daily check-in' },
+              { step: '02', text: 'Flag any pattern that showed up' },
+              { step: '03', text: 'Get a direct response in structured coaching language' },
+              { step: '04', text: 'Track your recovery speed over time' },
             ].map((item) => (
               <div key={item.step} className="relative bg-card rounded-2xl p-6 border border-border">
                 <div className="text-5xl font-bold text-primary/10 mb-4">{item.step}</div>
@@ -323,6 +283,10 @@ const Landing = () => {
               </div>
             ))}
           </div>
+          
+          <p className="text-center text-lg text-muted-foreground mt-10">
+            Most systems reward perfection. <span className="font-semibold text-foreground">Lean Brain rewards how fast you recover.</span>
+          </p>
         </div>
       </section>
 
@@ -359,20 +323,20 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* SECTION 6 — INSIGHTS DASHBOARD */}
+      {/* SECTION 5 — THE DASHBOARD */}
       <section className="py-24 px-4 bg-secondary/50">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-10">
-            Your Behavior Intelligence Dashboard
+            Your behavior, measured — <span className="text-primary">not guessed.</span>
           </h2>
           
           <div className="grid sm:grid-cols-2 gap-4 mb-8">
             {[
-              { label: 'Consistency Score', desc: 'How often you execute your daily behaviors' },
-              { label: 'Recovery Score', desc: 'How fast you bounce back after a bad day — this matters more than never failing' },
-              { label: 'Pattern Frequency', desc: 'Which cognitive patterns are showing up most' },
-              { label: 'Weekly Behavior Focus', desc: 'A targeted theme to improve each week' },
-              { label: 'Personal Trigger Map', desc: 'Your unique risk situations and how to handle them' },
+              { label: 'Consistency Score', desc: 'How often you execute — not how perfectly' },
+              { label: 'Recovery Score', desc: 'How fast you bounce back after a bad day' },
+              { label: 'Pattern Frequency', desc: 'Which thought traps show up most in your life' },
+              { label: 'Trigger Map', desc: 'The exact situations that break you — and your protocol for each' },
+              { label: 'Weekly Focus', desc: 'One behavior to sharpen this week' },
             ].map((item) => (
               <div key={item.label} className="p-5 rounded-xl bg-card border border-border">
                 <h3 className="font-semibold text-foreground mb-1">{item.label}</h3>
@@ -382,7 +346,7 @@ const Landing = () => {
           </div>
           
           <p className="text-center font-semibold text-foreground text-lg mb-12">
-            Recovery speed matters more than mistakes.
+            Recovery speed matters more than never failing. That's what Lean Brain tracks.
           </p>
 
           {/* Behavior Dashboard Mockups */}
@@ -527,20 +491,20 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* SECTION 7 — WHO THIS IS FOR */}
+      {/* SECTION 6 — WHO IT'S FOR */}
       <section className="py-24 px-4">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-10">
-            The Lean Brain™ Is For You If:
+            Lean Brain is for you if:
           </h2>
           
           <div className="space-y-3 mb-10">
             {[
-              "You've lost weight before but regained it",
-              'You struggle with consistency',
-              "You're disciplined in business but not with food",
-              "You're tired of restarting",
-              'You want structure without coaching calls',
+              "You've lost the weight before. More than once.",
+              "You're structured at work, but food is still chaos.",
+              "You're tired of Monday restarts.",
+              "You want a system that works without coaching calls.",
+              "You know what to do. You just need something there when you don't do it.",
             ].map((item) => (
               <div key={item} className="flex items-center gap-4 p-4 rounded-lg bg-card border border-border">
                 <Check className="h-5 w-5 text-primary flex-shrink-0" />
@@ -612,24 +576,22 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* SECTION 10 — FINAL CLOSE */}
+      {/* CLOSING CTA */}
       <section className="py-24 px-4 bg-secondary/50">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
-            Stop Restarting.
+            Stop restarting.
             <br />
-            <span className="text-primary">Start Thinking Differently.</span>
+            <span className="text-primary">Start correcting.</span>
           </h2>
           
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-            You don't need more motivation.<br />
-            You need a system that corrects you when you drift.<br /><br />
-            That's The Lean Brain™.
+            You don't need more information. You need something present at the moment the plan breaks.
           </p>
           
           <Link to="/auth">
             <Button size="lg" className="h-14 px-10 text-lg font-semibold shadow-elevated">
-              Activate The Lean Brain™
+              Activate Lean Brain — 79 AED/month
               <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
