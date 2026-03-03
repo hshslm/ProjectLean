@@ -522,19 +522,22 @@ const Landing = () => {
             Everything Inside The Lean Brain™
           </h2>
           
-          <div className="grid sm:grid-cols-2 gap-3 mb-10">
+          <div className="space-y-4 mb-10">
             {[
-              'Daily AI Behavior Coaching',
-              'Pattern Detection Engine',
-              '5-Minute Reset Protocol',
-              'Weekly Behavior Themes',
-              'Macro Photo Estimation',
-              'Trigger Mapping System',
-              'Progress Tracking Dashboard',
+              { title: 'Daily coaching response', desc: 'based on your actual check-in, not generic advice' },
+              { title: 'Pattern recognition', desc: 'Lean Brain identifies which thought trap showed up and names it' },
+              { title: '5-Minute Reset Protocol', desc: 'when the day breaks down, this is your next move' },
+              { title: 'Weekly behavior focus', desc: 'one thing to sharpen this week, not ten' },
+              { title: 'Meal photo logging', desc: 'no calorie counting, no apps, just a photo' },
+              { title: 'Trigger mapping', desc: 'your personal list of high-risk situations and how to handle each one' },
+              { title: 'Progress dashboard', desc: 'your consistency, recovery speed, and patterns tracked over time' },
             ].map((item) => (
-              <div key={item} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span className="font-medium text-foreground">{item}</span>
+              <div key={item.title} className="flex items-start gap-4 p-5 rounded-xl bg-card border border-border">
+                <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-semibold text-foreground">{item.title}</span>
+                  <span className="text-muted-foreground"> — {item.desc}</span>
+                </div>
               </div>
             ))}
           </div>
