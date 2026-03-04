@@ -303,7 +303,6 @@ export type Database = {
           is_coaching_client: boolean
           is_subscribed: boolean
           scan_count: number
-          stripe_customer_id: string | null
           subscription_expires_at: string | null
           subscription_updated_at: string | null
           user_id: string
@@ -317,7 +316,6 @@ export type Database = {
           is_coaching_client?: boolean
           is_subscribed?: boolean
           scan_count?: number
-          stripe_customer_id?: string | null
           subscription_expires_at?: string | null
           subscription_updated_at?: string | null
           user_id: string
@@ -331,9 +329,32 @@ export type Database = {
           is_coaching_client?: boolean
           is_subscribed?: boolean
           scan_count?: number
-          stripe_customer_id?: string | null
           subscription_expires_at?: string | null
           subscription_updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stripe_customers: {
+        Row: {
+          created_at: string
+          id: string
+          stripe_customer_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          stripe_customer_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          stripe_customer_id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
