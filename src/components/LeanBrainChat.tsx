@@ -295,10 +295,10 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
         <div className="flex justify-start">
           <img src={projectLeanLogo} alt="" className="w-6 h-6 mt-1 mr-2 flex-shrink-0" />
           <div className="max-w-[80%] rounded-2xl rounded-bl-md bg-muted text-foreground px-4 py-3 text-sm">
-            <p className="font-semibold mb-2">This is Lean Brain — Karim's coaching logic, available when you need it.</p>
-            <p className="mb-2">Ask me anything about your habits, your patterns, your nutrition, or what to do when the plan breaks.</p>
-            <p className="mb-2">I won't motivate you. I'll correct you.</p>
-            <p>What's on your mind?</p>
+            <p className="font-semibold mb-2">This is Lean Brain — Karim's coaching logic, available whenever you need it.</p>
+            <p className="mb-2">Whether you're mid-spiral, planning your next meal, or trying to break a pattern that keeps showing up — this is where you work through it.</p>
+            <p className="mb-2">No motivation. No fluff. Just a direct answer and a next move.</p>
+            <p>What's going on?</p>
           </div>
         </div>
         {messages.map((msg, i) => (
