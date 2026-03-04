@@ -788,7 +788,7 @@ export const MealEstimator: React.FC = () => {
         {user && !isCoachingClient && <MilestoneUpsellModal userId={user.id} />}
 
         {/* First-time onboarding */}
-        {user && <OnboardingWalkthrough userId={user.id} />}
+        {user && <OnboardingWalkthrough userId={user.id} onGoalsUpdated={fetchUserGoals} />}
 
         {/* Lean Brain Chat */}
         <LeanBrainChat
