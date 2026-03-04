@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Check, Dumbbell, Footprints, Moon, Utensils, Beef, ChevronLeft, ChevronRight, Brain, Loader2, MessageSquare, AlertTriangle } from 'lucide-react';
+import { Check, Dumbbell, Footprints, Moon, Utensils, Beef, ChevronLeft, ChevronRight, Brain, Loader2, MessageSquare, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { ResetProtocol } from './ResetProtocol';
 import { format, isToday, addDays, subDays } from 'date-fns';
 
@@ -295,6 +295,16 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
           <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
+
+      {/* Past date hint */}
+      {!isToday(selectedDate) && !isLoading && !hasSubmitted && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-accent/10 border border-accent/20 text-sm">
+          <ClipboardCheck className="w-4 h-4 text-accent flex-shrink-0" />
+          <p className="text-foreground">
+            Missed this day? You can still log your check-in for <span className="font-medium">{format(selectedDate, 'EEEE, MMM d')}</span>.
+          </p>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="text-center py-8">
