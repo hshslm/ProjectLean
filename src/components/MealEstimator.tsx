@@ -439,14 +439,6 @@ export const MealEstimator: React.FC = () => {
                 </Badge>
               )}
               {user && <NotificationSettings userId={user.id} />}
-              {user && (
-                <GoalSettings
-                  userId={user.id}
-                  currentCalorieGoal={userGoals.daily_calories}
-                  currentProteinGoal={userGoals.daily_protein}
-                  onGoalsUpdated={fetchUserGoals}
-                />
-              )}
               {isSubscribed && (
                 <Button
                   variant="ghost"
@@ -484,6 +476,49 @@ export const MealEstimator: React.FC = () => {
 
         {/* Main Content */}
         <main className="space-y-6">
+          {/* Goals Summary Card */}
+          {user && (
+            <div className="rounded-xl border border-border bg-card p-4">
+              {userGoals.daily_calories || userGoals.daily_protein ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-foreground">{userGoals.daily_calories ?? '—'}</p>
+                      <p className="text-xs text-muted-foreground">kcal</p>
+                    </div>
+                    <div className="w-px h-8 bg-border" />
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-foreground">{userGoals.daily_protein ?? '—'}g</p>
+                      <p className="text-xs text-muted-foreground">protein</p>
+                    </div>
+                  </div>
+                  <GoalSettings
+                    userId={user.id}
+                    currentCalorieGoal={userGoals.daily_calories}
+                    currentProteinGoal={userGoals.daily_protein}
+                    onGoalsUpdated={fetchUserGoals}
+                    triggerLabel="Edit Goals"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground text-sm">Set your daily goals</p>
+                    <p className="text-xs text-muted-foreground">Calculate or enter your calorie & protein targets.</p>
+                  </div>
+                  <GoalSettings
+                    userId={user.id}
+                    currentCalorieGoal={null}
+                    currentProteinGoal={null}
+                    onGoalsUpdated={fetchUserGoals}
+                    triggerLabel="Set Goals"
+                    triggerVariant="coral"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Tab Navigation */}
           <div className="flex gap-1 bg-muted rounded-xl p-1">
             <button

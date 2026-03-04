@@ -27,6 +27,8 @@ interface GoalSettingsProps {
   currentCalorieGoal: number | null;
   currentProteinGoal: number | null;
   onGoalsUpdated: () => void;
+  triggerLabel?: string;
+  triggerVariant?: 'ghost' | 'coral' | 'outline' | 'default';
 }
 
 type Sex = 'male' | 'female';
@@ -88,6 +90,8 @@ export const GoalSettings = ({
   currentCalorieGoal,
   currentProteinGoal,
   onGoalsUpdated,
+  triggerLabel,
+  triggerVariant = 'ghost',
 }: GoalSettingsProps) => {
   const [open, setOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -188,9 +192,16 @@ export const GoalSettings = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Settings className="w-4 h-4" />
-        </Button>
+        {triggerLabel ? (
+          <Button variant={triggerVariant} size="sm" className="rounded-xl">
+            <Settings className="w-3.5 h-3.5 mr-1.5" />
+            {triggerLabel}
+          </Button>
+        ) : (
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Settings className="w-4 h-4" />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
