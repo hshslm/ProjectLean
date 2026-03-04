@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -6,7 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Check, Sparkles, Brain, UtensilsCrossed } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface PaywallModalProps {
   open: boolean;
@@ -15,8 +18,10 @@ interface PaywallModalProps {
 }
 
 export const PaywallModal = ({ open, onOpenChange, onSubscribe }: PaywallModalProps) => {
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) setTermsAccepted(false); onOpenChange(o); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold flex items-center justify-center gap-2">
@@ -55,9 +60,29 @@ export const PaywallModal = ({ open, onOpenChange, onSubscribe }: PaywallModalPr
             </div>
           </div>
 
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="terms"
+              checked={termsAccepted}
+              onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+              className="mt-0.5"
+            />
+            <label htmlFor="terms" className="text-sm text-muted-foreground leading-tight cursor-pointer">
+              I agree to the{' '}
+              <Link
+                to="/terms"
+                target="_blank"
+                className="text-primary underline hover:text-primary/80"
+              >
+                Terms and Conditions
+              </Link>
+            </label>
+          </div>
+
           <Button 
             onClick={onSubscribe} 
             className="w-full h-12 text-lg font-semibold"
+            disabled={!termsAccepted}
           >
             Subscribe Now
           </Button>
