@@ -430,7 +430,7 @@ export const MealEstimator: React.FC = () => {
             <img 
               src={projectLeanLogo} 
               alt="Project Lean" 
-              className="h-12 sm:h-16"
+              className="h-16 sm:h-20"
             />
             <div className="flex items-center gap-1">
               {isSubscribed && (

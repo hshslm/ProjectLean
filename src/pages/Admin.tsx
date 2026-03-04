@@ -212,7 +212,7 @@ const Admin = () => {
           <img 
             src={projectLeanLogo} 
             alt="Project Lean" 
-            className="h-12"
+            className="h-16 sm:h-20"
           />
           <Button variant="ghost" size="sm" onClick={signOut}>
             <LogOut className="w-4 h-4 mr-2" />
