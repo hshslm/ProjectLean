@@ -30,6 +30,9 @@ verify_jwt = false
 [functions.karim-coach]
 verify_jwt = false
 
+[functions.lean-brain-chat]
+verify_jwt = false
+
 [functions.weekly-summary]
 verify_jwt = false
 
