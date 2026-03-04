@@ -548,32 +548,55 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* SECTION 9 — PRICING */}
+      {/* SECTION 9 — FREE TRIAL + PRICING */}
       <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-            Simple Pricing
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 leading-tight">
+            Start With One Check-In.
+            <br />
+            <span className="text-primary">No Card Required.</span>
           </h2>
+          
+          <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-16 leading-relaxed">
+            Complete your first daily check-in for free. See exactly how Lean Brain reads your patterns and responds. If it doesn't feel different from anything you've tried — don't subscribe. If it does, you're in for 79 AED/month.
+          </p>
           
           <div className="max-w-md mx-auto">
             <div className="bg-card rounded-2xl p-8 border border-border shadow-soft">
-              <p className="text-xs text-primary font-medium uppercase tracking-wide mb-2">Early Access / Founders Pricing</p>
+              <p className="text-xs text-primary font-medium uppercase tracking-wide mb-2">Founders Pricing — this price will not stay here.</p>
               <h3 className="text-xl font-semibold mb-2">The Lean Brain™</h3>
               <div className="text-4xl font-bold text-foreground mb-1">79 AED</div>
               <p className="text-sm text-muted-foreground mb-6">per month</p>
-              <ul className="space-y-3 mb-8">
-                {['Cancel anytime', 'No long-term commitment', 'Full access to all features'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-muted-foreground">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    {item}
-                  </li>
+              
+              <div className="space-y-3 mb-8">
+                {[
+                  'Daily behavior check-in and AI coaching response',
+                  'Pattern detection and tracking',
+                  'Real-time chat — available when the plan breaks',
+                  'Macro tracking with meal photo logging',
+                  'Recovery score and weekly behavior insights',
+                  'Trigger mapping and personal risk protocols',
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-3 text-foreground">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">{item}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
+              
+              <p className="text-xs text-muted-foreground text-center mb-6">
+                No long-term commitment. Cancel anytime. 7-day full refund if it's not for you.
+              </p>
+              
               <Link to="/auth" className="block">
                 <Button className="w-full h-12 font-semibold">
                   Start Using The Lean Brain™
                 </Button>
               </Link>
+              
+              <p className="text-xs text-center text-muted-foreground mt-4 font-medium">
+                79 AED is founders pricing. When this closes, it closes.
+              </p>
             </div>
           </div>
         </div>
