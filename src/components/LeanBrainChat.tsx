@@ -36,7 +36,7 @@ interface LeanBrainChatProps {
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/lean-brain-chat`;
-const DAILY_MESSAGE_LIMIT = 5;
+const DAILY_MESSAGE_LIMIT = 50;
 
 export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
   dailyCalorieGoal,
