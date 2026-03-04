@@ -101,10 +101,9 @@ export const GoalSettings = ({
   const [weightKg, setWeightKg] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [age, setAge] = useState('');
-  const [sex, setSex] = useState<Sex | ''>('');
-  const [activityLevel, setActivityLevel] = useState<ActivityLevel | ''>('');
-  const [goalType, setGoalType] = useState<GoalType | ''>('');
-
+  const [sex, setSex] = useState<Sex | undefined>(undefined);
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel | undefined>(undefined);
+  const [goalType, setGoalType] = useState<GoalType | undefined>(undefined);
   // Manual goals
   const [calorieGoal, setCalorieGoal] = useState('');
   const [proteinGoal, setProteinGoal] = useState('');
@@ -122,9 +121,9 @@ export const GoalSettings = ({
         setWeightKg(data.weight_kg?.toString() || '');
         setHeightCm(data.height_cm?.toString() || '');
         setAge(data.age?.toString() || '');
-        setSex((data.sex as Sex) || '');
-        setActivityLevel((data.activity_level as ActivityLevel) || '');
-        setGoalType((data.goal_type as GoalType) || '');
+        setSex((data.sex as Sex) || undefined);
+        setActivityLevel((data.activity_level as ActivityLevel) || undefined);
+        setGoalType((data.goal_type as GoalType) || undefined);
         setCalorieGoal(data.daily_calories?.toString() || '');
         setProteinGoal(data.daily_protein?.toString() || '');
       }
