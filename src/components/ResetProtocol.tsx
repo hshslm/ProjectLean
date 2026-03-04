@@ -101,8 +101,8 @@ export const ResetProtocol: React.FC<ResetProtocolProps> = ({ onComplete, isComp
                 }`}
               >
                 <button
-                  onClick={() => !('actions' in step) && handleStepComplete(index)}
-                  disabled={isDone || ('actions' in step)}
+                  onClick={() => handleStepComplete(index)}
+                  disabled={isDone || !isCurrent}
                   className="w-full text-left"
                 >
                   <div className="flex items-start gap-3">
