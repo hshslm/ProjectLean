@@ -92,7 +92,7 @@ export const ResetProtocol: React.FC<ResetProtocolProps> = ({ onComplete, isComp
             return (
               <div
                 key={index}
-                className={`w-full text-left p-3 rounded-xl border transition-all duration-200 ${
+                className={`p-3 rounded-xl border transition-all duration-200 ${
                   isDone
                     ? 'bg-primary/10 border-primary/20'
                     : isCurrent
@@ -100,33 +100,27 @@ export const ResetProtocol: React.FC<ResetProtocolProps> = ({ onComplete, isComp
                       : 'bg-muted/30 border-transparent opacity-60'
                 }`}
               >
-                <button
-                  onClick={() => handleStepComplete(index)}
-                  disabled={isDone || !isCurrent}
-                  className="w-full text-left"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold ${
-                      isDone
-                        ? 'bg-primary text-primary-foreground'
-                        : isCurrent
-                          ? 'bg-destructive text-destructive-foreground'
-                          : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {isDone ? <Check className="w-3 h-3" /> : index + 1}
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDone ? 'text-foreground' : 'text-foreground'}`}>
-                        {step.title}
-                      </p>
-                      {(isCurrent || isDone) && (
-                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                          {step.description}
-                        </p>
-                      )}
-                    </div>
+                <div className="flex items-start gap-3">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold ${
+                    isDone
+                      ? 'bg-primary text-primary-foreground'
+                      : isCurrent
+                        ? 'bg-destructive text-destructive-foreground'
+                        : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {isDone ? <Check className="w-3 h-3" /> : index + 1}
                   </div>
-                </button>
+                  <div className="flex-1">
+                    <p className={`text-sm font-medium ${isDone ? 'text-foreground' : 'text-foreground'}`}>
+                      {step.title}
+                    </p>
+                    {(isCurrent || isDone) && (
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        {step.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Action buttons for step 4 */}
                 {'actions' in step && isCurrent && !isDone && (
@@ -146,6 +140,21 @@ export const ResetProtocol: React.FC<ResetProtocolProps> = ({ onComplete, isComp
                         </Button>
                       );
                     })}
+                  </div>
+                )}
+
+                {/* Done it / complete button */}
+                {isCurrent && !isDone && !('actions' in step) && (
+                  <div className="mt-3 ml-9">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 border-destructive/30 hover:bg-destructive/10 hover:text-destructive text-xs h-8 px-4"
+                      onClick={() => handleStepComplete(index)}
+                    >
+                      <Check className="w-3 h-3" />
+                      Done
+                    </Button>
                   </div>
                 )}
               </div>
