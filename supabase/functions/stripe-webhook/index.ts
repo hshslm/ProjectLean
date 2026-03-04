@@ -56,7 +56,6 @@ serve(async (req) => {
             .from("profiles")
             .update({
               is_subscribed: true,
-              stripe_customer_id: session.customer as string,
               subscription_updated_at: new Date().toISOString(),
               scan_count: 0,
             })
@@ -66,6 +65,23 @@ serve(async (req) => {
             console.error("Error updating profile:", error);
           } else {
             console.log("Successfully updated subscription for:", customerEmail, "Scans reset to 0");
+
+            // Store stripe_customer_id in admin-only table
+            const { data: profile } = await supabaseAdmin
+              .from("profiles")
+              .select("user_id")
+              .eq("email", customerEmail)
+              .maybeSingle();
+
+            if (profile?.user_id && session.customer) {
+              await supabaseAdmin
+                .from("stripe_customers")
+                .upsert({
+                  user_id: profile.user_id,
+                  stripe_customer_id: session.customer as string,
+                  updated_at: new Date().toISOString(),
+                }, { onConflict: "user_id" });
+            }
           }
         }
         break;
@@ -99,29 +115,37 @@ serve(async (req) => {
         const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
         const customerEmail = customer.email;
 
-        const { error } = await supabaseAdmin
-          .from("profiles")
-          .update({
-            scan_count: 0,
-            subscription_updated_at: new Date().toISOString(),
-          })
-          .eq("stripe_customer_id", customerId);
+        // Look up user via stripe_customers table
+        const { data: stripeCustomer } = await supabaseAdmin
+          .from("stripe_customers")
+          .select("user_id")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle();
 
-        if (error) {
-          console.error("Error resetting scan count:", error);
-        } else {
-          console.log("Reset scan count for customer:", customerId);
-        }
+        if (stripeCustomer?.user_id) {
+          const { error } = await supabaseAdmin
+            .from("profiles")
+            .update({
+              scan_count: 0,
+              subscription_updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", stripeCustomer.user_id);
 
-        // Send renewal email
-        if (customerEmail) {
-          try {
-            const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-            const { data: profile } = await supabaseAdmin
-              .from("profiles")
-              .select("full_name")
-              .eq("stripe_customer_id", customerId)
-              .maybeSingle();
+          if (error) {
+            console.error("Error resetting scan count:", error);
+          } else {
+            console.log("Reset scan count for customer:", customerId);
+          }
+
+          // Send renewal email
+          if (customerEmail) {
+            try {
+              const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+              const { data: profile } = await supabaseAdmin
+                .from("profiles")
+                .select("full_name")
+                .eq("user_id", stripeCustomer.user_id)
+                .maybeSingle();
 
             const userName = profile?.full_name || customerEmail.split("@")[0];
             const appUrl = "https://tracker.projectlean.app";
@@ -171,6 +195,8 @@ serve(async (req) => {
           } catch (emailErr) {
             console.error("Failed to send renewal email:", emailErr);
           }
+        } else {
+          console.error("No stripe customer found for:", customerId);
         }
         break;
       }
@@ -194,16 +220,27 @@ serve(async (req) => {
 
         console.log("Meal Tracker subscription update for customer:", customerId, "Active:", isActive);
 
-        const { error } = await supabaseAdmin
-          .from("profiles")
-          .update({
-            is_subscribed: isActive,
-            subscription_updated_at: new Date().toISOString(),
-          })
-          .eq("stripe_customer_id", customerId);
+        // Look up user via stripe_customers table
+        const { data: stripeCustomer } = await supabaseAdmin
+          .from("stripe_customers")
+          .select("user_id")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle();
 
-        if (error) {
-          console.error("Error updating subscription status:", error);
+        if (stripeCustomer?.user_id) {
+          const { error } = await supabaseAdmin
+            .from("profiles")
+            .update({
+              is_subscribed: isActive,
+              subscription_updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", stripeCustomer.user_id);
+
+          if (error) {
+            console.error("Error updating subscription status:", error);
+          }
+        } else {
+          console.error("No stripe customer found for:", customerId);
         }
         break;
       }
