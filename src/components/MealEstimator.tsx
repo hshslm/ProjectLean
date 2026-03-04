@@ -34,6 +34,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useSubscription } from '@/hooks/useSubscription';
 import { CoachingUpsell } from '@/components/CoachingUpsell';
 import { MilestoneUpsellModal } from '@/components/MilestoneUpsellModal';
+import { LeanBrainChat } from '@/components/LeanBrainChat';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { Ingredient } from '@/components/IngredientBreakdown';
@@ -405,8 +406,12 @@ export const MealEstimator: React.FC = () => {
       caloriesHigh: acc.caloriesHigh + log.calories_high,
       proteinLow: acc.proteinLow + log.protein_low,
       proteinHigh: acc.proteinHigh + log.protein_high,
+      carbsLow: acc.carbsLow + log.carbs_low,
+      carbsHigh: acc.carbsHigh + log.carbs_high,
+      fatLow: acc.fatLow + log.fat_low,
+      fatHigh: acc.fatHigh + log.fat_high,
     }),
-    { caloriesLow: 0, caloriesHigh: 0, proteinLow: 0, proteinHigh: 0 }
+    { caloriesLow: 0, caloriesHigh: 0, proteinLow: 0, proteinHigh: 0, carbsLow: 0, carbsHigh: 0, fatLow: 0, fatHigh: 0 }
   );
 
   return (
@@ -767,6 +772,13 @@ export const MealEstimator: React.FC = () => {
         />
 
         {user && !isCoachingClient && <MilestoneUpsellModal userId={user.id} />}
+
+        {/* Lean Brain Chat */}
+        <LeanBrainChat
+          dailyCalorieGoal={userGoals.daily_calories}
+          dailyProteinGoal={userGoals.daily_protein}
+          dailyTotals={dailyTotals}
+        />
 
         {/* Save Template Dialog */}
         {user && (
