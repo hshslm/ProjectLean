@@ -50,6 +50,7 @@ function calculateProtein(w: number, gt: GoalType) {
 interface InfoStep { icon: React.ReactNode; title: string; description: string; }
 
 const INFO_STEPS: InfoStep[] = [
+  // Step 0 = interactive goal setup (handled separately)
   {
     icon: <Camera className="w-8 h-8 text-accent" />,
     title: 'Scan Your Meals',
@@ -70,7 +71,6 @@ const INFO_STEPS: InfoStep[] = [
     title: 'Lean Brain Chat',
     description: 'Ask Karim\'s coaching logic anything — about your habits, nutrition, or what to do when the plan breaks. Direct answers, no fluff.',
   },
-  // Step 5 = interactive goal setup (handled separately)
   {
     icon: <LifeBuoy className="w-8 h-8 text-accent" />,
     title: 'Reset Protocol',
@@ -79,7 +79,7 @@ const INFO_STEPS: InfoStep[] = [
 ];
 
 const TOTAL_STEPS = INFO_STEPS.length + 1; // +1 for the interactive goal step
-const GOAL_STEP_INDEX = 4; // 0-indexed, after the first 4 info steps
+const GOAL_STEP_INDEX = 0; // Goal setup is now step 1 (index 0)
 
 interface OnboardingWalkthroughProps {
   userId: string;
