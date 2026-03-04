@@ -239,6 +239,9 @@ export const MealEstimator: React.FC = () => {
   const handleUseTemplate = async (template: any) => {
     if (!user) return;
     
+    const d = selectedDate;
+    const mealDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
     const { error } = await supabase
       .from('meal_logs')
       .insert({
@@ -253,6 +256,7 @@ export const MealEstimator: React.FC = () => {
         fat_low: template.fat_low,
         fat_high: template.fat_high,
         image_url: template.image_url,
+        meal_date: mealDate,
       });
 
     if (error) {
@@ -326,9 +330,9 @@ export const MealEstimator: React.FC = () => {
       
       // Save to meal_logs
       if (user && data.macros) {
-        // Use local date to ensure meal is logged to correct day in user's timezone
-        const now = new Date();
-        const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        // Use selectedDate to log meal to the day the user is viewing
+        const d = selectedDate;
+        const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         
         const { error: saveError } = await supabase
           .from('meal_logs')
