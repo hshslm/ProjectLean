@@ -585,7 +585,7 @@ const Landing = () => {
               </div>
               
               <p className="text-xs text-muted-foreground text-center mb-6">
-                No long-term commitment. Cancel anytime. 7-day full refund if it's not for you.
+                No long-term commitment. Cancel anytime.
               </p>
               
               <Link to="/auth" className="block">
