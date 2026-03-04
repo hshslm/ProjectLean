@@ -4,6 +4,7 @@ import { ChevronRight, Check, Brain, Shield, Zap, Target, BarChart3, AlertTriang
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import screenshotMeals from '@/assets/screenshot-meals.png';
 import screenshotGoals from '@/assets/screenshot-goals.png';
+import screenshotDialog from '@/assets/screenshot-dialog.png';
 import demoVideo from '@/assets/demo-video.mp4';
 import { useState, useRef } from 'react';
 
@@ -85,6 +86,15 @@ const Landing = () => {
                     <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
                   </div>
                   <p className="text-center text-xs text-muted-foreground mt-3">Goal Progress</p>
+                </div>
+                <div className="max-w-[200px]">
+                  <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                    <div className="rounded-[1.75rem] overflow-hidden">
+                      <img src={screenshotDialog} alt="Real-time AI chat" className="w-full h-auto" />
+                    </div>
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+                  </div>
+                  <p className="text-center text-xs text-muted-foreground mt-3">Real-Time Chat</p>
                 </div>
               </div>
             </div>
