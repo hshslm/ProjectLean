@@ -12,6 +12,7 @@ import ClientView from "./pages/ClientView";
 import ResetPassword from "./pages/ResetPassword";
 import SetPassword from "./pages/SetPassword";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/client/:clientId" element={<ClientView />} />
+            <Route path="/terms" element={<Terms />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
