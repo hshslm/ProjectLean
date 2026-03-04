@@ -5,12 +5,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ChevronLeft, ChevronRight, UtensilsCrossed, ClipboardCheck, BarChart3, MessageSquare, Check, Beef, Footprints, Dumbbell, Moon, Utensils, Brain } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { ArrowLeft, ChevronLeft, ChevronRight, UtensilsCrossed, ClipboardCheck, BarChart3, MessageSquare, MessageCircle, Check, Beef, Footprints, Dumbbell, Moon, Utensils, Brain } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { DailyTotals } from '@/components/DailyTotals';
 import { MealLogCard } from '@/components/MealLogCard';
 import { WeeklyInsights } from '@/components/WeeklyInsights';
+import ReactMarkdown from 'react-markdown';
 
 interface MealLog {
   id: string;
@@ -49,6 +51,14 @@ interface CheckInData {
   reset_protocol_used: boolean;
 }
 
+interface ChatMessage {
+  id: string;
+  role: string;
+  content: string;
+  session_id: string;
+  created_at: string;
+}
+
 const HABIT_META = [
   { key: 'protein_hit', label: 'Protein', icon: Beef },
   { key: 'steps_hit', label: 'Steps', icon: Footprints },
@@ -79,7 +89,8 @@ const ClientView = () => {
   const [coachingResponse, setCoachingResponse] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [activeTab, setActiveTab] = useState<'meals' | 'checkin' | 'insights'>('meals');
+  const [activeTab, setActiveTab] = useState<'meals' | 'checkin' | 'insights' | 'chat'>('meals');
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     if (!loading && (!user || role !== 'admin')) {
@@ -90,6 +101,7 @@ const ClientView = () => {
   useEffect(() => {
     if (clientId && role === 'admin') {
       fetchClientData();
+      fetchChatHistory();
     }
   }, [clientId, role, selectedDate]);
 
@@ -110,6 +122,22 @@ const ClientView = () => {
     setCheckin(checkinRes.data || null);
     setCoachingResponse(coachingRes.data?.response_text || null);
     setIsLoadingData(false);
+  };
+
+  const fetchChatHistory = async () => {
+    if (!clientId) return;
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const nextDateStr = format(addDays(selectedDate, 1), 'yyyy-MM-dd');
+    
+    const { data } = await (supabase
+      .from('chat_messages' as any)
+      .select('*')
+      .eq('user_id', clientId)
+      .gte('created_at', `${dateStr}T00:00:00`)
+      .lt('created_at', `${nextDateStr}T00:00:00`)
+      .order('created_at', { ascending: true }) as any);
+    
+    setChatMessages((data as any[]) || []);
   };
 
   const handlePrevDay = () => setSelectedDate(prev => subDays(prev, 1));
@@ -148,6 +176,7 @@ const ClientView = () => {
             { id: 'meals' as const, label: 'Meals', icon: UtensilsCrossed },
             { id: 'checkin' as const, label: 'Check-In', icon: ClipboardCheck },
             { id: 'insights' as const, label: 'Insights', icon: BarChart3 },
+            { id: 'chat' as const, label: 'Chat', icon: MessageCircle },
           ].map(tab => (
             <button
               key={tab.id}
@@ -166,6 +195,76 @@ const ClientView = () => {
 
         {activeTab === 'insights' ? (
           clientId ? <WeeklyInsights userId={clientId} /> : null
+        ) : activeTab === 'chat' ? (
+          <>
+            {/* Date Navigation for Chat */}
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <Button variant="ghost" size="icon" onClick={handlePrevDay}>
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <div className="text-center min-w-[160px]">
+                <p className="font-medium text-foreground">
+                  {isToday(selectedDate) ? 'Today' : format(selectedDate, 'EEEE')}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {format(selectedDate, 'MMM d, yyyy')}
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={handleNextDay} disabled={isToday(selectedDate)}>
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {chatMessages.length === 0 ? (
+              <Card className="p-8 text-center">
+                <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">No chat messages this day</p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {/* Group by session */}
+                {(() => {
+                  const sessions = chatMessages.reduce<Record<string, ChatMessage[]>>((acc, msg) => {
+                    if (!acc[msg.session_id]) acc[msg.session_id] = [];
+                    acc[msg.session_id].push(msg);
+                    return acc;
+                  }, {});
+
+                  return Object.entries(sessions).map(([sessionId, msgs]) => (
+                    <Card key={sessionId}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs text-muted-foreground font-normal">
+                          Session — {format(new Date(msgs[0].created_at), 'h:mm a')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {msgs.map(msg => (
+                          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            {msg.role === 'assistant' && (
+                              <img src={projectLeanLogo} alt="" className="w-5 h-5 mt-1 mr-2 flex-shrink-0" />
+                            )}
+                            <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+                              msg.role === 'user'
+                                ? 'bg-foreground text-background rounded-br-md'
+                                : 'bg-muted text-foreground rounded-bl-md'
+                            }`}>
+                              {msg.role === 'assistant' ? (
+                                <div className="prose prose-sm max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0">
+                                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                </div>
+                              ) : (
+                                <p className="whitespace-pre-wrap">{msg.content}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  ));
+                })()}
+              </div>
+            )}
+          </>
         ) : (
           <>
             {/* Date Navigation */}
