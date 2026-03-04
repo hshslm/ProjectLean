@@ -43,12 +43,13 @@ const Landing = () => {
           </p>
           
           <div className="flex flex-col items-center gap-4">
-            <Link to="/auth">
+            <Link to="/auth?signup=true">
               <Button size="lg" className="h-14 px-8 text-lg font-semibold shadow-elevated">
-                Fix the Pattern — 79 AED/month
+                Create Your Free Account
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
+            <p className="text-sm text-muted-foreground">No card required. Your first check-in is free.</p>
           </div>
 
         </div>
@@ -588,9 +589,9 @@ const Landing = () => {
                 No long-term commitment. Cancel anytime.
               </p>
               
-              <Link to="/auth" className="block">
+              <Link to="/auth?signup=true" className="block">
                 <Button className="w-full h-12 font-semibold">
-                  Start Using The Lean Brain™
+                  Create Your Free Account
                 </Button>
               </Link>
               
@@ -615,9 +616,9 @@ const Landing = () => {
             You don't need more information. You need something present at the moment the plan breaks.
           </p>
           
-          <Link to="/auth">
+          <Link to="/auth?signup=true">
             <Button size="lg" className="h-14 px-10 text-lg font-semibold shadow-elevated">
-              Activate Lean Brain — 79 AED/month
+              Start Your Free Check-In
               <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
