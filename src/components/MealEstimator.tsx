@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3, LifeBuoy, Sparkles } from 'lucide-react';
+import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3, LifeBuoy, Sparkles, HelpCircle } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { Button } from '@/components/ui/button';
@@ -120,6 +120,7 @@ export const MealEstimator: React.FC = () => {
   const [showResetSheet, setShowResetSheet] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [weeklyLogs, setWeeklyLogs] = useState<MealLog[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
@@ -457,6 +458,15 @@ export const MealEstimator: React.FC = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowTutorial(true)}
+                title="Replay Tutorial"
+                className="h-8 w-8 p-0"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </Button>
               <Button variant="ghost" size="sm" onClick={signOut} className="h-8 w-8 p-0">
                 <LogOut className="w-4 h-4" />
               </Button>
@@ -788,7 +798,7 @@ export const MealEstimator: React.FC = () => {
         {user && !isCoachingClient && <MilestoneUpsellModal userId={user.id} />}
 
         {/* First-time onboarding */}
-        {user && <OnboardingWalkthrough userId={user.id} onGoalsUpdated={fetchUserGoals} />}
+        {user && <OnboardingWalkthrough userId={user.id} onGoalsUpdated={fetchUserGoals} forceShow={showTutorial} onForceShowDone={() => setShowTutorial(false)} />}
 
         {/* Lean Brain Chat */}
         <LeanBrainChat

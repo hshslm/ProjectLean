@@ -84,9 +84,11 @@ const GOAL_STEP_INDEX = 4; // 0-indexed, after the first 4 info steps
 interface OnboardingWalkthroughProps {
   userId: string;
   onGoalsUpdated?: () => void;
+  forceShow?: boolean;
+  onForceShowDone?: () => void;
 }
 
-export const OnboardingWalkthrough: React.FC<OnboardingWalkthroughProps> = ({ userId, onGoalsUpdated }) => {
+export const OnboardingWalkthrough: React.FC<OnboardingWalkthroughProps> = ({ userId, onGoalsUpdated, forceShow, onForceShowDone }) => {
   const [show, setShow] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -106,6 +108,13 @@ export const OnboardingWalkthrough: React.FC<OnboardingWalkthroughProps> = ({ us
     const key = `${ONBOARDING_KEY}-${userId}`;
     if (!localStorage.getItem(key)) setShow(true);
   }, [userId]);
+
+  useEffect(() => {
+    if (forceShow) {
+      setCurrentStep(0);
+      setShow(true);
+    }
+  }, [forceShow]);
 
   const canCalculate = weightKg && heightCm && age && sex && activityLevel && goalType;
 
@@ -127,6 +136,7 @@ export const OnboardingWalkthrough: React.FC<OnboardingWalkthroughProps> = ({ us
   const handleComplete = () => {
     localStorage.setItem(`${ONBOARDING_KEY}-${userId}`, 'true');
     setShow(false);
+    onForceShowDone?.();
   };
 
   const saveGoals = async () => {
