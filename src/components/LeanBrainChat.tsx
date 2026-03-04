@@ -53,21 +53,39 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Count today's messages
+  // Load today's chat history and count messages
   useEffect(() => {
-    if (!user) return;
-    const countMessages = async () => {
+    if (!user || !isOpen) return;
+    const loadHistory = async () => {
       const today = new Date();
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-      const { count } = await supabase
-        .from('chat_messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('role', 'user')
-        .gte('created_at', startOfDay);
-      setMessagesToday(count ?? 0);
+      
+      const [countRes, historyRes] = await Promise.all([
+        supabase
+          .from('chat_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('role', 'user')
+          .gte('created_at', startOfDay),
+        (supabase
+          .from('chat_messages' as any)
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('created_at', startOfDay)
+          .order('created_at', { ascending: true }) as any),
+      ]);
+      
+      setMessagesToday(countRes.count ?? 0);
+      
+      if (historyRes.data && historyRes.data.length > 0 && messages.length === 0) {
+        const loaded: ChatMessage[] = historyRes.data.map((m: any) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        }));
+        setMessages(loaded);
+      }
     };
-    countMessages();
+    loadHistory();
   }, [user, isOpen]);
 
   // Auto-scroll on new messages
