@@ -35,6 +35,8 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { CoachingUpsell } from '@/components/CoachingUpsell';
 import { MilestoneUpsellModal } from '@/components/MilestoneUpsellModal';
 import { LeanBrainChat } from '@/components/LeanBrainChat';
+import { CheckInReminder } from '@/components/CheckInReminder';
+import { OnboardingWalkthrough } from '@/components/OnboardingWalkthrough';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { Ingredient } from '@/components/IngredientBreakdown';
@@ -505,6 +507,14 @@ export const MealEstimator: React.FC = () => {
             </button>
           </div>
 
+          {/* Check-in reminder banner */}
+          {activeTab === 'meals' && user && (
+            <CheckInReminder
+              userId={user.id}
+              onGoToCheckIn={() => setActiveTab('checkin')}
+            />
+          )}
+
           {activeTab === 'insights' ? (
             <WeeklyInsights userId={user!.id} />
           ) : activeTab === 'checkin' ? (
@@ -772,6 +782,9 @@ export const MealEstimator: React.FC = () => {
         />
 
         {user && !isCoachingClient && <MilestoneUpsellModal userId={user.id} />}
+
+        {/* First-time onboarding */}
+        {user && <OnboardingWalkthrough userId={user.id} />}
 
         {/* Lean Brain Chat */}
         <LeanBrainChat
