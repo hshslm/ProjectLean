@@ -291,11 +291,14 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-sm">Ask anything about your patterns, nutrition, or mindset.</p>
+        {/* Welcome intro */}
+        <div className="flex justify-start">
+          <img src={projectLeanLogo} alt="" className="w-6 h-6 mt-1 mr-2 flex-shrink-0" />
+          <div className="max-w-[80%] rounded-2xl rounded-bl-md bg-muted text-foreground px-4 py-3 text-sm">
+            <p className="font-semibold mb-1">Karim here.</p>
+            <p>I'm not a chatbot — I'm your behavior coach. Ask me about patterns, food decisions, or what to do when the plan breaks. I'll give you a straight answer and one clear next move.</p>
           </div>
-        )}
+        </div>
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
