@@ -248,7 +248,7 @@ export const GoalSettings = ({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Sex</Label>
+              <Label className="text-xs">Gender</Label>
               <Select value={sex} onValueChange={(v) => setSex(v as Sex)}>
                 <SelectTrigger className="rounded-xl h-10">
                   <SelectValue placeholder="Select" />

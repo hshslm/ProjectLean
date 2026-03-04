@@ -247,7 +247,7 @@ export const OnboardingWalkthrough: React.FC<OnboardingWalkthroughProps> = ({ us
                 <Input type="number" placeholder="30" value={age} onChange={e => setAge(e.target.value)} className="rounded-xl h-9 text-sm" />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Sex</Label>
+                <Label className="text-xs">Gender</Label>
                 <Select value={sex} onValueChange={v => setSex(v as Sex)}>
                   <SelectTrigger className="rounded-xl h-9 text-sm"><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
