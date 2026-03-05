@@ -492,8 +492,99 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* SECTION 6 — WHO IT'S FOR */}
+      {/* LEAN BRAIN CHAT */}
       <section className="py-24 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-medium px-3 py-1.5 rounded-full mb-6">
+                <MessageSquare className="h-4 w-4" />
+                Lean Brain Chat
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
+                Your coach is always
+                <br />
+                <span className="text-primary">one message away.</span>
+              </h2>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Mid-spiral? Planning dinner? Not sure if the day is salvageable? Open the chat. Lean Brain knows your patterns, your macros, and your triggers — and gives you a direct, no-fluff response in seconds.
+              </p>
+              <div className="space-y-3">
+                {[
+                  "Handles spirals before they become binges",
+                  "Plans meals based on your remaining macros",
+                  "Breaks patterns with data, not motivation",
+                  "Available 24/7 — no scheduling, no waiting",
+                ].map((point) => (
+                  <div key={point} className="flex items-center gap-3">
+                    <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="text-sm text-foreground">{point}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Chat Mockup */}
+            <div className="max-w-[260px] mx-auto">
+              <div className="relative rounded-[2rem] overflow-hidden shadow-elevated bg-foreground p-1.5">
+                <div className="rounded-[1.75rem] overflow-hidden bg-background">
+                  <div className="p-4 space-y-3" style={{ minHeight: '420px' }}>
+                    <div className="text-center pb-2 border-b border-border">
+                      <p className="text-xs font-semibold text-foreground">Lean Brain Chat</p>
+                      <p className="text-[9px] text-muted-foreground">Your behavioral coach</p>
+                    </div>
+                    
+                    {/* User message */}
+                    <div className="flex justify-end">
+                      <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%]">
+                        <p className="text-[10px]">I already had pizza for lunch and I feel like the day is ruined. Should I just start fresh tomorrow?</p>
+                      </div>
+                    </div>
+                    
+                    {/* AI response */}
+                    <div className="flex justify-start">
+                      <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-3 py-2 max-w-[90%]">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Brain className="h-2.5 w-2.5 text-primary" />
+                          <p className="text-[9px] font-semibold text-primary">Karim</p>
+                        </div>
+                        <p className="text-[10px] text-foreground leading-relaxed">
+                          No. The day isn't ruined — that's the all-or-nothing trap. You have 800 cals left. Hit protein at dinner (grilled chicken + veg) and you'll close within range. One off-meal doesn't erase consistency.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* User follow-up */}
+                    <div className="flex justify-end">
+                      <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%]">
+                        <p className="text-[10px]">What should I eat for dinner then?</p>
+                      </div>
+                    </div>
+
+                    {/* AI meal suggestion */}
+                    <div className="flex justify-start">
+                      <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-3 py-2 max-w-[90%]">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Brain className="h-2.5 w-2.5 text-primary" />
+                          <p className="text-[9px] font-semibold text-primary">Karim</p>
+                        </div>
+                        <p className="text-[10px] text-foreground leading-relaxed">
+                          200g grilled chicken, roasted veg, small portion of rice. ~550 cal, 45g protein. You'll finish the day at 85% — that's a win.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground rounded-full" />
+              </div>
+              <p className="text-center text-xs text-muted-foreground mt-3">Real-time AI coaching</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 6 — WHO IT'S FOR */}
+      <section className="py-24 px-4 bg-secondary/50">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-10">
             Lean Brain is for you if:
@@ -526,6 +617,7 @@ const Landing = () => {
           <div className="space-y-4 mb-10">
             {[
               { title: 'Daily coaching response', desc: 'based on your actual check-in, not generic advice' },
+              { title: 'Lean Brain Chat', desc: 'message your AI coach anytime — mid-spiral, pre-meal, or post-slip' },
               { title: 'Pattern recognition', desc: 'Lean Brain identifies which thought trap showed up and names it' },
               { title: '5-Minute Reset Protocol', desc: 'when the day breaks down, this is your next move' },
               { title: 'Weekly behavior focus', desc: 'one thing to sharpen this week, not ten' },
