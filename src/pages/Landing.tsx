@@ -603,6 +603,57 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="py-24 px-4">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            Common Questions
+          </h2>
+          <p className="text-muted-foreground text-center mb-12 max-w-xl mx-auto">
+            Everything you need to know before getting started.
+          </p>
+
+          <div className="space-y-0 divide-y divide-border">
+            {[
+              {
+                q: "How does the AI coaching actually work?",
+                a: "Every day you complete a 60-second check-in — sleep, training, stress, eating patterns. Our AI analyzes your responses over time, identifies your specific behavioral triggers, and gives you a direct, personalized correction. It's not generic advice — it's pattern recognition trained on your data."
+              },
+              {
+                q: "Is my data private and secure?",
+                a: "Absolutely. Your data is encrypted, stored securely, and never shared with third parties. Only you and your AI coach can see your check-ins and patterns. We take privacy seriously — your health data stays yours."
+              },
+              {
+                q: "How is this different from MyFitnessPal or Noom?",
+                a: "Those apps track calories. We track behavior. MyFitnessPal tells you what you ate. Lean Brain tells you why you ate it — and what to do differently next time. We focus on the patterns that cause the plan to break, not the plan itself."
+              },
+              {
+                q: "What if I miss a day?",
+                a: "Nothing breaks. The system picks up right where you left off. In fact, gaps in your check-ins are data too — they often reveal avoidance patterns that your coach will flag. There's no streak pressure here, just honest pattern tracking."
+              },
+              {
+                q: "Do I need to follow a specific diet or training plan?",
+                a: "No. Lean Brain works with whatever plan you're already following. It doesn't replace your diet — it fixes the behavioral patterns that keep derailing it. Whether you're counting macros, doing keto, or just trying to eat better, the system adapts to you."
+              },
+              {
+                q: "What happens after the free check-in?",
+                a: "After your first free check-in, you can subscribe for 79 AED/month to get daily AI coaching, pattern recognition, recovery tracking, and your full behavior dashboard. No long-term commitment — cancel anytime."
+              }
+            ].map((faq, i) => (
+              <details key={i} className="group py-5">
+                <summary className="flex items-center justify-between cursor-pointer list-none">
+                  <span className="font-medium text-foreground pr-4">{faq.q}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform duration-200 group-open:rotate-90" />
+                </summary>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed pr-8">
+                  {faq.a}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CLOSING CTA */}
       <section className="py-24 px-4 bg-secondary/50">
         <div className="max-w-3xl mx-auto text-center">
