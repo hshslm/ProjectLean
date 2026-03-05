@@ -502,9 +502,9 @@ const Landing = () => {
                 Lean Brain Chat
               </div>
               <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
-                Your coach is always
+                AI that knows your
                 <br />
-                <span className="text-primary">one message away.</span>
+                <span className="text-primary">patterns — and corrects them.</span>
               </h2>
               <p className="text-muted-foreground mb-6 leading-relaxed">
                 Mid-spiral? Planning dinner? Not sure if the day is salvageable? Open the chat. Lean Brain knows your patterns, your macros, and your triggers — and gives you a direct, no-fluff response in seconds.
