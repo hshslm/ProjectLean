@@ -123,6 +123,7 @@ export const MealEstimator: React.FC = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [weeklyLogs, setWeeklyLogs] = useState<MealLog[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [editingMealId, setEditingMealId] = useState<string | null>(null);
 
   // Goals
   const [userGoals, setUserGoals] = useState<UserGoals>({ daily_calories: null, daily_protein: null });
