@@ -37,6 +37,7 @@ interface MealLogCardProps {
   log: MealLog;
   onDelete?: (id: string) => void;
   onEdit?: (id: string, updates: Partial<MealLog>) => void;
+  onRescan?: (log: MealLog) => void;
   onSaveAsTemplate?: (log: MealLog) => void;
   showActions?: boolean;
 }
@@ -45,6 +46,7 @@ export const MealLogCard = ({
   log, 
   onDelete, 
   onEdit, 
+  onRescan,
   onSaveAsTemplate,
   showActions = true 
 }: MealLogCardProps) => {
