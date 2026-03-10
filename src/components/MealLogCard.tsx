@@ -37,7 +37,7 @@ interface MealLogCardProps {
   log: MealLog;
   onDelete?: (id: string) => void;
   onEdit?: (id: string, updates: Partial<MealLog>) => void;
-  onRescan?: (log: MealLog) => void;
+  onRescan?: (log: MealLog & Record<string, any>) => void;
   onSaveAsTemplate?: (log: MealLog) => void;
   showActions?: boolean;
 }
