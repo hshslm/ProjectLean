@@ -707,7 +707,7 @@ export const MealEstimator: React.FC = () => {
                       log={log}
                       onDelete={handleDeleteMeal}
                       onEdit={handleEditMeal}
-                      onRescan={(mealLog) => handleStartEdit(mealLog)}
+                      onRescan={(mealLog) => handleStartEdit(mealLog as MealLog)}
                       onSaveAsTemplate={handleSaveAsTemplate}
                     />
                   ))}
