@@ -356,27 +356,55 @@ export const MealEstimator: React.FC = () => {
         const d = selectedDate;
         const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         
-        const { error: saveError } = await supabase
-          .from('meal_logs')
-          .insert({
-            user_id: user.id,
-            food_identified: data.foodIdentification,
-            calories_low: data.macros.caloriesLow,
-            calories_high: data.macros.caloriesHigh,
-            protein_low: data.macros.proteinLow,
-            protein_high: data.macros.proteinHigh,
-            carbs_low: data.macros.carbsLow,
-            carbs_high: data.macros.carbsHigh,
-            fat_low: data.macros.fatLow,
-            fat_high: data.macros.fatHigh,
-            confidence: data.confidence?.level || null,
-            notes: notes.trim() || null,
-            image_url: photos[0]?.preview || null,
-            meal_date: localDate,
-          });
-        
-        if (saveError) {
-          console.error('Error saving meal log:', saveError);
+        if (editingMealId) {
+          // Update existing meal
+          const { error: saveError } = await supabase
+            .from('meal_logs')
+            .update({
+              food_identified: data.foodIdentification,
+              calories_low: data.macros.caloriesLow,
+              calories_high: data.macros.caloriesHigh,
+              protein_low: data.macros.proteinLow,
+              protein_high: data.macros.proteinHigh,
+              carbs_low: data.macros.carbsLow,
+              carbs_high: data.macros.carbsHigh,
+              fat_low: data.macros.fatLow,
+              fat_high: data.macros.fatHigh,
+              confidence: data.confidence?.level || null,
+              notes: notes.trim() || null,
+              image_url: photos[0]?.preview || null,
+            })
+            .eq('id', editingMealId);
+          
+          if (saveError) {
+            console.error('Error updating meal log:', saveError);
+          } else {
+            toast.success('Meal updated');
+          }
+        } else {
+          // Insert new meal
+          const { error: saveError } = await supabase
+            .from('meal_logs')
+            .insert({
+              user_id: user.id,
+              food_identified: data.foodIdentification,
+              calories_low: data.macros.caloriesLow,
+              calories_high: data.macros.caloriesHigh,
+              protein_low: data.macros.proteinLow,
+              protein_high: data.macros.proteinHigh,
+              carbs_low: data.macros.carbsLow,
+              carbs_high: data.macros.carbsHigh,
+              fat_low: data.macros.fatLow,
+              fat_high: data.macros.fatHigh,
+              confidence: data.confidence?.level || null,
+              notes: notes.trim() || null,
+              image_url: photos[0]?.preview || null,
+              meal_date: localDate,
+            });
+          
+          if (saveError) {
+            console.error('Error saving meal log:', saveError);
+          }
         }
       }
     } catch (error) {
