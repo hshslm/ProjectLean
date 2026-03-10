@@ -723,11 +723,11 @@ export const MealEstimator: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setView('history')}
+                onClick={() => { setEditingMealId(null); setView('history'); }}
                 className="mb-2"
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
-                Back to today
+                {editingMealId ? 'Cancel edit' : 'Back to today'}
               </Button>
 
               {/* Reference Object Tip */}
