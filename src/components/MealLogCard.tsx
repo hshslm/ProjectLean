@@ -124,12 +124,24 @@ export const MealLogCard = ({
                       <Star className="w-3.5 h-3.5" />
                     </Button>
                   )}
+                  {onRescan && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onRescan(log)}
+                      title="Re-scan meal"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                   {onEdit && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7"
                       onClick={() => setIsEditing(true)}
+                      title="Quick edit"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
