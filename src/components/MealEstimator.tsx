@@ -426,6 +426,7 @@ export const MealEstimator: React.FC = () => {
     setResult(null);
     setMultiplier(1);
     setShowReferenceTip(true);
+    setEditingMealId(null);
     setView('history');
     fetchMealLogs();
     fetchWeeklyLogs();
