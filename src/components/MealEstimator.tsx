@@ -123,6 +123,7 @@ export const MealEstimator: React.FC = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [weeklyLogs, setWeeklyLogs] = useState<MealLog[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [editingMealId, setEditingMealId] = useState<string | null>(null);
 
   // Goals
   const [userGoals, setUserGoals] = useState<UserGoals>({ daily_calories: null, daily_protein: null });
@@ -232,6 +233,26 @@ export const MealEstimator: React.FC = () => {
     }
   };
 
+  const handleStartEdit = (log: MealLog) => {
+    // Pre-fill notes with the food name for context
+    setNotes(log.food_identified);
+    // If the meal has an image, pre-fill it
+    if (log.image_url) {
+      setPhotos([{ file: new File([], 'existing.jpg'), preview: log.image_url }]);
+    } else {
+      setPhotos([]);
+    }
+    setPortionSize('medium');
+    setCalorieBudget('');
+    setProteinGoal('');
+    setWeight('');
+    setWeightUnit('g');
+    setResult(null);
+    setMultiplier(1);
+    setEditingMealId(log.id);
+    setView('estimate');
+  };
+
   const handleSaveAsTemplate = (log: MealLog) => {
     setTemplateMeal(log);
     setSaveTemplateOpen(true);
@@ -335,27 +356,55 @@ export const MealEstimator: React.FC = () => {
         const d = selectedDate;
         const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         
-        const { error: saveError } = await supabase
-          .from('meal_logs')
-          .insert({
-            user_id: user.id,
-            food_identified: data.foodIdentification,
-            calories_low: data.macros.caloriesLow,
-            calories_high: data.macros.caloriesHigh,
-            protein_low: data.macros.proteinLow,
-            protein_high: data.macros.proteinHigh,
-            carbs_low: data.macros.carbsLow,
-            carbs_high: data.macros.carbsHigh,
-            fat_low: data.macros.fatLow,
-            fat_high: data.macros.fatHigh,
-            confidence: data.confidence?.level || null,
-            notes: notes.trim() || null,
-            image_url: photos[0]?.preview || null,
-            meal_date: localDate,
-          });
-        
-        if (saveError) {
-          console.error('Error saving meal log:', saveError);
+        if (editingMealId) {
+          // Update existing meal
+          const { error: saveError } = await supabase
+            .from('meal_logs')
+            .update({
+              food_identified: data.foodIdentification,
+              calories_low: data.macros.caloriesLow,
+              calories_high: data.macros.caloriesHigh,
+              protein_low: data.macros.proteinLow,
+              protein_high: data.macros.proteinHigh,
+              carbs_low: data.macros.carbsLow,
+              carbs_high: data.macros.carbsHigh,
+              fat_low: data.macros.fatLow,
+              fat_high: data.macros.fatHigh,
+              confidence: data.confidence?.level || null,
+              notes: notes.trim() || null,
+              image_url: photos[0]?.preview || null,
+            })
+            .eq('id', editingMealId);
+          
+          if (saveError) {
+            console.error('Error updating meal log:', saveError);
+          } else {
+            toast.success('Meal updated');
+          }
+        } else {
+          // Insert new meal
+          const { error: saveError } = await supabase
+            .from('meal_logs')
+            .insert({
+              user_id: user.id,
+              food_identified: data.foodIdentification,
+              calories_low: data.macros.caloriesLow,
+              calories_high: data.macros.caloriesHigh,
+              protein_low: data.macros.proteinLow,
+              protein_high: data.macros.proteinHigh,
+              carbs_low: data.macros.carbsLow,
+              carbs_high: data.macros.carbsHigh,
+              fat_low: data.macros.fatLow,
+              fat_high: data.macros.fatHigh,
+              confidence: data.confidence?.level || null,
+              notes: notes.trim() || null,
+              image_url: photos[0]?.preview || null,
+              meal_date: localDate,
+            });
+          
+          if (saveError) {
+            console.error('Error saving meal log:', saveError);
+          }
         }
       }
     } catch (error) {
@@ -377,6 +426,7 @@ export const MealEstimator: React.FC = () => {
     setResult(null);
     setMultiplier(1);
     setShowReferenceTip(true);
+    setEditingMealId(null);
     setView('history');
     fetchMealLogs();
     fetchWeeklyLogs();
@@ -657,6 +707,7 @@ export const MealEstimator: React.FC = () => {
                       log={log}
                       onDelete={handleDeleteMeal}
                       onEdit={handleEditMeal}
+                      onRescan={(mealLog) => handleStartEdit(mealLog as MealLog)}
                       onSaveAsTemplate={handleSaveAsTemplate}
                     />
                   ))}
@@ -669,11 +720,11 @@ export const MealEstimator: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setView('history')}
+                onClick={() => { setEditingMealId(null); setView('history'); }}
                 className="mb-2"
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
-                Back to today
+                {editingMealId ? 'Cancel edit' : 'Back to today'}
               </Button>
 
               {/* Reference Object Tip */}
@@ -768,7 +819,7 @@ export const MealEstimator: React.FC = () => {
                     size="xl"
                     className="w-full"
                   >
-                    Estimate macros
+                    {editingMealId ? 'Re-estimate macros' : 'Estimate macros'}
                     <ArrowRight className="w-5 h-5" />
                   </Button>
                 </div>

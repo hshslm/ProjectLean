@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format, parseISO } from 'date-fns';
-import { Pencil, Trash2, Star, Check, X } from 'lucide-react';
+import { Pencil, Trash2, Star, Check, X, RotateCcw } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +37,7 @@ interface MealLogCardProps {
   log: MealLog;
   onDelete?: (id: string) => void;
   onEdit?: (id: string, updates: Partial<MealLog>) => void;
+  onRescan?: (log: MealLog & Record<string, any>) => void;
   onSaveAsTemplate?: (log: MealLog) => void;
   showActions?: boolean;
 }
@@ -45,6 +46,7 @@ export const MealLogCard = ({
   log, 
   onDelete, 
   onEdit, 
+  onRescan,
   onSaveAsTemplate,
   showActions = true 
 }: MealLogCardProps) => {
@@ -122,12 +124,24 @@ export const MealLogCard = ({
                       <Star className="w-3.5 h-3.5" />
                     </Button>
                   )}
+                  {onRescan && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onRescan(log)}
+                      title="Re-scan meal"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                   {onEdit && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7"
                       onClick={() => setIsEditing(true)}
+                      title="Quick edit"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
