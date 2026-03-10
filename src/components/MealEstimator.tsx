@@ -822,7 +822,7 @@ export const MealEstimator: React.FC = () => {
                     size="xl"
                     className="w-full"
                   >
-                    Estimate macros
+                    {editingMealId ? 'Re-estimate macros' : 'Estimate macros'}
                     <ArrowRight className="w-5 h-5" />
                   </Button>
                 </div>
