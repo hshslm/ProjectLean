@@ -233,6 +233,26 @@ export const MealEstimator: React.FC = () => {
     }
   };
 
+  const handleStartEdit = (log: MealLog) => {
+    // Pre-fill notes with the food name for context
+    setNotes(log.food_identified);
+    // If the meal has an image, pre-fill it
+    if (log.image_url) {
+      setPhotos([{ file: new File([], 'existing.jpg'), preview: log.image_url }]);
+    } else {
+      setPhotos([]);
+    }
+    setPortionSize('medium');
+    setCalorieBudget('');
+    setProteinGoal('');
+    setWeight('');
+    setWeightUnit('g');
+    setResult(null);
+    setMultiplier(1);
+    setEditingMealId(log.id);
+    setView('estimate');
+  };
+
   const handleSaveAsTemplate = (log: MealLog) => {
     setTemplateMeal(log);
     setSaveTemplateOpen(true);
