@@ -706,7 +706,11 @@ export const MealEstimator: React.FC = () => {
                       key={log.id} 
                       log={log}
                       onDelete={handleDeleteMeal}
-                      onEdit={handleEditMeal}
+                      onEdit={(id, updates) => {
+                        // Find the log and start edit flow
+                        const mealToEdit = mealLogs.find(m => m.id === id);
+                        if (mealToEdit) handleStartEdit(mealToEdit);
+                      }}
                       onSaveAsTemplate={handleSaveAsTemplate}
                     />
                   ))}
