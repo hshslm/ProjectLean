@@ -50,7 +50,8 @@ const Landing = () => {
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <p className="text-sm text-muted-foreground">No card required. Your first check-in is free.</p>
+            <p className="text-sm text-muted-foreground mb-4">No card required. Your first check-in is free.</p>
+            <FoundersCounter variant="hero" />
           </div>
 
         </div>
