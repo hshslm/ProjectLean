@@ -18,10 +18,20 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { count, error } = await supabase
+    // Count subscribers OR coaching clients
+    const { count: subCount } = await supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .eq('is_subscribed', true);
+
+    const { count: coachCount } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_coaching_client', true)
+      .eq('is_subscribed', false);
+
+    const count = (subCount ?? 0) + (coachCount ?? 0);
+    const error = null;
 
     if (error) throw error;
 
