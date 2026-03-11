@@ -6,6 +6,7 @@ import screenshotMeals from '@/assets/screenshot-meals.png';
 import screenshotGoals from '@/assets/screenshot-goals.png';
 import demoVideo from '@/assets/demo-video.mp4';
 import { useState, useRef } from 'react';
+import { FoundersCounter } from '@/components/FoundersCounter';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -49,7 +50,8 @@ const Landing = () => {
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <p className="text-sm text-muted-foreground">No card required. Your first check-in is free.</p>
+            <p className="text-sm text-muted-foreground mb-4">No card required. Your first check-in is free.</p>
+            <FoundersCounter variant="hero" />
           </div>
 
         </div>
@@ -659,7 +661,8 @@ const Landing = () => {
               <p className="text-xs text-primary font-medium uppercase tracking-wide mb-2">Founders Pricing — this price will not stay here.</p>
               <h3 className="text-xl font-semibold mb-2">The Lean Brain™</h3>
               <div className="text-4xl font-bold text-foreground mb-1">129 AED</div>
-              <p className="text-sm text-muted-foreground mb-6">per month</p>
+              <p className="text-sm text-muted-foreground mb-4">per month</p>
+              <FoundersCounter variant="card" />
               
               <div className="space-y-3 mb-8">
                 {[
