@@ -290,7 +290,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
 
   const habitsCompleted = HABITS.filter(h => checkin[h.key]).length;
   const TRIGGER_PATTERNS = ['all-or-nothing', 'ruined-day', 'emotional-eating'];
-  const showResetProtocol = checkin.cognitive_patterns.some(p => TRIGGER_PATTERNS.includes(p));
+  const hasPatternTrigger = checkin.cognitive_patterns.some(p => TRIGGER_PATTERNS.includes(p));
+  // Also trigger Reset Protocol if stress ≥ 8 today AND there's been at least 1 prior high-stress day
+  const hasStressTrigger = (checkin.stress_score !== null && checkin.stress_score >= 8 && stressStreak >= 1);
+  const showResetProtocol = hasPatternTrigger || hasStressTrigger;
 
   return (
     <div className="space-y-4">
