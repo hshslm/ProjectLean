@@ -69,6 +69,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
   // AI Coaching state
   const [coachingResponse, setCoachingResponse] = useState<string | null>(null);
   const [isLoadingCoaching, setIsLoadingCoaching] = useState(false);
+  const [stressStreak, setStressStreak] = useState(0);
 
   useEffect(() => {
     fetchCheckin();
