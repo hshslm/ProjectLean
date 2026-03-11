@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/14AbJ14z3fr23Xl1xG6c00B';
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/dRm6oHaXr6Uw9hF1xG6c00C';
 
 interface SubscriptionState {
   isSubscribed: boolean;

@@ -636,7 +636,7 @@ const Landing = () => {
           </div>
           
           <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">Early Access / Founders Pricing — 79 AED/month.</p>
+            <p className="text-2xl font-bold text-foreground">Early Access / Founders Pricing — 129 AED/month.</p>
           </div>
         </div>
       </section>
@@ -651,14 +651,14 @@ const Landing = () => {
           </h2>
           
           <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-16 leading-relaxed">
-            Complete your first daily check-in for free. See exactly how Lean Brain reads your patterns and responds. If it doesn't feel different from anything you've tried — don't subscribe. If it does, you're in for 79 AED/month.
+            Complete your first daily check-in for free. See exactly how Lean Brain reads your patterns and responds. If it doesn't feel different from anything you've tried — don't subscribe. If it does, you're in for 129 AED/month.
           </p>
           
           <div className="max-w-md mx-auto">
             <div className="bg-card rounded-2xl p-8 border border-border shadow-soft">
               <p className="text-xs text-primary font-medium uppercase tracking-wide mb-2">Founders Pricing — this price will not stay here.</p>
               <h3 className="text-xl font-semibold mb-2">The Lean Brain™</h3>
-              <div className="text-4xl font-bold text-foreground mb-1">79 AED</div>
+              <div className="text-4xl font-bold text-foreground mb-1">129 AED</div>
               <p className="text-sm text-muted-foreground mb-6">per month</p>
               
               <div className="space-y-3 mb-8">
@@ -688,7 +688,7 @@ const Landing = () => {
               </Link>
               
               <p className="text-xs text-center text-muted-foreground mt-4 font-medium">
-                79 AED is founders pricing. When this closes, it closes.
+                129 AED is founders pricing. When this closes, it closes.
               </p>
             </div>
           </div>
@@ -729,7 +729,7 @@ const Landing = () => {
               },
               {
                 q: "What happens after the free check-in?",
-                a: "After your first free check-in, you can subscribe for 79 AED/month to get daily AI coaching, pattern recognition, recovery tracking, and your full behavior dashboard. No long-term commitment — cancel anytime."
+                a: "After your first free check-in, you can subscribe for 129 AED/month to get daily AI coaching, pattern recognition, recovery tracking, and your full behavior dashboard. No long-term commitment — cancel anytime."
               }
             ].map((faq, i) => (
               <details key={i} className="group py-5">
