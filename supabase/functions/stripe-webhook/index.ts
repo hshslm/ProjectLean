@@ -195,6 +195,7 @@ serve(async (req) => {
           } catch (emailErr) {
             console.error("Failed to send renewal email:", emailErr);
           }
+          }
         } else {
           console.error("No stripe customer found for:", customerId);
         }
