@@ -694,7 +694,7 @@ const Landing = () => {
               </Link>
               
               <p className="text-xs text-center text-muted-foreground mt-4 font-medium">
-                129 AED is founders pricing. When this closes, it closes.
+                129 AED is founders pricing for the first 50 members. After that, it's 199 AED/month.
               </p>
             </div>
           </div>
