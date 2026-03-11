@@ -6,6 +6,7 @@ import screenshotMeals from '@/assets/screenshot-meals.png';
 import screenshotGoals from '@/assets/screenshot-goals.png';
 import demoVideo from '@/assets/demo-video.mp4';
 import { useState, useRef } from 'react';
+import { FoundersCounter } from '@/components/FoundersCounter';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
