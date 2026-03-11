@@ -658,10 +658,13 @@ const Landing = () => {
           
           <div className="max-w-md mx-auto">
             <div className="bg-card rounded-2xl p-8 border border-border shadow-soft">
-              <p className="text-xs text-primary font-medium uppercase tracking-wide mb-2">Founders Pricing — this price will not stay here.</p>
+              <p className="text-xs text-primary font-medium uppercase tracking-wide mb-2">Founders Pricing — only 50 spots</p>
               <h3 className="text-xl font-semibold mb-2">The Lean Brain™</h3>
-              <div className="text-4xl font-bold text-foreground mb-1">129 AED</div>
-              <p className="text-sm text-muted-foreground mb-4">per month</p>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-4xl font-bold text-foreground">129 AED</span>
+                <span className="text-lg text-muted-foreground line-through">199 AED</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">per month — founders rate</p>
               <FoundersCounter variant="card" />
               
               <div className="space-y-3 mb-8">
