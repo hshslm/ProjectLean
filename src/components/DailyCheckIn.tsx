@@ -485,9 +485,15 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in slide-in-from-top-2 duration-300">
                   <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-destructive">Negative pattern detected</p>
+                    <p className="text-sm font-semibold text-destructive">
+                      {hasStressTrigger && !hasPatternTrigger
+                        ? `High stress — ${stressStreak + 1} days in a row`
+                        : 'Negative pattern detected'}
+                    </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Use the Reset Protocol below to break the cycle before it spirals.
+                      {hasStressTrigger && !hasPatternTrigger
+                        ? 'Sustained stress compounds. Use the Reset Protocol to decompress before it affects your habits.'
+                        : 'Use the Reset Protocol below to break the cycle before it spirals.'}
                     </p>
                   </div>
                 </div>
