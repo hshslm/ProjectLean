@@ -636,7 +636,7 @@ const Landing = () => {
           </div>
           
           <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">Early Access / Founders Pricing — 79 AED/month.</p>
+            <p className="text-2xl font-bold text-foreground">Early Access / Founders Pricing — 129 AED/month.</p>
           </div>
         </div>
       </section>
