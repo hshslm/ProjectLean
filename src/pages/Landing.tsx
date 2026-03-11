@@ -688,7 +688,7 @@ const Landing = () => {
               </Link>
               
               <p className="text-xs text-center text-muted-foreground mt-4 font-medium">
-                79 AED is founders pricing. When this closes, it closes.
+                129 AED is founders pricing. When this closes, it closes.
               </p>
             </div>
           </div>
