@@ -69,6 +69,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
   // AI Coaching state
   const [coachingResponse, setCoachingResponse] = useState<string | null>(null);
   const [isLoadingCoaching, setIsLoadingCoaching] = useState(false);
+  const [stressStreak, setStressStreak] = useState(0);
 
   useEffect(() => {
     fetchCheckin();
@@ -77,9 +78,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
   const fetchCheckin = async () => {
     setIsLoading(true);
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const threeDaysAgo = format(subDays(selectedDate, 3), 'yyyy-MM-dd');
     
-    // Fetch check-in and coaching response in parallel
-    const [checkinResult, coachingResult] = await Promise.all([
+    // Fetch check-in, coaching response, and recent stress history in parallel
+    const [checkinResult, coachingResult, stressHistoryResult] = await Promise.all([
       (supabase
         .from('daily_checkins' as any)
         .select('*')
@@ -94,10 +96,29 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle() as any),
+      (supabase
+        .from('daily_checkins' as any)
+        .select('checkin_date, stress_score')
+        .eq('user_id', userId)
+        .gte('checkin_date', threeDaysAgo)
+        .lt('checkin_date', dateStr)
+        .order('checkin_date', { ascending: false }) as any),
     ]);
 
     const { data } = checkinResult;
     const { data: coachingData } = coachingResult;
+    const recentStress = stressHistoryResult.data || [];
+
+    // Calculate consecutive high-stress days leading up to selected date
+    let streak = 0;
+    for (const day of recentStress) {
+      if (day.stress_score !== null && day.stress_score >= 7) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    setStressStreak(streak);
 
     if (data) {
       setCheckin({
@@ -269,7 +290,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
 
   const habitsCompleted = HABITS.filter(h => checkin[h.key]).length;
   const TRIGGER_PATTERNS = ['all-or-nothing', 'ruined-day', 'emotional-eating'];
-  const showResetProtocol = checkin.cognitive_patterns.some(p => TRIGGER_PATTERNS.includes(p));
+  const hasPatternTrigger = checkin.cognitive_patterns.some(p => TRIGGER_PATTERNS.includes(p));
+  // Also trigger Reset Protocol if stress ≥ 8 today AND there's been at least 1 prior high-stress day
+  const hasStressTrigger = (checkin.stress_score !== null && checkin.stress_score >= 8 && stressStreak >= 1);
+  const showResetProtocol = hasPatternTrigger || hasStressTrigger;
 
   return (
     <div className="space-y-4">
@@ -461,9 +485,15 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in slide-in-from-top-2 duration-300">
                   <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-destructive">Negative pattern detected</p>
+                    <p className="text-sm font-semibold text-destructive">
+                      {hasStressTrigger && !hasPatternTrigger
+                        ? `High stress — ${stressStreak + 1} days in a row`
+                        : 'Negative pattern detected'}
+                    </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Use the Reset Protocol below to break the cycle before it spirals.
+                      {hasStressTrigger && !hasPatternTrigger
+                        ? 'Sustained stress compounds. Use the Reset Protocol to decompress before it affects your habits.'
+                        : 'Use the Reset Protocol below to break the cycle before it spirals.'}
                     </p>
                   </div>
                 </div>

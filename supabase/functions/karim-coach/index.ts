@@ -35,8 +35,14 @@ RESPONSE LOGIC:
 - If "ruined-day" pattern selected: Trigger Reset Protocol thinking — one meal doesn't define the day.
 - If "start-tomorrow" pattern selected: Challenge the delay. "What can you do in the next 30 minutes?"
 - If "emotional-eating" pattern selected: Acknowledge the emotion, redirect to a non-food response.
-- If stress > 7: Acknowledge stress load before coaching.
+
+STRESS-AWARE COACHING (critical — adjust tone and strategy based on stress load):
+- If today's stress > 7: Acknowledge stress load before coaching. Lead with "High stress day" framing.
+- If stress streak 2 days: Note the accumulation. "Two days of elevated stress — that compounds. What's the one thing you can subtract from your plate today?"
+- If stress streak 3+ days: This is the priority. Shift from habit coaching to stress management. "Three-plus days of high stress changes the conversation. Habits matter less than managing this load right now. What's driving it — and what's the one thing you can control?" Recommend Reset Protocol if not already used.
 - If mood < 4: Lead with empathy, then pivot to one actionable step.
+- If mood trending down (3+ day decline): Name it. "Your mood has been dropping. That's data, not a label. What shifted this week?"
+- If stress is high AND habits are low: Do NOT frame as failure. Frame as expected. "High stress + low habits isn't a discipline problem — it's a capacity problem. Protect sleep and protein. Everything else is bonus."
 
 FORMAT:
 - 3-6 sentences. No bullet points. No headers. Just direct coaching text.
@@ -71,8 +77,10 @@ serve(async (req) => {
       ? checkin.cognitive_patterns.join(", ") 
       : "None reported";
 
-    // Build 7-day trend summary
+    // Build 7-day trend summary with stress/mood intelligence
     let trendSummary = "No previous data available.";
+    let stressAlert = "";
+    
     if (history && history.length > 0) {
       const avgHabits = history.reduce((sum: number, day: any) => {
         return sum + [day.protein_hit, day.steps_hit, day.training_hit, day.sleep_hit, day.aligned_eating_hit].filter(Boolean).length;
@@ -93,9 +101,65 @@ serve(async (req) => {
 
       const resetCount = history.filter((d: any) => d.reset_protocol_used).length;
 
+      // Stress/mood streak detection — history is ordered by checkin_date descending
+      const sortedHistory = [...history].sort((a: any, b: any) => 
+        b.checkin_date.localeCompare(a.checkin_date)
+      );
+
+      // Count consecutive high-stress days (stress >= 7) leading up to today
+      let stressStreak = 0;
+      for (const day of sortedHistory) {
+        if (day.stress_score !== null && day.stress_score >= 7) {
+          stressStreak++;
+        } else {
+          break;
+        }
+      }
+      // Include today in the streak count
+      if (checkin.stress_score !== null && checkin.stress_score >= 7) {
+        stressStreak++;
+      }
+
+      // Mood trend detection — check if mood has declined over last 3+ days
+      const recentMoods = sortedHistory
+        .filter((d: any) => d.mood_score !== null)
+        .slice(0, 4)
+        .map((d: any) => d.mood_score);
+      
+      let moodDeclining = false;
+      if (recentMoods.length >= 3) {
+        moodDeclining = recentMoods.every((m: number, i: number) => 
+          i === 0 || m <= recentMoods[i - 1]
+        ) && recentMoods[0] < recentMoods[recentMoods.length - 1];
+      }
+
+      // Stress/mood averages
+      const stressDays = history.filter((d: any) => d.stress_score !== null);
+      const moodDays = history.filter((d: any) => d.mood_score !== null);
+      const avgStress = stressDays.length > 0
+        ? (stressDays.reduce((s: number, d: any) => s + d.stress_score, 0) / stressDays.length).toFixed(1)
+        : null;
+      const avgMood = moodDays.length > 0
+        ? (moodDays.reduce((s: number, d: any) => s + d.mood_score, 0) / moodDays.length).toFixed(1)
+        : null;
+
       trendSummary = `7-day average: ${avgHabits.toFixed(1)}/5 habits per day. ${history.length} days tracked.`;
+      if (avgStress) trendSummary += ` Avg stress: ${avgStress}/10.`;
+      if (avgMood) trendSummary += ` Avg mood: ${avgMood}/10.`;
       if (topPatterns) trendSummary += ` Recurring patterns: ${topPatterns}.`;
       if (resetCount > 0) trendSummary += ` Reset protocol used ${resetCount}x this week.`;
+
+      // Build stress alert section
+      if (stressStreak >= 3) {
+        stressAlert = `⚠️ STRESS ALERT: ${stressStreak} consecutive days of high stress (≥7/10). This is the coaching priority — shift from habit coaching to stress load management. Recommend Reset Protocol.`;
+      } else if (stressStreak === 2) {
+        stressAlert = `⚠️ STRESS ACCUMULATION: 2 consecutive days of high stress. Acknowledge the compound effect. Focus on what to subtract, not add.`;
+      }
+
+      if (moodDeclining) {
+        stressAlert += stressAlert ? "\n" : "";
+        stressAlert += `📉 MOOD TREND: Mood has been declining over the past ${recentMoods.length} days (${recentMoods.reverse().join(" → ")}). Name the trend and ask what shifted.`;
+      }
     }
 
     const userMessage = `TODAY'S CHECK-IN:
@@ -108,6 +172,7 @@ Reset protocol used: ${checkin.reset_protocol_used ? "Yes" : "No"}
 
 7-DAY TREND:
 ${trendSummary}
+${stressAlert ? `\nSTRESS INTELLIGENCE:\n${stressAlert}` : ""}
 
 Generate your coaching response for this client.`;
 
