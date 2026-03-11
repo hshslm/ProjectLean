@@ -658,7 +658,7 @@ const Landing = () => {
             <div className="bg-card rounded-2xl p-8 border border-border shadow-soft">
               <p className="text-xs text-primary font-medium uppercase tracking-wide mb-2">Founders Pricing — this price will not stay here.</p>
               <h3 className="text-xl font-semibold mb-2">The Lean Brain™</h3>
-              <div className="text-4xl font-bold text-foreground mb-1">79 AED</div>
+              <div className="text-4xl font-bold text-foreground mb-1">129 AED</div>
               <p className="text-sm text-muted-foreground mb-6">per month</p>
               
               <div className="space-y-3 mb-8">
