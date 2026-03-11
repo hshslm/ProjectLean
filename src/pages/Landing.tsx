@@ -651,7 +651,7 @@ const Landing = () => {
           </h2>
           
           <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-16 leading-relaxed">
-            Complete your first daily check-in for free. See exactly how Lean Brain reads your patterns and responds. If it doesn't feel different from anything you've tried — don't subscribe. If it does, you're in for 79 AED/month.
+            Complete your first daily check-in for free. See exactly how Lean Brain reads your patterns and responds. If it doesn't feel different from anything you've tried — don't subscribe. If it does, you're in for 129 AED/month.
           </p>
           
           <div className="max-w-md mx-auto">
