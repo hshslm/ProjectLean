@@ -78,9 +78,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
   const fetchCheckin = async () => {
     setIsLoading(true);
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const threeDaysAgo = format(subDays(selectedDate, 3), 'yyyy-MM-dd');
     
-    // Fetch check-in and coaching response in parallel
-    const [checkinResult, coachingResult] = await Promise.all([
+    // Fetch check-in, coaching response, and recent stress history in parallel
+    const [checkinResult, coachingResult, stressHistoryResult] = await Promise.all([
       (supabase
         .from('daily_checkins' as any)
         .select('*')
@@ -95,10 +96,29 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle() as any),
+      (supabase
+        .from('daily_checkins' as any)
+        .select('checkin_date, stress_score')
+        .eq('user_id', userId)
+        .gte('checkin_date', threeDaysAgo)
+        .lt('checkin_date', dateStr)
+        .order('checkin_date', { ascending: false }) as any),
     ]);
 
     const { data } = checkinResult;
     const { data: coachingData } = coachingResult;
+    const recentStress = stressHistoryResult.data || [];
+
+    // Calculate consecutive high-stress days leading up to selected date
+    let streak = 0;
+    for (const day of recentStress) {
+      if (day.stress_score !== null && day.stress_score >= 7) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    setStressStreak(streak);
 
     if (data) {
       setCheckin({
