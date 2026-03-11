@@ -735,7 +735,7 @@ const Landing = () => {
               },
               {
                 q: "What happens after the free check-in?",
-                a: "After your first free check-in, you can subscribe for 129 AED/month to get daily AI coaching, pattern recognition, recovery tracking, and your full behavior dashboard. No long-term commitment — cancel anytime."
+                a: "After your first free check-in, you can subscribe at the founders rate of 129 AED/month (moves to 199 AED/month after the first 50 members) to get daily AI coaching, pattern recognition, recovery tracking, and your full behavior dashboard. No long-term commitment — cancel anytime."
               }
             ].map((faq, i) => (
               <details key={i} className="group py-5">
