@@ -24,16 +24,51 @@ export const MultiPhotoUpload: React.FC<MultiPhotoUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  const compressImage = useCallback((file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_SIZE = 1024;
+        let { width, height } = img;
+
+        if (width > MAX_SIZE || height > MAX_SIZE) {
+          if (width > height) {
+            height = Math.round(height * (MAX_SIZE / width));
+            width = MAX_SIZE;
+          } else {
+            width = Math.round(width * (MAX_SIZE / height));
+            height = MAX_SIZE;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas context failed')); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }, []);
+
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return;
     if (photos.length >= maxPhotos) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      onPhotosChange([...photos, { file, preview: reader.result as string }]);
-    };
-    reader.readAsDataURL(file);
-  }, [photos, maxPhotos, onPhotosChange]);
+    compressImage(file).then((compressed) => {
+      onPhotosChange([...photos, { file, preview: compressed }]);
+    }).catch(() => {
+      // Fallback to uncompressed if canvas fails
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onPhotosChange([...photos, { file, preview: reader.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }, [photos, maxPhotos, onPhotosChange, compressImage]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);

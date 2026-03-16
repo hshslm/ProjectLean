@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,10 +55,43 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate the user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Rate limiting: max 10 coaching responses per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: recentCoaching } = await supabase
+      .from('coaching_responses')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', oneHourAgo);
+
+    if (recentCoaching !== null && recentCoaching >= 10) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { checkin, history } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     // Build context for AI
     const habitsCompleted = [
@@ -73,26 +107,26 @@ serve(async (req) => {
       checkin.aligned_eating_hit ? "Aligned Eating: HIT" : "Aligned Eating: MISSED",
     ].join("\n");
 
-    const patterns = checkin.cognitive_patterns?.length > 0 
-      ? checkin.cognitive_patterns.join(", ") 
+    const patterns = checkin.cognitive_patterns?.length > 0
+      ? checkin.cognitive_patterns.join(", ")
       : "None reported";
 
     // Build 7-day trend summary with stress/mood intelligence
     let trendSummary = "No previous data available.";
     let stressAlert = "";
-    
+
     if (history && history.length > 0) {
       const avgHabits = history.reduce((sum: number, day: any) => {
         return sum + [day.protein_hit, day.steps_hit, day.training_hit, day.sleep_hit, day.aligned_eating_hit].filter(Boolean).length;
       }, 0) / history.length;
-      
+
       const patternFreq: Record<string, number> = {};
       history.forEach((day: any) => {
         (day.cognitive_patterns || []).forEach((p: string) => {
           if (p !== 'none') patternFreq[p] = (patternFreq[p] || 0) + 1;
         });
       });
-      
+
       const topPatterns = Object.entries(patternFreq)
         .sort(([,a], [,b]) => (b as number) - (a as number))
         .slice(0, 3)
@@ -102,7 +136,7 @@ serve(async (req) => {
       const resetCount = history.filter((d: any) => d.reset_protocol_used).length;
 
       // Stress/mood streak detection — history is ordered by checkin_date descending
-      const sortedHistory = [...history].sort((a: any, b: any) => 
+      const sortedHistory = [...history].sort((a: any, b: any) =>
         b.checkin_date.localeCompare(a.checkin_date)
       );
 
@@ -125,10 +159,10 @@ serve(async (req) => {
         .filter((d: any) => d.mood_score !== null)
         .slice(0, 4)
         .map((d: any) => d.mood_score);
-      
+
       let moodDeclining = false;
       if (recentMoods.length >= 3) {
-        moodDeclining = recentMoods.every((m: number, i: number) => 
+        moodDeclining = recentMoods.every((m: number, i: number) =>
           i === 0 || m <= recentMoods[i - 1]
         ) && recentMoods[0] < recentMoods[recentMoods.length - 1];
       }
@@ -176,14 +210,14 @@ ${stressAlert ? `\nSTRESS INTELLIGENCE:\n${stressAlert}` : ""}
 
 Generate your coaching response for this client.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userMessage },
@@ -197,13 +231,8 @@ Generate your coaching response for this client.`;
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
+      console.error("Gemini API error:", response.status, text);
       return new Response(JSON.stringify({ error: "AI coaching unavailable" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

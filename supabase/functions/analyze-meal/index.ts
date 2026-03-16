@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +15,7 @@ When analyzing a meal photo and/or description, you must:
 2. **Estimate macros in RANGES** (not exact numbers - avoid false precision):
    - Calories (estimated range, MAXIMUM 100 kcal spread, e.g., 450-530 kcal or 620-700 kcal)
    - Protein (g range, keep tight)
-   - Carbs (g range, keep tight)  
+   - Carbs (g range, keep tight)
    - Fat (g range, keep tight)
 
 3. **Provide ingredient breakdown**: For each distinct food item, provide individual macro estimates.
@@ -24,12 +25,12 @@ When analyzing a meal photo and/or description, you must:
    - "medium": Some ambiguity in portions or ingredients
    - "low": Blurry photo, mixed dishes, hidden ingredients
    - Include a brief reason for your confidence level
-   
+
 5. **Provide coaching context** (Project Lean style):
    - Neutral, educational, non-judgmental
    - Note what's driving the calories (protein-forward? fat-heavy? carb-based?)
    - Keep it supportive
-   
+
 6. **Optional smart suggestion** (ONE line only):
    - A practical observation, not a plan
    - Examples: "If keeping calories lower, the sauce makes the biggest difference" or "Solid protein content for a recovery meal"
@@ -79,11 +80,62 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate the user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Server-side paywall: check subscription and scan count
+    const SCAN_LIMIT = 50;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_subscribed, is_coaching_client, scan_count')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profile && !profile.is_subscribed && !profile.is_coaching_client && profile.scan_count >= SCAN_LIMIT) {
+      return new Response(
+        JSON.stringify({ error: 'Scan limit reached. Subscribe to continue scanning meals.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting: max 15 scans per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: recentScans } = await supabase
+      .from('meal_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('logged_at', oneHourAgo);
+
+    if (recentScans !== null && recentScans >= 15) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { images, imageBase64, notes } = await req.json();
-    
+
     // Support both single image (imageBase64) and multiple images (images array)
     const imageList = images || (imageBase64 ? [imageBase64] : []);
-    
+
     if (imageList.length === 0 && !notes) {
       return new Response(
         JSON.stringify({ error: 'Please provide an image or description' }),
@@ -91,9 +143,9 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -102,7 +154,7 @@ serve(async (req) => {
 
     // Build the user message content
     const userContent: any[] = [];
-    
+
     let textPrompt = "Analyze this meal and estimate the macros.";
     if (imageList.length > 1) {
       textPrompt = `Analyze this meal from ${imageList.length} different angles and estimate the macros. Use all images to get the most accurate assessment of portions and ingredients.`;
@@ -113,9 +165,9 @@ serve(async (req) => {
     if (imageList.length === 0) {
       textPrompt = `Based on this description, estimate the macros for the meal: "${notes}"`;
     }
-    
+
     userContent.push({ type: "text", text: textPrompt });
-    
+
     // Add all images to the request
     for (const img of imageList) {
       userContent.push({
@@ -126,16 +178,16 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Calling AI gateway for meal analysis with ${imageList.length} image(s)...`);
+    console.log(`Calling Gemini API for meal analysis with ${imageList.length} image(s)...`);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GEMINI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         temperature: 0,
         messages: [
           { role: 'system', content: systemPrompt },
@@ -146,21 +198,15 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
-      
+      console.error('Gemini API error:', response.status, errorText);
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
+
       return new Response(
         JSON.stringify({ error: 'Failed to analyze meal. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -205,7 +251,13 @@ serve(async (req) => {
     }
 
     console.log('Successfully analyzed meal');
-    
+
+    // Increment scan_count after successful analysis
+    await supabase
+      .from('profiles')
+      .update({ scan_count: (profile?.scan_count ?? 0) + 1 })
+      .eq('user_id', user.id);
+
     return new Response(
       JSON.stringify(parsedResult),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

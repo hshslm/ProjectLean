@@ -39,6 +39,7 @@ import { CheckInReminder } from '@/components/CheckInReminder';
 import { OnboardingWalkthrough } from '@/components/OnboardingWalkthrough';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadMealImage } from '@/lib/storage';
 import type { Ingredient } from '@/components/IngredientBreakdown';
 import type { ConfidenceLevel } from '@/components/ConfidenceIndicator';
 
@@ -124,6 +125,7 @@ export const MealEstimator: React.FC = () => {
   const [weeklyLogs, setWeeklyLogs] = useState<MealLog[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [editingMealId, setEditingMealId] = useState<string | null>(null);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
 
   // Goals
   const [userGoals, setUserGoals] = useState<UserGoals>({ daily_calories: null, daily_protein: null });
@@ -239,8 +241,10 @@ export const MealEstimator: React.FC = () => {
     // If the meal has an image, pre-fill it
     if (log.image_url) {
       setPhotos([{ file: new File([], 'existing.jpg'), preview: log.image_url }]);
+      setOriginalImageUrl(log.image_url);
     } else {
       setPhotos([]);
+      setOriginalImageUrl(null);
     }
     setPortionSize('medium');
     setCalorieBudget('');
@@ -260,10 +264,16 @@ export const MealEstimator: React.FC = () => {
 
   const handleUseTemplate = async (template: any) => {
     if (!user) return;
-    
+
     const d = selectedDate;
     const mealDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    
+
+    // Re-upload base64 images from old templates; keep existing URLs
+    let imageUrl = template.image_url || null;
+    if (imageUrl && imageUrl.startsWith('data:')) {
+      imageUrl = await uploadMealImage(imageUrl, user.id);
+    }
+
     const { error } = await supabase
       .from('meal_logs')
       .insert({
@@ -277,7 +287,7 @@ export const MealEstimator: React.FC = () => {
         carbs_high: template.carbs_high,
         fat_low: template.fat_low,
         fat_high: template.fat_high,
-        image_url: template.image_url,
+        image_url: imageUrl,
         meal_date: mealDate,
       });
 
@@ -349,13 +359,26 @@ export const MealEstimator: React.FC = () => {
       }
 
       setResult(data);
-      
+
       // Save to meal_logs
       if (user && data.macros) {
         // Use selectedDate to log meal to the day the user is viewing
         const d = selectedDate;
         const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        
+
+        // Upload image to storage (or keep existing URL if photo unchanged)
+        let imageUrl: string | null = null;
+        const photoPreview = photos[0]?.preview || null;
+        if (photoPreview) {
+          const photoChanged = photoPreview !== originalImageUrl;
+          if (photoChanged && photoPreview.startsWith('data:')) {
+            imageUrl = await uploadMealImage(photoPreview, user.id);
+          } else {
+            // Photo didn't change or is already a URL — keep as-is
+            imageUrl = photoPreview;
+          }
+        }
+
         if (editingMealId) {
           // Update existing meal
           const { error: saveError } = await supabase
@@ -372,10 +395,10 @@ export const MealEstimator: React.FC = () => {
               fat_high: data.macros.fatHigh,
               confidence: data.confidence?.level || null,
               notes: notes.trim() || null,
-              image_url: photos[0]?.preview || null,
+              image_url: imageUrl,
             })
             .eq('id', editingMealId);
-          
+
           if (saveError) {
             console.error('Error updating meal log:', saveError);
           } else {
@@ -398,10 +421,10 @@ export const MealEstimator: React.FC = () => {
               fat_high: data.macros.fatHigh,
               confidence: data.confidence?.level || null,
               notes: notes.trim() || null,
-              image_url: photos[0]?.preview || null,
+              image_url: imageUrl,
               meal_date: localDate,
             });
-          
+
           if (saveError) {
             console.error('Error saving meal log:', saveError);
           }
@@ -427,6 +450,7 @@ export const MealEstimator: React.FC = () => {
     setMultiplier(1);
     setShowReferenceTip(true);
     setEditingMealId(null);
+    setOriginalImageUrl(null);
     setView('history');
     fetchMealLogs();
     fetchWeeklyLogs();
