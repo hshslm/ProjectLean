@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 const systemPrompt = `You are a supportive nutrition coach for Project Lean - a tool that helps people make informed meal decisions without obsessive tracking.
@@ -76,7 +77,7 @@ Respond ONLY with valid JSON in this exact format:
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { status: 200, headers: corsHeaders });
   }
 
   try {
@@ -101,13 +102,22 @@ serve(async (req) => {
       );
     }
 
-    // Server-side paywall: check subscription and scan count
+    // Server-side paywall + rate limiting: run both checks concurrently
     const SCAN_LIMIT = 50;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_subscribed, is_coaching_client, scan_count')
-      .eq('user_id', user.id)
-      .single();
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    const [{ data: profile }, { count: recentScans }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('is_subscribed, is_coaching_client, scan_count')
+        .eq('user_id', user.id)
+        .single(),
+      supabase
+        .from('meal_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('logged_at', oneHourAgo),
+    ]);
 
     if (profile && !profile.is_subscribed && !profile.is_coaching_client && profile.scan_count >= SCAN_LIMIT) {
       return new Response(
@@ -115,14 +125,6 @@ serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Rate limiting: max 15 scans per hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count: recentScans } = await supabase
-      .from('meal_logs')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .gte('logged_at', oneHourAgo);
 
     if (recentScans !== null && recentScans >= 15) {
       return new Response(
@@ -252,11 +254,12 @@ serve(async (req) => {
 
     console.log('Successfully analyzed meal');
 
-    // Increment scan_count after successful analysis
-    await supabase
+    // Fire-and-forget: increment scan_count without blocking the response
+    supabase
       .from('profiles')
       .update({ scan_count: (profile?.scan_count ?? 0) + 1 })
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .then(({ error }) => { if (error) console.error('Failed to increment scan_count:', error); });
 
     return new Response(
       JSON.stringify(parsedResult),

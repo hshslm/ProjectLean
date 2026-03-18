@@ -39,15 +39,21 @@ const SetPassword = () => {
         });
 
         if (error) {
-          setValidationResult({ valid: false, error: 'Failed to validate invitation' });
+          const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
+            ? 'Connection error. Please check your internet and try again.'
+            : 'Failed to validate invitation';
+          setValidationResult({ valid: false, error: msg });
         } else if (data.valid) {
           setValidationResult({ valid: true });
           setEmail(data.email || '');
         } else {
           setValidationResult({ valid: false, error: data.error });
         }
-      } catch (err) {
-        setValidationResult({ valid: false, error: 'Failed to validate invitation' });
+      } catch (err: any) {
+        const msg = err.message?.includes('failed to send request') || err.message?.includes('FetchError')
+          ? 'Connection error. Please check your internet and try again.'
+          : 'Failed to validate invitation';
+        setValidationResult({ valid: false, error: msg });
       }
       
       setIsValidating(false);
@@ -83,15 +89,21 @@ const SetPassword = () => {
       });
 
       if (error || !data.success) {
-        toast.error(data?.error || 'Failed to set password');
+        const msg = error?.message?.includes('failed to send request') || error?.message?.includes('FetchError')
+          ? 'Connection error. Please check your internet and try again.'
+          : data?.error || 'Failed to set password';
+        toast.error(msg);
         setIsLoading(false);
         return;
       }
 
       toast.success('Password set successfully! You can now log in.');
       navigate('/auth');
-    } catch (err) {
-      toast.error('Failed to set password');
+    } catch (err: any) {
+      const msg = err.message?.includes('failed to send request') || err.message?.includes('FetchError')
+        ? 'Connection error. Please check your internet and try again.'
+        : 'Failed to set password';
+      toast.error(msg);
     }
 
     setIsLoading(false);

@@ -280,7 +280,10 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
       setAiSummary(fnData.summary);
     } catch (e: any) {
       console.error('Summary error:', e);
-      toast.error(e.message || 'Failed to generate summary');
+      const msg = e.message?.includes('failed to send request') || e.message?.includes('FetchError')
+        ? 'Connection error. Please check your internet and try again.'
+        : e.message || 'Failed to generate summary';
+      toast.error(msg);
     } finally {
       setIsSummaryLoading(false);
     }

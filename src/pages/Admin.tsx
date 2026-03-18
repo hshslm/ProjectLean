@@ -132,7 +132,10 @@ const Admin = () => {
       setShowForm(false);
       fetchClients();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create client');
+      const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
+        ? 'Connection error. Please check your internet and try again.'
+        : error.message || 'Failed to create client';
+      toast.error(msg);
     } finally {
       setIsCreating(false);
     }
@@ -154,7 +157,10 @@ const Admin = () => {
 
       toast.success(`Login details sent to ${clientEmail}`);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to resend login details');
+      const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
+        ? 'Connection error. Please check your internet and try again.'
+        : error.message || 'Failed to resend login details';
+      toast.error(msg);
     } finally {
       setResendingFor(null);
     }
@@ -171,7 +177,10 @@ const Admin = () => {
 
       toast.success(`Renewal email sent to ${clientEmail}`);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send renewal email');
+      const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
+        ? 'Connection error. Please check your internet and try again.'
+        : error.message || 'Failed to send renewal email';
+      toast.error(msg);
     } finally {
       setRenewalFor(null);
     }
@@ -190,7 +199,10 @@ const Admin = () => {
       toast.success(`${clientEmail} has been deleted`);
       fetchClients();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete client');
+      const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
+        ? 'Connection error. Please check your internet and try again.'
+        : error.message || 'Failed to delete client';
+      toast.error(msg);
     } finally {
       setDeletingFor(null);
     }

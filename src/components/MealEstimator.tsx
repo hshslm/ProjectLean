@@ -348,7 +348,10 @@ export const MealEstimator: React.FC = () => {
 
       if (error) {
         console.error('Function error:', error);
-        toast.error('Something went wrong. Please try again.');
+        const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
+          ? 'Connection error. Please check your internet and try again.'
+          : 'Something went wrong. Please try again.';
+        toast.error(msg);
         return;
       }
 

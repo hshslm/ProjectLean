@@ -218,7 +218,9 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
 
     } catch (error: any) {
       console.error('Coaching error:', error);
-      if (error.message?.includes('Rate limited')) {
+      if (error.message?.includes('failed to send request') || error.message?.includes('FetchError')) {
+        toast.error('Connection error. Please check your internet and try again.');
+      } else if (error.message?.includes('Rate limited')) {
         toast.error('AI coaching is temporarily busy. Try again in a moment.');
       } else {
         toast.error('Could not generate coaching response');
