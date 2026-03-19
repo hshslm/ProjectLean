@@ -148,7 +148,7 @@ serve(async (req) => {
                 .maybeSingle();
 
             const userName = profile?.full_name || customerEmail.split("@")[0];
-            const appUrl = "https://tracker.projectlean.app";
+            const appUrl = "https://theleanbrain.projectlean.app";
 
             await resend.emails.send({
               from: "Project Lean <noreply@projectlean.app>",
@@ -160,7 +160,7 @@ serve(async (req) => {
                 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
                 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.7; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
                   <div style="background: #C23B22; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-                    <img src="https://snap-macro-sight.lovable.app/email-logo-white.png" alt="Project Lean" style="height: 40px; margin-bottom: 12px;" />
+                    <img src="https://theleanbrain.projectlean.app/email-logo-white.png" alt="Project Lean" style="height: 40px; margin-bottom: 12px;" />
                     <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">Subscription Renewed</h1>
                   </div>
                   <div style="background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">

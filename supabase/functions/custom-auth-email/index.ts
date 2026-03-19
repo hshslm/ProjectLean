@@ -3,7 +3,7 @@ import { Resend } from 'https://esm.sh/resend@2.0.0';
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://theleanbrain.projectlean.app',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -45,7 +45,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     let htmlContent = "";
     
     // Build the confirmation URL
-    const baseUrl = redirect_to || site_url || "https://tracker.projectlean.app";
+    const baseUrl = redirect_to || site_url || "https://theleanbrain.projectlean.app";
     const confirmationUrl = `${baseUrl.replace('/auth?reset=true', '')}/auth?token_hash=${token_hash}&type=${email_action_type}`;
 
     switch (email_action_type) {

@@ -4,7 +4,7 @@ import { Resend } from 'https://esm.sh/resend@2.0.0';
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://theleanbrain.projectlean.app',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const appUrl = req.headers.get('origin') || 'https://snap-macro-sight.lovable.app';
+    const appUrl = req.headers.get('origin') || 'https://theleanbrain.projectlean.app';
     
     // Send welcome email with Lean Brain positioning
     const emailResponse = await resend.emails.send({
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
           
           <!-- Header -->
           <div style="background: #C23B22; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <img src="https://snap-macro-sight.lovable.app/email-logo-white.png" alt="Project Lean" style="height: 40px; margin-bottom: 12px;" />
+            <img src="https://theleanbrain.projectlean.app/email-logo-white.png" alt="Project Lean" style="height: 40px; margin-bottom: 12px;" />
             <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">Welcome to The Lean Brain™</h1>
           </div>
           

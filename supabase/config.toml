@@ -1,4 +1,4 @@
-project_id = "ggqoaycpihmwldetqgec"
+project_id = "ngwrniwffheoybozpkuf"
 
 [functions.analyze-meal]
 verify_jwt = false
