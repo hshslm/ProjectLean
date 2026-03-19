@@ -1,13 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+import { getCorsHeaders } from '../_shared/cors.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://theleanbrain.projectlean.app',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 interface WelcomeEmailRequest {
   email: string;
@@ -16,7 +12,7 @@ interface WelcomeEmailRequest {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { status: 200, headers: corsHeaders });
+    return new Response('ok', { status: 200, headers: getCorsHeaders(req) });
   }
 
   try {
@@ -25,7 +21,7 @@ Deno.serve(async (req) => {
     if (!email) {
       return new Response(
         JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -119,13 +115,13 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, emailId: emailResponse.data?.id }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
     console.error('Error sending welcome email:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   }
 });

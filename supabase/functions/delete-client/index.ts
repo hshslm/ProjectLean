@@ -1,15 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { createRemoteJWKSet, jwtVerify } from 'https://esm.sh/jose@5.2.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://theleanbrain.projectlean.app',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { status: 200, headers: corsHeaders });
+    return new Response('ok', { status: 200, headers: getCorsHeaders(req) });
   }
 
   try {
@@ -20,7 +15,7 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
     
@@ -40,7 +35,7 @@ Deno.serve(async (req) => {
       console.error('JWT verification failed:', jwtError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
     
@@ -61,7 +56,7 @@ Deno.serve(async (req) => {
     if (!roleData) {
       return new Response(
         JSON.stringify({ error: 'Only admins can delete clients' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -70,7 +65,7 @@ Deno.serve(async (req) => {
     if (!clientUserId) {
       return new Response(
         JSON.stringify({ error: 'Client user ID is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -78,7 +73,7 @@ Deno.serve(async (req) => {
     if (clientUserId === requestingUserId) {
       return new Response(
         JSON.stringify({ error: 'Cannot delete your own account' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -93,7 +88,7 @@ Deno.serve(async (req) => {
     if (targetRoleData) {
       return new Response(
         JSON.stringify({ error: 'Cannot delete admin accounts' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -104,7 +99,7 @@ Deno.serve(async (req) => {
       console.error('Error deleting user:', deleteError);
       return new Response(
         JSON.stringify({ error: deleteError.message }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -112,13 +107,13 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
     console.error('Error deleting client:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   }
 });

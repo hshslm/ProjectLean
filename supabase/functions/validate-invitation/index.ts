@@ -1,14 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://theleanbrain.projectlean.app',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { status: 200, headers: corsHeaders });
+    return new Response('ok', { status: 200, headers: getCorsHeaders(req) });
   }
 
   try {
@@ -21,7 +16,7 @@ Deno.serve(async (req) => {
     if (!token) {
       return new Response(
         JSON.stringify({ error: 'Token is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -36,14 +31,14 @@ Deno.serve(async (req) => {
       console.error('Error fetching invitation:', fetchError);
       return new Response(
         JSON.stringify({ error: 'Failed to validate token' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
     if (!invitation) {
       return new Response(
         JSON.stringify({ error: 'Invalid or expired invitation link', valid: false }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -51,7 +46,7 @@ Deno.serve(async (req) => {
     if (invitation.used_at) {
       return new Response(
         JSON.stringify({ error: 'This invitation link has already been used', valid: false }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -60,7 +55,7 @@ Deno.serve(async (req) => {
     if (expiresAt < new Date()) {
       return new Response(
         JSON.stringify({ error: 'This invitation link has expired. Please contact your coach for a new link.', valid: false }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -68,7 +63,7 @@ Deno.serve(async (req) => {
     if (!newPassword) {
       return new Response(
         JSON.stringify({ valid: true, email: invitation.email }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -82,7 +77,7 @@ Deno.serve(async (req) => {
       console.error('Error updating password:', updateError);
       return new Response(
         JSON.stringify({ error: 'Failed to set password' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -96,13 +91,13 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, email: invitation.email }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
     console.error('Error in validate-invitation:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   }
 });

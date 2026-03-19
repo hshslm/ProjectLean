@@ -1,12 +1,8 @@
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+import { getCorsHeaders } from '../_shared/cors.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://theleanbrain.projectlean.app',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 interface AuthEmailPayload {
   user: {
@@ -28,7 +24,7 @@ interface AuthEmailPayload {
 
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response('ok', { status: 200, headers: corsHeaders });
+    return new Response('ok', { status: 200, headers: getCorsHeaders(req) });
   }
 
   try {
@@ -166,7 +162,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
+      headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
     });
   } catch (error: any) {
     console.error("Error sending auth email:", error);
@@ -174,7 +170,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
       }
     );
   }
