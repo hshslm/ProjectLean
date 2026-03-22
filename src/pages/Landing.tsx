@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Check, Brain, Shield, Zap, Target, BarChart3, AlertTriangle, Users, Sparkles, Heart, Flame, TrendingUp, MessageSquare, Play } from 'lucide-react';
-import projectLeanLogo from '@/assets/project-lean-logo.png';
+import projectLeanLogo from '@/assets/project-lean-logo-cropped.png';
 import screenshotMeals from '@/assets/screenshot-meals.png';
 import screenshotGoals from '@/assets/screenshot-goals.png';
 import demoVideo from '@/assets/demo-video.mp4';
