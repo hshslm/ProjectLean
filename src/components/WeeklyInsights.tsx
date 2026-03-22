@@ -7,6 +7,7 @@ import { format, subDays } from 'date-fns';
 import { Flame, Brain, TrendingUp, SmilePlus, Zap, HeartPulse, Trophy, Shield, AlertTriangle, Target, Sparkles, MessageSquareText, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
+import SkeletonCard from '@/components/SkeletonCard';
 
 interface CheckInDay {
   checkin_date: string;
@@ -75,8 +76,10 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
 
   if (isLoading) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">Loading insights...</p>
+      <div className="space-y-3">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
       </div>
     );
   }

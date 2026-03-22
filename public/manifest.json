@@ -2,7 +2,7 @@
   "name": "The Lean Brain™",
   "short_name": "Lean Brain",
   "description": "Behavior intelligence for real-world fat loss. AI-powered coaching and macro estimation.",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#FAFAFA",
   "theme_color": "#D93025",

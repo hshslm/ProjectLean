@@ -1,73 +1,52 @@
-# Welcome to your Lovable project
+# The Lean Brain
 
-## Project info
+A behavior intelligence system for real-world fat loss. AI-powered coaching, habit tracking, and macro estimation.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**Production**: https://theleanbrain.projectlean.app
 
-## How can I edit this code?
+## Tech Stack
 
-There are several ways of editing your application.
+- Vite + React + TypeScript
+- Tailwind CSS + shadcn/ui
+- Supabase (Auth, PostgreSQL, Edge Functions, Storage)
+- Gemini 2.5 Flash (AI coaching + meal analysis)
+- Vercel (deployment)
+- Sentry (error tracking)
+- Resend (transactional email)
+- Stripe (payments)
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Local Development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone https://github.com/hshslm/ProjectLean.git
+cd ProjectLean
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Runs on `http://localhost:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Environment Variables
 
-**Use GitHub Codespaces**
+Copy `.env.example` to `.env` and fill in:
+- `VITE_SUPABASE_URL` — Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY` — Supabase anon key
+- `VITE_SUPABASE_PROJECT_ID` — Supabase project ID
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deployment
 
-## What technologies are used for this project?
+Push to `main` — Vercel auto-deploys. Edge functions deploy via `npx supabase functions deploy --project-ref <ref>`.
 
-This project is built with:
+## Project Structure
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```
+src/
+  components/    # React components
+  pages/         # Route pages
+  hooks/         # Custom hooks (auth, subscription)
+  integrations/  # Supabase client config
+supabase/
+  functions/     # Edge functions (AI, email, auth)
+  _shared/       # Shared modules (CORS)
+public/          # Static assets, PWA icons, manifest
+```

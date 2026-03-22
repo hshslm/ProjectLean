@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 import { MealEstimator } from '@/components/MealEstimator';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Index = () => {
   const { user, role, loading } = useAuth();
@@ -21,14 +23,14 @@ const Index = () => {
   if (loading || (user && role === null)) {
     return (
       <div className="min-h-screen gradient-warm flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   // Only clients see the meal estimator
   if (user && role === 'client') {
-    return <MealEstimator />;
+    return <ErrorBoundary><MealEstimator /></ErrorBoundary>;
   }
 
   return null;

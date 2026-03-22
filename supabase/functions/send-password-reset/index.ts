@@ -26,21 +26,14 @@ Deno.serve(async (req) => {
 
     console.log('Password reset requested for:', email);
 
-    // Get user by email
-    const { data: users, error: listError } = await adminClient.auth.admin.listUsers();
-    
-    if (listError) {
-      console.error('Error listing users:', listError);
-      // Don't reveal if user exists or not for security
-      return new Response(
-        JSON.stringify({ success: true }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
-    }
+    // Look up user by email via profiles table (avoids listUsers)
+    const { data: userProfile, error: profileError } = await adminClient
+      .from('profiles')
+      .select('user_id')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
 
-    const user = users.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
-
-    if (!user) {
+    if (profileError || !userProfile) {
       console.log('User not found, but returning success for security');
       // Don't reveal if user exists or not
       return new Response(
@@ -48,6 +41,8 @@ Deno.serve(async (req) => {
         { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
+
+    const user = { id: userProfile.user_id };
 
     // Get user's name from profile
     const { data: profile } = await adminClient

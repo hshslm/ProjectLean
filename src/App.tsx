@@ -13,11 +13,13 @@ import ResetPassword from "./pages/ResetPassword";
 import SetPassword from "./pages/SetPassword";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ErrorBoundary>
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
@@ -38,6 +40,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
+    </ErrorBoundary>
   </QueryClientProvider>
 );
 

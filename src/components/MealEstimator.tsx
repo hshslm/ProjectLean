@@ -30,6 +30,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { DailyCheckIn } from '@/components/DailyCheckIn';
 import { WeeklyInsights } from '@/components/WeeklyInsights';
 import { ResetProtocol } from '@/components/ResetProtocol';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import SkeletonCard from '@/components/SkeletonCard';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useSubscription } from '@/hooks/useSubscription';
 import { CoachingUpsell } from '@/components/CoachingUpsell';
@@ -154,13 +156,19 @@ export const MealEstimator: React.FC = () => {
     }
   };
 
-  // Fetch meal logs when viewing history
+  // Fetch meal logs when viewing history or changing date
   useEffect(() => {
     if (view === 'history' && user) {
       fetchMealLogs();
-      fetchWeeklyLogs();
     }
   }, [view, selectedDate, user]);
+
+  // Fetch weekly logs once when entering history view (relative to today, not selectedDate)
+  useEffect(() => {
+    if (view === 'history' && user) {
+      fetchWeeklyLogs();
+    }
+  }, [view, user]);
 
   const fetchMealLogs = async () => {
     if (!user) return;
@@ -336,6 +344,24 @@ export const MealEstimator: React.FC = () => {
       if (proteinGoal) {
         contextNotes += contextNotes ? `. ` : '';
         contextNotes += `My protein goal for this meal is ${proteinGoal}g - please tell me if this meal meets that goal`;
+      }
+
+      // Duplicate check: skip if a meal was logged by this user within the last 5 minutes
+      if (user) {
+        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const dateStr = format(selectedDate, 'yyyy-MM-dd');
+        const { count } = await supabase
+          .from('meal_logs')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('meal_date', dateStr)
+          .gte('logged_at', fiveMinAgo);
+
+        if (count && count > 0) {
+          toast.error('This meal was just logged.');
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Call the AI edge function with all images
@@ -642,9 +668,9 @@ export const MealEstimator: React.FC = () => {
           )}
 
           {activeTab === 'insights' ? (
-            <WeeklyInsights userId={user!.id} />
+            <ErrorBoundary><WeeklyInsights userId={user!.id} /></ErrorBoundary>
           ) : activeTab === 'checkin' ? (
-            <DailyCheckIn userId={user!.id} />
+            <ErrorBoundary><DailyCheckIn userId={user!.id} /></ErrorBoundary>
           ) : view === 'history' && !result ? (
             <>
               <div className="flex items-center justify-center gap-4">
@@ -718,8 +744,10 @@ export const MealEstimator: React.FC = () => {
 
               {/* Meal History */}
               {isLoadingHistory ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Loading...</p>
+                <div className="space-y-3">
+                  <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
                 </div>
               ) : mealLogs.length === 0 ? (
                 <div className="text-center py-8">

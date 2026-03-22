@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Check, Dumbbell, Footprints, Moon, Utensils, Beef, ChevronLeft, ChevronRight, Brain, Loader2, MessageSquare, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { ResetProtocol } from './ResetProtocol';
+import SkeletonCard from '@/components/SkeletonCard';
 import { format, isToday, addDays, subDays } from 'date-fns';
 
 const COGNITIVE_PATTERNS = [
@@ -181,9 +182,9 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
     setIsLoadingCoaching(true);
     
     try {
-      // Fetch 7-day history for context
-      const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd');
-      const today = format(new Date(), 'yyyy-MM-dd');
+      // Fetch 7-day history for context (relative to selectedDate, not today)
+      const sevenDaysAgo = format(subDays(selectedDate, 7), 'yyyy-MM-dd');
+      const today = format(selectedDate, 'yyyy-MM-dd');
       
       const { data: history } = await (supabase
         .from('daily_checkins' as any)
@@ -333,8 +334,9 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
       )}
 
       {isLoading ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading...</p>
+        <div className="space-y-3">
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       ) : (
         <>

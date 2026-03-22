@@ -52,6 +52,7 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
   const [sessionId] = useState(() => crypto.randomUUID());
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Load today's chat history and count messages
   useEffect(() => {
@@ -94,6 +95,13 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Abort streaming on unmount
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   // Focus input when opened
   useEffect(() => {
@@ -150,6 +158,10 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
         return;
       }
 
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
@@ -161,6 +173,7 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
           messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
           macroContext: getMacroContext(),
         }),
+        signal: controller.signal,
       });
 
       if (!resp.ok) {
@@ -254,6 +267,7 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
         });
       }
     } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return;
       console.error('Chat error:', e);
       toast.error('Something went wrong. Try again.');
     } finally {

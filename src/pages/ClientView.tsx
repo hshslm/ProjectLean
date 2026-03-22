@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import SkeletonCard from '@/components/SkeletonCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, ChevronLeft, ChevronRight, UtensilsCrossed, ClipboardCheck, BarChart3, MessageSquare, MessageCircle, Check, Beef, Footprints, Dumbbell, Moon, Utensils, Brain } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, UtensilsCrossed, ClipboardCheck, BarChart3, MessageSquare, MessageCircle, Check, Beef, Footprints, Dumbbell, Moon, Utensils, Brain, Loader2 } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { DailyTotals } from '@/components/DailyTotals';
@@ -146,7 +147,7 @@ const ClientView = () => {
   if (loading) {
     return (
       <div className="min-h-screen gradient-warm flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -286,8 +287,10 @@ const ClientView = () => {
             </div>
 
             {isLoadingData ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Loading...</p>
+              <div className="space-y-3">
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
               </div>
             ) : activeTab === 'meals' ? (
               <>

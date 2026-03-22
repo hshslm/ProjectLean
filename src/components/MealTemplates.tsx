@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Star, Plus, Trash2, X } from 'lucide-react';
+import SkeletonCard from '@/components/SkeletonCard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -115,7 +116,7 @@ export const MealTemplates = ({ userId, onUseTemplate }: MealTemplatesProps) => 
         
         <div className="mt-6 space-y-3">
           {isLoading ? (
-            <p className="text-center text-muted-foreground py-8">Loading...</p>
+            <div className="space-y-3"><SkeletonCard /><SkeletonCard /></div>
           ) : templates.length === 0 ? (
             <div className="text-center py-8">
               <Star className="w-12 h-12 mx-auto text-muted-foreground mb-3" />

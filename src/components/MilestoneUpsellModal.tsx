@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { format, subDays } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -29,12 +30,11 @@ export const MilestoneUpsellModal: React.FC<MilestoneUpsellModalProps> = ({ user
     const dismissed = localStorage.getItem(`${MILESTONE_KEY}_${userId}`);
     if (dismissed) return;
 
-    // Get checkins from the last 7 days
+    // Get checkins from the last 7 days (local time, consistent with DailyCheckIn)
+    const today = new Date();
     const dates: string[] = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      dates.push(d.toISOString().split('T')[0]);
+      dates.push(format(subDays(today, i), 'yyyy-MM-dd'));
     }
 
     const { data, error } = await supabase

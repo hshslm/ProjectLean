@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Users, LogOut, Eye, Mail, Crown, Camera, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, Users, LogOut, Eye, Mail, Crown, Camera, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,10 +35,15 @@ interface Client {
   subscription_expires_at: string | null;
 }
 
+const PAGE_SIZE = 20;
+
 const Admin = () => {
   const { user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [clients, setClients] = useState<Client[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [resendingFor, setResendingFor] = useState<string | null>(null);
@@ -62,24 +67,47 @@ const Admin = () => {
     }
   }, [role]);
 
-  const fetchClients = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+  const fetchClients = async (append = false) => {
+    if (append) setLoadingMore(true);
 
-    if (error) {
-      console.error('Error fetching clients:', error);
-    } else {
-      // Filter out admins by checking user_roles
+    try {
+      // Get admin IDs for exclusion
       const { data: adminRoles } = await supabase
         .from('user_roles')
         .select('user_id')
         .eq('role', 'admin');
-      
-      const adminIds = new Set(adminRoles?.map(r => r.user_id) || []);
-      const clientProfiles = (data as unknown as Client[])?.filter(p => !adminIds.has(p.user_id)) || [];
-      setClients(clientProfiles);
+
+      const adminIds = (adminRoles?.map(r => r.user_id) || []);
+
+      const from = append ? clients.length : 0;
+      const to = from + PAGE_SIZE - 1;
+
+      let query = supabase
+        .from('profiles')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (adminIds.length > 0) {
+        query = query.not('user_id', 'in', `(${adminIds.join(',')})`);
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Error fetching clients:', error);
+        return;
+      }
+
+      const fetched = (data as unknown as Client[]) || [];
+      const newClients = append ? [...clients, ...fetched] : fetched;
+      setClients(newClients);
+      setTotalCount(count ?? newClients.length);
+      setHasMore(newClients.length < (count ?? 0));
+    } catch (err) {
+      console.error('Error fetching clients:', err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -211,7 +239,7 @@ const Admin = () => {
   if (loading) {
     return (
       <div className="min-h-screen gradient-warm flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -310,6 +338,13 @@ const Admin = () => {
                 </form>
               </CardContent>
             </Card>
+          )}
+
+          {/* Client count */}
+          {clients.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Showing {clients.length} of {totalCount} clients
+            </p>
           )}
 
           {/* Clients List */}
@@ -427,6 +462,16 @@ const Admin = () => {
                   </CardContent>
                 </Card>
               ))}
+              {hasMore && (
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => fetchClients(true)}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? 'Loading...' : 'Load more'}
+                </Button>
+              )}
             </div>
           )}
         </div>
