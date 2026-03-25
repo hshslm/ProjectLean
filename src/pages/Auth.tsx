@@ -17,7 +17,7 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(searchParams.get('signup') === 'true');
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isResendVerification, setIsResendVerification] = useState(false);
-  const { user, signIn, signUp, resetPassword } = useAuth();
+  const { user, signIn, resetPassword } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -96,34 +96,29 @@ const Auth = () => {
     setIsLoading(true);
 
     if (isSignUp) {
-      const { error } = await signUp(email, password, fullName);
-      if (error) {
-        toast.error('Could not create account. Please try again.');
-      } else {
-        // Send welcome email (no password - user already set it during signup)
-        try {
-          await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              },
-              body: JSON.stringify({
-                email,
-                fullName,
-              }),
-            }
-          );
-        } catch (emailError) {
-          console.error('Failed to send welcome email:', emailError);
-          // Don't block signup if email fails
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/self-signup`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ email, password, fullName }),
+          }
+        );
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          toast.error(data.error || 'Could not create account. Please try again.');
+        } else {
+          toast.success('Account created! Check your email to verify and log in.');
+          setIsSignUp(false);
+          setPassword('');
         }
-        
-        toast.success('Account created! Check your email to verify and log in.');
-        setIsSignUp(false);
-        setPassword('');
+      } catch {
+        toast.error('Could not create account. Please check your connection and try again.');
       }
     } else {
       const { error } = await signIn(email, password);
