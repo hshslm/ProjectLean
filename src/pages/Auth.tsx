@@ -124,24 +124,7 @@ const Auth = () => {
       const { error } = await signIn(email, password);
       if (error) {
         if (error.message?.includes('Email not confirmed')) {
-          // Auto-send a fresh verification email with a new magic link
-          toast.info('Sending a new verification email...');
-          try {
-            await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                },
-                body: JSON.stringify({ email }),
-              }
-            );
-            toast.success('Verification email sent! Check your inbox and click "Log In Now".');
-          } catch {
-            toast.error('Please verify your email. Click "Didn\'t receive verification email?" below.');
-          }
+          toast.error('Please verify your email first. Check your inbox and click "Log In Now".');
         } else {
           toast.error('Invalid email or password. Please try again.');
         }
