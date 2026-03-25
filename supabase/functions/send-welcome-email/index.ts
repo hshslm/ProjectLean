@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
@@ -16,13 +16,12 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     const { email, fullName }: WelcomeEmailRequest = await req.json();
 
     if (!email) {
-      return new Response(
-        JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Email is required', 400, rid);
     }
 
     const appUrl = req.headers.get('origin') || 'https://theleanbrain.projectlean.app';
@@ -114,14 +113,11 @@ Deno.serve(async (req) => {
     console.log('Welcome email sent successfully:', emailResponse);
 
     return new Response(
-      JSON.stringify({ success: true, emailId: emailResponse.data?.id }),
+      JSON.stringify({ success: true, emailId: emailResponse.data?.id, requestId: rid }),
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    console.error('Error sending welcome email:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

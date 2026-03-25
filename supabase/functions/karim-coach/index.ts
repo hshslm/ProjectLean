@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 function buildSystemPrompt(clientContext: string): string {
   return `You are Karim Zaki - a behavior-change coach inside Lean Brain.
@@ -47,12 +47,12 @@ serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     // Authenticate the user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Authentication required' }), {
-        status: 401, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      return errorResponse(req, 'Authentication required', 401, rid);
     }
     const token = authHeader.replace('Bearer ', '');
     const supabase = createClient(
@@ -61,9 +61,7 @@ serve(async (req) => {
     );
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Authentication required' }), {
-        status: 401, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      return errorResponse(req, 'Authentication required', 401, rid);
     }
 
     // Rate limiting: max 10 coaching responses per hour
@@ -75,9 +73,7 @@ serve(async (req) => {
       .gte('created_at', oneHourAgo);
 
     if (recentCoaching !== null && recentCoaching >= 10) {
-      return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-        status: 429, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      return errorResponse(req, 'Rate limit exceeded. Please try again later.', 429, rid);
     }
 
     const { checkin, history } = await req.json();
@@ -163,7 +159,7 @@ serve(async (req) => {
         lastPatternTag = "first check-in";
       }
     } catch (contextError) {
-      console.error("Error building client context:", contextError);
+      console.error(`[${rid}] Error building client context:`, contextError);
       // Use defaults set above
     }
 
@@ -304,28 +300,22 @@ Generate your coaching response for this client.`;
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Try again in a moment." }), {
-          status: 429, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-        });
+        return errorResponse(req, 'Rate limited. Try again in a moment.', 429, rid);
       }
       const text = await response.text();
-      console.error("Gemini API error:", response.status, text);
-      return new Response(JSON.stringify({ error: "AI coaching unavailable" }), {
-        status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      console.error(`[${rid}] Gemini API error:`, response.status, text);
+      return errorResponse(req, 'AI coaching unavailable', 500, rid);
     }
 
     const data = await response.json();
     const coachingText = data.choices?.[0]?.message?.content || "No response generated.";
 
-    return new Response(JSON.stringify({ response: coachingText }), {
+    return new Response(JSON.stringify({ response: coachingText, requestId: rid }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
 
   } catch (e) {
-    console.error("karim-coach error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, e instanceof Error ? e.message : undefined);
   }
 });

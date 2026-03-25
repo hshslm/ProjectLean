@@ -1,6 +1,6 @@
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
@@ -28,6 +28,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    const rid = generateRequestId();
+
     const payload: AuthEmailPayload = await req.json();
     const { user, email_data } = payload;
     
@@ -160,18 +162,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     console.log("Email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, requestId: rid }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
     });
   } catch (error: any) {
-    console.error("Error sending auth email:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
-      }
-    );
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

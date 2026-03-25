@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 const systemPrompt = `You are a supportive nutrition coach for Project Lean - a tool that helps people make informed meal decisions without obsessive tracking.
 
@@ -76,13 +76,12 @@ serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     // Authenticate the user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Authentication required', 401, rid);
     }
     const token = authHeader.replace('Bearer ', '');
     const supabase = createClient(
@@ -91,10 +90,7 @@ serve(async (req) => {
     );
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Authentication required', 401, rid);
     }
 
     // Server-side paywall + rate limiting: run both checks concurrently
@@ -115,17 +111,11 @@ serve(async (req) => {
     ]);
 
     if (profile && !profile.is_subscribed && !profile.is_coaching_client && profile.scan_count >= SCAN_LIMIT) {
-      return new Response(
-        JSON.stringify({ error: 'Scan limit reached. Subscribe to continue scanning meals.' }),
-        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Scan limit reached. Subscribe to continue scanning meals.', 403, rid);
     }
 
     if (recentScans !== null && recentScans >= 15) {
-      return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-        { status: 429, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Rate limit exceeded. Please try again later.', 429, rid);
     }
 
     const { images, imageBase64, notes } = await req.json();
@@ -134,19 +124,12 @@ serve(async (req) => {
     const imageList = images || (imageBase64 ? [imageBase64] : []);
 
     if (imageList.length === 0 && !notes) {
-      return new Response(
-        JSON.stringify({ error: 'Please provide an image or description' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Please provide an image or description', 400, rid);
     }
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'AI service not configured' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'AI service not configured', 500, rid);
     }
 
     // Build the user message content
@@ -195,30 +178,20 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
+      console.error(`[${rid}] Gemini API error:`, response.status, errorText);
 
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-          { status: 429, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        );
+        return errorResponse(req, 'Rate limit exceeded. Please try again in a moment.', 429, rid);
       }
 
-      return new Response(
-        JSON.stringify({ error: 'Failed to analyze meal. Please try again.' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Failed to analyze meal. Please try again.', 500, rid);
     }
 
     const data = await response.json();
     const aiResponse = data.choices?.[0]?.message?.content;
 
     if (!aiResponse) {
-      console.error('No AI response content');
-      return new Response(
-        JSON.stringify({ error: 'No analysis received' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'No analysis received', 500, rid);
     }
 
     console.log('AI response received:', aiResponse.substring(0, 200));
@@ -239,12 +212,9 @@ serve(async (req) => {
       }
       parsedResult = JSON.parse(cleanedResponse.trim());
     } catch (parseError) {
-      console.error('Failed to parse AI response as JSON:', parseError);
-      console.error('Raw response:', aiResponse);
-      return new Response(
-        JSON.stringify({ error: 'Failed to process analysis' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      console.error(`[${rid}] Failed to parse AI response as JSON:`, parseError);
+      console.error(`[${rid}] Raw response:`, aiResponse);
+      return errorResponse(req, 'Failed to process analysis', 500, rid);
     }
 
     console.log('Successfully analyzed meal');
@@ -254,18 +224,15 @@ serve(async (req) => {
       .from('profiles')
       .update({ scan_count: (profile?.scan_count ?? 0) + 1 })
       .eq('user_id', user.id)
-      .then(({ error }) => { if (error) console.error('Failed to increment scan_count:', error); });
+      .then(({ error }) => { if (error) console.error(`[${rid}] Failed to increment scan_count:`, error); });
 
     return new Response(
-      JSON.stringify(parsedResult),
+      JSON.stringify({ ...parsedResult, requestId: rid }),
       { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in analyze-meal function:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

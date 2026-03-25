@@ -6,6 +6,25 @@ const ALLOWED_ORIGINS = [
   'http://localhost:8080',
 ];
 
+export function generateRequestId(): string {
+  return crypto.randomUUID().slice(0, 8);
+}
+
+export function errorResponse(
+  req: Request,
+  message: string,
+  status: number,
+  requestId: string,
+  details?: string,
+): Response {
+  if (details) console.error(`[${requestId}] ${message}:`, details);
+  else console.error(`[${requestId}] ${message}`);
+  return new Response(
+    JSON.stringify({ error: message, requestId }),
+    { status, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+  );
+}
+
 export function getCorsHeaders(req: Request) {
   const origin = req.headers.get('origin') || '';
   const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];

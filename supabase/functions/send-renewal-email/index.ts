@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
@@ -11,13 +11,12 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     const { email } = await req.json();
 
     if (!email) {
-      return new Response(
-        JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Email is required', 400, rid);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -102,14 +101,11 @@ Deno.serve(async (req) => {
     console.log('Renewal email sent:', emailResponse);
 
     return new Response(
-      JSON.stringify({ success: true, emailId: emailResponse.data?.id }),
+      JSON.stringify({ success: true, emailId: emailResponse.data?.id, requestId: rid }),
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    console.error('Error sending renewal email:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

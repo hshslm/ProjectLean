@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
@@ -10,36 +10,25 @@ Deno.serve(async (req) => {
     return new Response('ok', { status: 200, headers: getCorsHeaders(req) });
   }
 
+  const rid = generateRequestId();
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    // Get JWT from authorization header
+
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Use admin client for all operations
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    
-    // Verify the user from the token
-    const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
-    
-    if (authError || !requestingUser) {
-      console.error('Auth error:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Please sign in to continue.', 401, rid);
     }
 
-    // Check if requesting user is admin
+    const token = authHeader.replace('Bearer ', '');
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+    const { data: { user: requestingUser }, error: authError } = await adminClient.auth.getUser(token);
+    if (authError || !requestingUser) {
+      return errorResponse(req, 'Your session has expired. Please sign out and sign back in.', 401, rid, authError?.message);
+    }
+
     const { data: roleData } = await adminClient
       .from('user_roles')
       .select('role')
@@ -48,23 +37,19 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!roleData) {
-      return new Response(
-        JSON.stringify({ error: 'Only admins can create clients' }),
-        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'You do not have permission to create clients.', 403, rid);
     }
 
-    // Parse request body
     const { email, password, fullName } = await req.json();
 
     if (!email || !password) {
-      return new Response(
-        JSON.stringify({ error: 'Email and password are required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Please fill in all required fields (email and password).', 400, rid);
     }
 
-    // Create the user
+    if (!email.includes('@') || !email.includes('.')) {
+      return errorResponse(req, 'Please enter a valid email address.', 400, rid);
+    }
+
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
@@ -73,10 +58,16 @@ Deno.serve(async (req) => {
     });
 
     if (createError) {
-      return new Response(
-        JSON.stringify({ error: createError.message }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      const msg = createError.message.toLowerCase();
+      let friendlyError = 'Could not create account. Please try again.';
+      if (msg.includes('already been registered') || msg.includes('already exists')) {
+        friendlyError = 'This email is already registered.';
+      } else if (msg.includes('invalid') && msg.includes('email')) {
+        friendlyError = 'Please enter a valid email address.';
+      } else if (msg.includes('password')) {
+        friendlyError = 'Password must be at least 6 characters.';
+      }
+      return errorResponse(req, friendlyError, 400, rid, createError.message);
     }
 
     // Assign client role
@@ -219,17 +210,13 @@ Deno.serve(async (req) => {
       // Don't fail the request if email fails - user is still created
     }
 
-    console.log('Client created successfully:', newUser.user.id);
+    console.log(`[${rid}] Client created successfully:`, newUser.user.id);
 
     return new Response(
-      JSON.stringify({ success: true, userId: newUser.user.id }),
+      JSON.stringify({ success: true, userId: newUser.user.id, requestId: rid }),
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    console.error('Error creating client:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

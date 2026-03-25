@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -8,6 +8,8 @@ serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -31,12 +33,13 @@ serve(async (req) => {
 
     if (error) throw error;
 
-    return new Response(JSON.stringify({ claimed: count ?? 0, total: 50 }), {
+    return new Response(JSON.stringify({ claimed: count ?? 0, total: 50, requestId: rid }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("get-founders-count error:", e);
-    return new Response(JSON.stringify({ claimed: 0, total: 50 }), {
+    const rid = generateRequestId();
+    console.error(`[${rid}] get-founders-count error:`, e);
+    return new Response(JSON.stringify({ claimed: 0, total: 50, requestId: rid }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }

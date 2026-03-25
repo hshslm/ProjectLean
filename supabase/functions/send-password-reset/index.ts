@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
@@ -11,6 +11,8 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
@@ -18,10 +20,7 @@ Deno.serve(async (req) => {
     const { email } = await req.json();
 
     if (!email) {
-      return new Response(
-        JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Email is required', 400, rid);
     }
 
     console.log('Password reset requested for:', email);
@@ -37,7 +36,7 @@ Deno.serve(async (req) => {
       console.log('User not found, but returning success for security');
       // Don't reveal if user exists or not
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, requestId: rid }),
         { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
@@ -63,11 +62,8 @@ Deno.serve(async (req) => {
     });
 
     if (linkError) {
-      console.error('Error generating reset link:', linkError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate reset link' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      console.error(`[${rid}] Error generating reset link:`, linkError);
+      return errorResponse(req, 'Failed to generate reset link', 500, rid);
     }
 
     // Extract token from the link
@@ -131,14 +127,11 @@ Deno.serve(async (req) => {
     console.log('Password reset email sent:', emailResponse);
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, requestId: rid }),
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    console.error('Error in send-password-reset:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

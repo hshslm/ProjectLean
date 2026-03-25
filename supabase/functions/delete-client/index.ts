@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { createRemoteJWKSet, jwtVerify } from 'https://esm.sh/jose@5.2.0';
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -8,15 +8,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Missing authorization header', 401, rid);
     }
     
     const jwt = authHeader.replace('Bearer ', '');
@@ -32,11 +31,8 @@ Deno.serve(async (req) => {
       });
       payload = verifiedPayload;
     } catch (jwtError) {
-      console.error('JWT verification failed:', jwtError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      console.error(`[${rid}] JWT verification failed:`, jwtError);
+      return errorResponse(req, 'Unauthorized', 401, rid);
     }
     
     const requestingUserId = payload.sub as string;
@@ -54,27 +50,18 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!roleData) {
-      return new Response(
-        JSON.stringify({ error: 'Only admins can delete clients' }),
-        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Only admins can delete clients', 403, rid);
     }
 
     const { clientUserId } = await req.json();
 
     if (!clientUserId) {
-      return new Response(
-        JSON.stringify({ error: 'Client user ID is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Client user ID is required', 400, rid);
     }
 
     // Prevent admin from deleting themselves
     if (clientUserId === requestingUserId) {
-      return new Response(
-        JSON.stringify({ error: 'Cannot delete your own account' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Cannot delete your own account', 400, rid);
     }
 
     // Check that the user being deleted is not an admin
@@ -86,34 +73,25 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (targetRoleData) {
-      return new Response(
-        JSON.stringify({ error: 'Cannot delete admin accounts' }),
-        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Cannot delete admin accounts', 403, rid);
     }
 
     // Delete the user from auth.users (this will cascade delete related records)
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(clientUserId);
 
     if (deleteError) {
-      console.error('Error deleting user:', deleteError);
-      return new Response(
-        JSON.stringify({ error: deleteError.message }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      console.error(`[${rid}] Error deleting user:`, deleteError);
+      return errorResponse(req, deleteError.message, 400, rid);
     }
 
     console.log('Client deleted successfully:', clientUserId);
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, requestId: rid }),
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    console.error('Error deleting client:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

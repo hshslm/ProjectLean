@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
@@ -11,15 +11,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Missing authorization header', 401, rid);
     }
     
     const token = authHeader.replace('Bearer ', '');
@@ -38,11 +37,8 @@ Deno.serve(async (req) => {
     const { data: claimsData, error: authError } = await userClient.auth.getClaims(token);
     
     if (authError || !claimsData?.claims) {
-      console.error('Auth error:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      console.error(`[${rid}] Auth error:`, authError);
+      return errorResponse(req, 'Unauthorized', 401, rid);
     }
     
     const requestingUserId = claimsData.claims.sub;
@@ -56,19 +52,13 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!roleData) {
-      return new Response(
-        JSON.stringify({ error: 'Only admins can resend login details' }),
-        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Only admins can resend login details', 403, rid);
     }
 
     const { clientUserId } = await req.json();
 
     if (!clientUserId) {
-      return new Response(
-        JSON.stringify({ error: 'Client user ID is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Client user ID is required', 400, rid);
     }
 
     // Get client profile
@@ -79,10 +69,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (profileError || !profile) {
-      return new Response(
-        JSON.stringify({ error: 'Client not found' }),
-        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Client not found', 404, rid);
     }
 
     // Generate a password reset link (secure - no plaintext password)
@@ -98,11 +85,8 @@ Deno.serve(async (req) => {
     });
 
     if (linkError) {
-      console.error('Error generating password reset link:', linkError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate reset link' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      console.error(`[${rid}] Error generating password reset link:`, linkError);
+      return errorResponse(req, 'Failed to generate reset link', 500, rid);
     }
 
     const resetLink = linkData?.properties?.action_link;
@@ -167,14 +151,11 @@ Deno.serve(async (req) => {
     console.log('Login link email sent:', emailResponse);
 
     return new Response(
-      JSON.stringify({ success: true, email: profile.email }),
+      JSON.stringify({ success: true, email: profile.email, requestId: rid }),
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    console.error('Error resending login details:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

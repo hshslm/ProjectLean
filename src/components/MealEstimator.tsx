@@ -346,24 +346,6 @@ export const MealEstimator: React.FC = () => {
         contextNotes += `My protein goal for this meal is ${proteinGoal}g - please tell me if this meal meets that goal`;
       }
 
-      // Duplicate check: skip if a meal was logged by this user within the last 5 minutes
-      if (user) {
-        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-        const dateStr = format(selectedDate, 'yyyy-MM-dd');
-        const { count } = await supabase
-          .from('meal_logs')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('meal_date', dateStr)
-          .gte('logged_at', fiveMinAgo);
-
-        if (count && count > 0) {
-          toast.error('This meal was just logged.');
-          setIsLoading(false);
-          return;
-        }
-      }
-
       // Call the AI edge function with all images
       const { data, error } = await supabase.functions.invoke('analyze-meal', {
         body: {
@@ -583,26 +565,55 @@ export const MealEstimator: React.FC = () => {
           {user && (
             <div className="rounded-xl border border-border bg-card p-4">
               {userGoals.daily_calories || userGoals.daily_protein ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Daily Macros</p>
+                    <GoalSettings
+                      userId={user.id}
+                      currentCalorieGoal={userGoals.daily_calories}
+                      currentProteinGoal={userGoals.daily_protein}
+                      onGoalsUpdated={fetchUserGoals}
+                      triggerLabel="Edit"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Calories */}
                     <div className="text-center">
+                      <p className="text-xs text-muted-foreground mb-1">Goal</p>
                       <p className="text-lg font-bold text-foreground">{userGoals.daily_calories ?? '—'}</p>
-                      <p className="text-xs text-muted-foreground">kcal</p>
+                      <p className="text-[10px] text-muted-foreground">kcal</p>
                     </div>
-                    <div className="w-px h-8 bg-border" />
                     <div className="text-center">
-                      <p className="text-lg font-bold text-foreground">{userGoals.daily_protein ?? '—'}g</p>
-                      <p className="text-xs text-muted-foreground">protein</p>
+                      <p className="text-xs text-muted-foreground mb-1">Eaten</p>
+                      <p className="text-lg font-bold text-foreground">{Math.round((dailyTotals.caloriesLow + dailyTotals.caloriesHigh) / 2)}</p>
+                      <p className="text-[10px] text-muted-foreground">kcal</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground mb-1">Left</p>
+                      <p className={`text-lg font-bold ${(userGoals.daily_calories ?? 0) - Math.round((dailyTotals.caloriesLow + dailyTotals.caloriesHigh) / 2) < 0 ? 'text-destructive' : 'text-primary'}`}>
+                        {(userGoals.daily_calories ?? 0) - Math.round((dailyTotals.caloriesLow + dailyTotals.caloriesHigh) / 2)}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">kcal</p>
                     </div>
                   </div>
-                  <GoalSettings
-                    userId={user.id}
-                    currentCalorieGoal={userGoals.daily_calories}
-                    currentProteinGoal={userGoals.daily_protein}
-                    onGoalsUpdated={fetchUserGoals}
-                    triggerLabel="Edit Goals"
-                  />
-                </div>
+                  {userGoals.daily_protein && (
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Protein</span>
+                        <span className="text-sm font-semibold text-foreground">
+                          {Math.round((dailyTotals.proteinLow + dailyTotals.proteinHigh) / 2)}g
+                          <span className="text-muted-foreground font-normal"> / {userGoals.daily_protein}g</span>
+                        </span>
+                      </div>
+                      <div className="mt-1.5 bg-secondary rounded-full h-2">
+                        <div
+                          className="bg-primary rounded-full h-2 transition-all"
+                          style={{ width: `${Math.min(100, (Math.round((dailyTotals.proteinLow + dailyTotals.proteinHigh) / 2) / userGoals.daily_protein) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="flex items-center justify-between">
                   <div>

@@ -37,6 +37,23 @@ interface Client {
 
 const PAGE_SIZE = 20;
 
+const getFriendlyError = async (error: any, fallback: string): Promise<string> => {
+  const raw = error?.message || '';
+  if (raw.includes('failed to send request') || raw.includes('FetchError'))
+    return 'Connection error. Please check your internet and try again.';
+  // Try to extract the real error from the edge function response body
+  const body = await error?.context?.json?.().catch(() => null);
+  const detail = body?.error || raw;
+  const rid = body?.requestId ? ` (ref: ${body.requestId})` : '';
+  if (detail.includes('already been registered') || detail.includes('already exists'))
+    return 'This email is already registered.' + rid;
+  if (detail.includes('Unauthorized') || detail.includes('session has expired'))
+    return 'Your session expired. Please sign out and sign back in.';
+  if (detail.includes('rate limit') || detail.includes('429'))
+    return 'Too many requests. Please wait a moment.' + rid;
+  return (detail || fallback) + rid;
+};
+
 const Admin = () => {
   const { user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -155,15 +172,12 @@ const Admin = () => {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      toast.success(`Client created! Login: ${newClient.email}`);
+      toast.success(`Client created! An invitation email has been sent to ${newClient.email}`);
       setNewClient({ email: '', password: '', fullName: '' });
       setShowForm(false);
       fetchClients();
     } catch (error: any) {
-      const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
-        ? 'Connection error. Please check your internet and try again.'
-        : error.message || 'Failed to create client';
-      toast.error(msg);
+      toast.error(await getFriendlyError(error, 'Could not create client. Please try again.'));
     } finally {
       setIsCreating(false);
     }
@@ -185,10 +199,7 @@ const Admin = () => {
 
       toast.success(`Login details sent to ${clientEmail}`);
     } catch (error: any) {
-      const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
-        ? 'Connection error. Please check your internet and try again.'
-        : error.message || 'Failed to resend login details';
-      toast.error(msg);
+      toast.error(await getFriendlyError(error, 'Could not send login details. Please try again.'));
     } finally {
       setResendingFor(null);
     }
@@ -205,10 +216,7 @@ const Admin = () => {
 
       toast.success(`Renewal email sent to ${clientEmail}`);
     } catch (error: any) {
-      const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
-        ? 'Connection error. Please check your internet and try again.'
-        : error.message || 'Failed to send renewal email';
-      toast.error(msg);
+      toast.error(await getFriendlyError(error, 'Could not send renewal email. Please try again.'));
     } finally {
       setRenewalFor(null);
     }
@@ -227,10 +235,7 @@ const Admin = () => {
       toast.success(`${clientEmail} has been deleted`);
       fetchClients();
     } catch (error: any) {
-      const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
-        ? 'Connection error. Please check your internet and try again.'
-        : error.message || 'Failed to delete client';
-      toast.error(msg);
+      toast.error(await getFriendlyError(error, 'Could not delete client. Please try again.'));
     } finally {
       setDeletingFor(null);
     }

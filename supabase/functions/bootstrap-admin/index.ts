@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -7,15 +7,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     const { email, password, secret } = await req.json();
 
     // Require a bootstrap secret to prevent unauthorized access
     const bootstrapSecret = Deno.env.get('BOOTSTRAP_SECRET');
     if (!bootstrapSecret || secret !== bootstrapSecret) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized. Invalid bootstrap secret.' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Unauthorized. Invalid bootstrap secret.', 401, rid);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -31,24 +30,15 @@ Deno.serve(async (req) => {
       .limit(1);
 
     if (checkError) {
-      return new Response(
-        JSON.stringify({ error: checkError.message }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, checkError.message, 500, rid);
     }
 
     if (existingAdmins && existingAdmins.length > 0) {
-      return new Response(
-        JSON.stringify({ error: 'An admin already exists. This function can only be used for initial setup.' }),
-        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'An admin already exists. This function can only be used for initial setup.', 403, rid);
     }
 
     if (!email || !password) {
-      return new Response(
-        JSON.stringify({ error: 'Email and password are required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, 'Email and password are required', 400, rid);
     }
 
     // Create the admin user
@@ -60,10 +50,7 @@ Deno.serve(async (req) => {
     });
 
     if (createError) {
-      return new Response(
-        JSON.stringify({ error: createError.message }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, createError.message, 400, rid);
     }
 
     // Assign admin role
@@ -72,20 +59,15 @@ Deno.serve(async (req) => {
       .insert({ user_id: newUser.user.id, role: 'admin' });
 
     if (roleError) {
-      return new Response(
-        JSON.stringify({ error: roleError.message }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(req, roleError.message, 500, rid);
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Admin account created successfully' }),
+      JSON.stringify({ success: true, message: 'Admin account created successfully', requestId: rid }),
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, error?.message);
   }
 });

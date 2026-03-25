@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cors.ts';
 
 const SYSTEM_PROMPT = `You are Karim Zaki — a performance-driven fitness and behavior coach writing a personalized weekly summary for your client.
 
@@ -31,12 +31,12 @@ serve(async (req) => {
   }
 
   try {
+    const rid = generateRequestId();
+
     // Authenticate the user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Authentication required' }), {
-        status: 401, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      return errorResponse(req, 'Authentication required', 401, rid);
     }
     const token = authHeader.replace('Bearer ', '');
     const supabase = createClient(
@@ -45,9 +45,7 @@ serve(async (req) => {
     );
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Authentication required' }), {
-        status: 401, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      return errorResponse(req, 'Authentication required', 401, rid);
     }
 
     const { weekData, weeklyTheme, recoveryScore, recoveryOpportunities, recoveries } = await req.json();
@@ -56,9 +54,7 @@ serve(async (req) => {
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     if (!weekData || weekData.length === 0) {
-      return new Response(JSON.stringify({ error: "No check-in data provided" }), {
-        status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      return errorResponse(req, 'No check-in data provided', 400, rid);
     }
 
     const habitKeys = ['protein_hit', 'steps_hit', 'training_hit', 'sleep_hit', 'aligned_eating_hit'];
@@ -130,28 +126,22 @@ Generate a personalized weekly coaching summary for this client.`;
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Try again in a moment." }), {
-          status: 429, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-        });
+        return errorResponse(req, 'Rate limited. Try again in a moment.', 429, rid);
       }
       const text = await response.text();
-      console.error("Gemini API error:", response.status, text);
-      return new Response(JSON.stringify({ error: "AI summary unavailable" }), {
-        status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      console.error(`[${rid}] Gemini API error:`, response.status, text);
+      return errorResponse(req, 'AI summary unavailable', 500, rid);
     }
 
     const data = await response.json();
     const summary = data.choices?.[0]?.message?.content || "No summary generated.";
 
-    return new Response(JSON.stringify({ summary }), {
+    return new Response(JSON.stringify({ summary, requestId: rid }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
 
   } catch (e) {
-    console.error("weekly-summary error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    const rid = generateRequestId();
+    return errorResponse(req, 'Something went wrong. Please try again.', 500, rid, e instanceof Error ? e.message : undefined);
   }
 });
