@@ -77,32 +77,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       case "signup":
       case "email_confirmation":
-        subject = "Confirm Your Project Lean Account";
-        htmlContent = `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <div style="text-align: center; margin-bottom: 32px;">
-              <h1 style="color: #1a1a1a; font-size: 24px; margin: 0;">Project Lean</h1>
-            </div>
-            <div style="background: #ffffff; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
-              <h2 style="color: #1a1a1a; font-size: 20px; margin: 0 0 16px;">Welcome to Project Lean!</h2>
-              <p style="color: #666666; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-                Hi ${userName},<br><br>
-                Thanks for signing up! Click the button below to confirm your email:
-              </p>
-              <a href="${confirmationUrl}" 
-                 style="display: inline-block; background: #FF6B5B; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                Confirm Email
-              </a>
-              <p style="color: #999999; font-size: 14px; margin: 24px 0 0;">
-                You're getting 6 free meal scans to start!
-              </p>
-            </div>
-            <p style="color: #999999; font-size: 12px; text-align: center; margin-top: 32px;">
-              © ${new Date().getFullYear()} Project Lean. All rights reserved.
-            </p>
-          </div>
-        `;
-        break;
+        // Suppressed — the branded welcome email with magic link is sent
+        // separately by the send-welcome-email edge function
+        console.log(`[${rid}] Suppressing signup confirmation email for ${userEmail} (handled by send-welcome-email)`);
+        return new Response(JSON.stringify({ success: true, requestId: rid }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
+        });
+
 
       case "invite":
         subject = "You've Been Invited to Project Lean";
