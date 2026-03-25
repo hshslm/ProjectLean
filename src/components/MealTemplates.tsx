@@ -80,7 +80,7 @@ export const MealTemplates = ({ userId, onUseTemplate }: MealTemplatesProps) => 
       .eq('id', id);
 
     if (error) {
-      toast.error('Failed to delete template');
+      toast.error('Could not delete favorite. Please try again.');
     } else {
       toast.success('Template deleted');
       fetchTemplates();

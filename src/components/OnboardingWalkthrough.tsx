@@ -165,7 +165,7 @@ export const OnboardingWalkthrough: React.FC<OnboardingWalkthroughProps> = ({ us
       onGoalsUpdated?.();
       return true;
     } catch (e: any) {
-      toast.error(e.message || 'Failed to save goals');
+      toast.error('Could not save goals. Please try again.');
       return false;
     } finally {
       setIsSaving(false);

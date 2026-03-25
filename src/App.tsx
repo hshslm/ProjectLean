@@ -14,12 +14,23 @@ import SetPassword from "./pages/SetPassword";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import ErrorBoundary from "./components/ErrorBoundary";
+import OfflineState from "./components/OfflineState";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
+    <OfflineState />
     <AuthProvider>
       <TooltipProvider>
         <Toaster />

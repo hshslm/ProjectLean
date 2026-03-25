@@ -274,7 +274,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
     }
 
     if (error) {
-      toast.error('Failed to save check-in');
+      toast.error('Could not save check-in. Please try again.');
       console.error(error);
       setIsSaving(false);
       return;

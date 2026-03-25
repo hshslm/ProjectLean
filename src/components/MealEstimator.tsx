@@ -113,6 +113,7 @@ export const MealEstimator: React.FC = () => {
   const [weightUnit, setWeightUnit] = useState<WeightUnit>('g');
   const [showReferenceTip, setShowReferenceTip] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [scanCooldown, setScanCooldown] = useState(false);
   const [result, setResult] = useState<EstimationResult | null>(null);
   const [multiplier, setMultiplier] = useState(1);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -220,7 +221,7 @@ export const MealEstimator: React.FC = () => {
       .eq('id', id);
 
     if (error) {
-      toast.error('Failed to delete meal');
+      toast.error('Could not delete meal. Please try again.');
     } else {
       toast.success('Meal deleted');
       fetchMealLogs();
@@ -235,7 +236,7 @@ export const MealEstimator: React.FC = () => {
       .eq('id', id);
 
     if (error) {
-      toast.error('Failed to update meal');
+      toast.error('Could not update meal. Please try again.');
     } else {
       toast.success('Meal updated');
       fetchMealLogs();
@@ -300,7 +301,7 @@ export const MealEstimator: React.FC = () => {
       });
 
     if (error) {
-      toast.error('Failed to log meal');
+      toast.error('Could not log meal. Please try again.');
     } else {
       fetchMealLogs();
       fetchWeeklyLogs();
@@ -438,6 +439,10 @@ export const MealEstimator: React.FC = () => {
 
           if (saveError) {
             console.error('Error saving meal log:', saveError);
+          } else {
+            // Brief cooldown to prevent accidental double-taps
+            setScanCooldown(true);
+            setTimeout(() => setScanCooldown(false), 5000);
           }
         }
       }
@@ -880,13 +885,13 @@ export const MealEstimator: React.FC = () => {
                 <div className="animate-fade-up" style={{ animationDelay: '300ms' }}>
                   <Button
                     onClick={handleEstimate}
-                    disabled={!canEstimate}
+                    disabled={!canEstimate || scanCooldown}
                     variant="coral"
                     size="xl"
                     className="w-full"
                   >
-                    {editingMealId ? 'Re-estimate macros' : 'Estimate macros'}
-                    <ArrowRight className="w-5 h-5" />
+                    {scanCooldown ? 'Meal logged!' : editingMealId ? 'Re-estimate macros' : 'Estimate macros'}
+                    {!scanCooldown && <ArrowRight className="w-5 h-5" />}
                   </Button>
                 </div>
               )}

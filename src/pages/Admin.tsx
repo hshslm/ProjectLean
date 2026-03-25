@@ -140,7 +140,7 @@ const Admin = () => {
       toast.success(!currentValue ? 'Coaching access granted' : 'Coaching access removed');
       fetchClients();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update client status');
+      toast.error('Could not update client status. Please try again.');
     }
   };
 

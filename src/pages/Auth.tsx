@@ -40,7 +40,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message || 'Failed to resend verification email');
+      toast.error('Could not resend verification email. Please try again.');
     } else {
       toast.success('Verification email sent! Check your inbox.');
     }
@@ -64,7 +64,7 @@ const Auth = () => {
       setIsLoading(true);
       const { error } = await resetPassword(email);
       if (error) {
-        toast.error(error.message || 'Failed to send reset email');
+        toast.error('Could not send reset email. Please try again.');
       } else {
         toast.success('Password reset email sent! Check your inbox.');
         setIsForgotPassword(false);
@@ -88,7 +88,7 @@ const Auth = () => {
     if (isSignUp) {
       const { error } = await signUp(email, password, fullName);
       if (error) {
-        toast.error(error.message || 'Failed to create account');
+        toast.error('Could not create account. Please try again.');
       } else {
         // Send welcome email (no password - user already set it during signup)
         try {
@@ -122,7 +122,7 @@ const Auth = () => {
         if (error.message?.includes('Email not confirmed')) {
           toast.error('Please verify your email before signing in. Check your inbox or resend the verification email.');
         } else {
-          toast.error(error.message || 'Invalid login credentials');
+          toast.error('Invalid email or password. Please try again.');
         }
       } else {
         navigate('/app');

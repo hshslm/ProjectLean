@@ -182,7 +182,7 @@ export const GoalSettings = ({
       setOpen(false);
       setManualOverride(false);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save goals');
+      toast.error('Could not save goals. Please try again.');
     } finally {
       setIsSaving(false);
     }

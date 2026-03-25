@@ -78,7 +78,7 @@ export const NotificationSettings = ({ userId }: NotificationSettingsProps) => {
         return false;
       }
     } catch (error) {
-      toast.error('Failed to enable notifications');
+      toast.error('Could not enable notifications. Please try again.');
       return false;
     }
   };
@@ -117,7 +117,7 @@ export const NotificationSettings = ({ userId }: NotificationSettingsProps) => {
       toast.success('Notification settings saved!');
       setOpen(false);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save settings');
+      toast.error('Could not save settings. Please try again.');
     } finally {
       setIsSaving(false);
     }

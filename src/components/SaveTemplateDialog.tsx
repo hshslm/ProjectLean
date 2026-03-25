@@ -73,7 +73,7 @@ export const SaveTemplateDialog = ({
       setName('');
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save favorite');
+      toast.error('Could not save favorite. Please try again.');
     } finally {
       setIsSaving(false);
     }
