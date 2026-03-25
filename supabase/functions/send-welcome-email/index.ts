@@ -5,6 +5,11 @@ import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cor
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
+const supabaseAdmin = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+);
+
 interface WelcomeEmailRequest {
   email: string;
   fullName?: string;
@@ -24,7 +29,25 @@ Deno.serve(async (req) => {
       return errorResponse(req, 'Email is required', 400, rid);
     }
 
-    const appUrl = req.headers.get('origin') || 'https://theleanbrain.projectlean.app';
+    const appUrl = 'https://theleanbrain.projectlean.app';
+
+    // Generate a magic link — clicking it confirms the email AND logs the user in
+    let loginUrl = `${appUrl}/auth`;
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: {
+        redirectTo: `${appUrl}/app`,
+      },
+    });
+
+    if (linkError) {
+      console.error(`[${rid}] Failed to generate magic link:`, linkError.message);
+      // Fall back to plain auth URL if link generation fails
+    } else if (linkData?.properties?.action_link) {
+      loginUrl = linkData.properties.action_link;
+      console.log(`[${rid}] Generated magic link for ${email}`);
+    }
     
     // Send welcome email with Lean Brain positioning
     const emailResponse = await resend.emails.send({
@@ -62,7 +85,7 @@ Deno.serve(async (req) => {
             </div>
 
             <div style="text-align: center; margin: 24px 0;">
-              <a href="${appUrl}/auth" style="background: #C23B22; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block;">Log In Now</a>
+              <a href="${loginUrl}" style="background: #C23B22; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block;">Log In Now</a>
             </div>
 
             <!-- The Goal -->

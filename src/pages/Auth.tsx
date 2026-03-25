@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,15 +33,26 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email,
-    });
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
 
-    if (error) {
+      if (!response.ok) {
+        toast.error('Could not resend verification email. Please try again.');
+      } else {
+        toast.success('Verification email sent! Check your inbox.');
+      }
+    } catch {
       toast.error('Could not resend verification email. Please try again.');
-    } else {
-      toast.success('Verification email sent! Check your inbox.');
     }
     setIsLoading(false);
   };
@@ -111,16 +121,32 @@ const Auth = () => {
           // Don't block signup if email fails
         }
         
-        toast.success('Account created! You can now sign in.');
+        toast.success('Account created! Check your email to verify and log in.');
         setIsSignUp(false);
         setPassword('');
       }
     } else {
       const { error } = await signIn(email, password);
       if (error) {
-        // Check if the error is about email not confirmed
         if (error.message?.includes('Email not confirmed')) {
-          toast.error('Please verify your email before signing in. Check your inbox or resend the verification email.');
+          // Auto-send a fresh verification email with a new magic link
+          toast.info('Sending a new verification email...');
+          try {
+            await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                },
+                body: JSON.stringify({ email }),
+              }
+            );
+            toast.success('Verification email sent! Check your inbox and click "Log In Now".');
+          } catch {
+            toast.error('Please verify your email. Click "Didn\'t receive verification email?" below.');
+          }
         } else {
           toast.error('Invalid email or password. Please try again.');
         }
