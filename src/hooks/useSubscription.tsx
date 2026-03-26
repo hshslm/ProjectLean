@@ -74,8 +74,21 @@ export const useSubscription = () => {
     fetchSubscriptionStatus();
   }, [fetchSubscriptionStatus]);
 
+  // Re-fetch when user returns to the app tab (e.g. after Stripe checkout)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSubscriptionStatus();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [fetchSubscriptionStatus]);
+
   const openPaymentLink = () => {
-    window.open(STRIPE_PAYMENT_LINK, '_blank');
+    let url = STRIPE_PAYMENT_LINK;
+    if (user?.email) url += `?prefilled_email=${encodeURIComponent(user.email)}`;
+    window.open(url, '_blank');
   };
 
   return {
