@@ -122,8 +122,8 @@ export const InstallPrompt: React.FC = () => {
           className="fixed inset-0 bg-foreground/50 z-[60] flex items-end sm:items-center justify-center p-4"
           onClick={() => setShowIOSInstructions(false)}
         >
-          <div 
-            className="bg-card rounded-2xl p-6 max-w-sm w-full shadow-floating animate-fade-up safe-area-bottom"
+          <div
+            className="bg-card rounded-2xl p-6 pb-8 max-w-sm w-full shadow-floating animate-fade-up safe-area-bottom"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">

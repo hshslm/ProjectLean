@@ -288,7 +288,7 @@ export const LeanBrainChat: React.FC<LeanBrainChatProps> = ({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full bg-foreground text-background shadow-lg flex items-center justify-center hover:opacity-90 transition-all active:scale-95"
+        className="fixed bottom-[132px] right-6 z-50 w-14 h-14 rounded-full bg-foreground text-background shadow-lg flex items-center justify-center hover:opacity-90 transition-all active:scale-95"
         aria-label="Open Lean Brain Chat"
       >
         <MessageCircle className="w-6 h-6" />

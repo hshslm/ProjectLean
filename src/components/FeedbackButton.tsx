@@ -60,7 +60,7 @@ export const FeedbackButton: React.FC = () => {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 left-4 z-50 px-3 py-1.5 rounded-full bg-muted/80 backdrop-blur-sm text-muted-foreground text-xs font-medium flex items-center gap-1.5 hover:bg-muted transition-all active:scale-95 border border-border/50"
+        className="fixed bottom-6 right-6 z-50 px-3 py-1.5 rounded-full bg-muted/80 backdrop-blur-sm text-muted-foreground text-xs font-medium flex items-center gap-1.5 hover:bg-muted transition-all active:scale-95 border border-border/50"
         aria-label="Send Feedback"
       >
         <MessageSquarePlus className="w-3.5 h-3.5" />

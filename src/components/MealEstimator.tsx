@@ -994,7 +994,7 @@ export const MealEstimator: React.FC = () => {
         <Sheet open={showResetSheet} onOpenChange={setShowResetSheet}>
           <SheetTrigger asChild>
             <button
-              className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-destructive text-destructive-foreground shadow-lg flex items-center justify-center hover:bg-destructive/90 transition-all active:scale-95"
+              className="fixed bottom-16 right-6 z-50 w-14 h-14 rounded-full bg-destructive text-destructive-foreground shadow-lg flex items-center justify-center hover:bg-destructive/90 transition-all active:scale-95"
               aria-label="Reset Protocol"
             >
               <LifeBuoy className="w-6 h-6" />
