@@ -96,12 +96,12 @@ interface UserGoals {
 
 export const MealEstimator: React.FC = () => {
   const { user, signOut } = useAuth();
-  const { 
-    hasAccess, 
+  const {
+    canScan,
     isSubscribed,
     isCoachingClient,
     openPaymentLink,
-    refetch: refetchSubscription 
+    refetch: refetchSubscription
   } = useSubscription();
   
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -314,8 +314,8 @@ export const MealEstimator: React.FC = () => {
       return;
     }
 
-    // Check if user has an active subscription
-    if (!hasAccess) {
+    // Check if user can scan (subscribed, coaching, or has free scan remaining)
+    if (!canScan) {
       setShowPaywall(true);
       return;
     }
@@ -357,6 +357,12 @@ export const MealEstimator: React.FC = () => {
 
       if (error) {
         console.error('Function error:', error);
+        // If server returned scan limit error, show paywall
+        if (error.message?.includes('Scan limit') || data?.error?.includes?.('Scan limit')) {
+          refetchSubscription();
+          setShowPaywall(true);
+          return;
+        }
         const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
           ? 'Connection error. Please check your internet and try again.'
           : 'Something went wrong. Please try again.';
@@ -366,11 +372,17 @@ export const MealEstimator: React.FC = () => {
 
       if (data.error) {
         console.error('API error:', data.error);
+        if (data.error.includes?.('Scan limit')) {
+          refetchSubscription();
+          setShowPaywall(true);
+          return;
+        }
         toast.error(data.error);
         return;
       }
 
       setResult(data);
+      refetchSubscription(); // Update scan count so next attempt checks correctly
 
       // Save to meal_logs
       if (user && data.macros) {

@@ -64,6 +64,22 @@ serve(async (req) => {
       return errorResponse(req, 'Authentication required', 401, rid);
     }
 
+    // Server-side paywall: check subscription and free check-in limit
+    // Use > 1 (not >= 1) because the counter may already be incremented for the
+    // current check-in by the time this request arrives (race with client-side increment).
+    // The client gates new check-in creation at checkin_count >= 1, so a free user
+    // can only ever create 1 check-in. This server check is defense-in-depth.
+    const FREE_CHECKIN_LIMIT = 1;
+    const { data: subProfile } = await supabase
+      .from('profiles')
+      .select('is_subscribed, is_coaching_client, checkin_count')
+      .eq('user_id', user.id)
+      .single();
+
+    if (subProfile && !subProfile.is_subscribed && !subProfile.is_coaching_client && (subProfile.checkin_count ?? 0) > FREE_CHECKIN_LIMIT) {
+      return errorResponse(req, 'Check-in limit reached. Subscribe to continue using AI coaching.', 403, rid);
+    }
+
     // Rate limiting: max 10 coaching responses per hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count: recentCoaching } = await supabase

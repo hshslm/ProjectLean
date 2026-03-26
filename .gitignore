@@ -31,3 +31,6 @@ dist-ssr
 # Migration data
 migration-data/
 .vercel
+
+# Supabase CLI temp files
+supabase/.temp/

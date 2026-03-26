@@ -58,6 +58,7 @@ serve(async (req) => {
               is_subscribed: true,
               subscription_updated_at: new Date().toISOString(),
               scan_count: 0,
+              checkin_count: 0,
             })
             .eq("email", customerEmail);
 
@@ -127,6 +128,7 @@ serve(async (req) => {
             .from("profiles")
             .update({
               scan_count: 0,
+              checkin_count: 0,
               subscription_updated_at: new Date().toISOString(),
             })
             .eq("user_id", stripeCustomer.user_id);

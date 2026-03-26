@@ -94,7 +94,7 @@ serve(async (req) => {
     }
 
     // Server-side paywall + rate limiting: run both checks concurrently
-    const SCAN_LIMIT = 50;
+    const SCAN_LIMIT = 1;
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
     const [{ data: profile }, { count: recentScans }] = await Promise.all([

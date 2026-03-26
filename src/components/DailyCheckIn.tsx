@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Check, Dumbbell, Footprints, Moon, Utensils, Beef, ChevronLeft, ChevronRight, Brain, Loader2, MessageSquare, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { ResetProtocol } from './ResetProtocol';
 import SkeletonCard from '@/components/SkeletonCard';
+import { PaywallModal } from '@/components/PaywallModal';
+import { useSubscription } from '@/hooks/useSubscription';
 import { format, isToday, addDays, subDays } from 'date-fns';
 
 const COGNITIVE_PATTERNS = [
@@ -50,6 +52,8 @@ interface DailyCheckInProps {
 }
 
 export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
+  const { canCheckIn, openPaymentLink, refetch: refetchSubscription } = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [checkin, setCheckin] = useState<CheckInData>({
     protein_hit: false,
@@ -219,7 +223,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
 
     } catch (error: any) {
       console.error('Coaching error:', error);
-      if (error.message?.includes('failed to send request') || error.message?.includes('FetchError')) {
+      if (error.message?.includes('Check-in limit') || error.message?.includes('limit reached')) {
+        refetchSubscription();
+        setShowPaywall(true);
+      } else if (error.message?.includes('failed to send request') || error.message?.includes('FetchError')) {
         toast.error('Connection error. Please check your internet and try again.');
       } else if (error.message?.includes('Rate limited')) {
         toast.error('AI coaching is temporarily busy. Try again in a moment.');
@@ -232,6 +239,12 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
   };
 
   const handleSubmit = async () => {
+    // Free usage check — only for new check-ins, not updates
+    if (!existingId && !canCheckIn) {
+      setShowPaywall(true);
+      return;
+    }
+
     if (checkin.cognitive_patterns.length === 0) {
       toast.error('Select at least one thought pattern');
       return;
@@ -280,14 +293,24 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
       return;
     }
 
-    toast.success(existingId ? 'Check-in updated' : 'Check-in saved');
+    const isNewCheckin = !existingId;
+
+    toast.success(isNewCheckin ? 'Check-in saved' : 'Check-in updated');
     setHasSubmitted(true);
     setExistingId(savedId);
     setIsSaving(false);
 
-    // Trigger AI coaching response
+    // Trigger AI coaching response BEFORE incrementing counter
+    // so the server-side check allows this first free check-in's coaching
     if (savedId) {
       fetchCoachingResponse(checkin, savedId);
+    }
+
+    // Increment checkin_count for new check-ins (not updates)
+    // Done after coaching fires so the server doesn't block the first free coaching response
+    if (isNewCheckin) {
+      await supabase.rpc('increment_checkin_count', { uid: userId });
+      refetchSubscription();
     }
   };
 
@@ -522,6 +545,11 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
           </Button>
         </>
       )}
+      <PaywallModal
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        onSubscribe={() => { openPaymentLink(); setShowPaywall(false); }}
+      />
     </div>
   );
 };
