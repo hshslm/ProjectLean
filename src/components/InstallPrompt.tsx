@@ -70,54 +70,56 @@ export const InstallPrompt: React.FC = () => {
   return (
     <>
       {/* Install Banner */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-card border-t border-border shadow-elevated z-50 animate-fade-up safe-area-bottom">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-sage-light shrink-0">
-            <Smartphone className="w-5 h-5 text-sage-dark" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">
-              Add to Home Screen
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              Quick access to meal estimation
-            </p>
-          </div>
-          {isIOS ? (
-            <Button
-              onClick={() => setShowIOSInstructions(true)}
-              variant="sage"
-              size="sm"
-              className="shrink-0"
+      <div className="fixed bottom-0 left-0 right-0 z-[55] animate-fade-up safe-area-bottom">
+        <div className="max-w-lg mx-auto px-4 pb-4">
+          <div className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border shadow-elevated">
+            <div className="p-2 rounded-xl bg-sage-light shrink-0">
+              <Smartphone className="w-5 h-5 text-sage-dark" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                Add to Home Screen
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                Quick access to The Lean Brain
+              </p>
+            </div>
+            {isIOS ? (
+              <Button
+                onClick={() => setShowIOSInstructions(true)}
+                variant="sage"
+                size="sm"
+                className="shrink-0"
+              >
+                <Share className="w-4 h-4 mr-1" />
+                How
+              </Button>
+            ) : (
+              <Button
+                onClick={handleInstall}
+                variant="sage"
+                size="sm"
+                className="shrink-0"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Install
+              </Button>
+            )}
+            <button
+              onClick={handleDismiss}
+              className="p-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              aria-label="Dismiss"
             >
-              <Share className="w-4 h-4 mr-1" />
-              How
-            </Button>
-          ) : (
-            <Button
-              onClick={handleInstall}
-              variant="sage"
-              size="sm"
-              className="shrink-0"
-            >
-              <Download className="w-4 h-4 mr-1" />
-              Install
-            </Button>
-          )}
-          <button
-            onClick={handleDismiss}
-            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Dismiss"
-          >
-            <X className="w-4 h-4" />
-          </button>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* iOS Instructions Modal */}
       {showIOSInstructions && (
         <div 
-          className="fixed inset-0 bg-foreground/50 z-50 flex items-end sm:items-center justify-center p-4"
+          className="fixed inset-0 bg-foreground/50 z-[60] flex items-end sm:items-center justify-center p-4"
           onClick={() => setShowIOSInstructions(false)}
         >
           <div 
