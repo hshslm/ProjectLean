@@ -38,6 +38,7 @@ import { CoachingUpsell } from '@/components/CoachingUpsell';
 import { MilestoneUpsellModal } from '@/components/MilestoneUpsellModal';
 import { LeanBrainChat } from '@/components/LeanBrainChat';
 import { CheckInReminder } from '@/components/CheckInReminder';
+import { FeedbackButton } from '@/components/FeedbackButton';
 import { OnboardingWalkthrough } from '@/components/OnboardingWalkthrough';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -968,6 +969,9 @@ export const MealEstimator: React.FC = () => {
 
         {/* First-time onboarding */}
         {user && <OnboardingWalkthrough userId={user.id} onGoalsUpdated={fetchUserGoals} forceShow={showTutorial} onForceShowDone={() => setShowTutorial(false)} />}
+
+        {/* Feedback Button */}
+        <FeedbackButton />
 
         {/* Lean Brain Chat */}
         <LeanBrainChat
