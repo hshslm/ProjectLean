@@ -278,7 +278,7 @@ const Admin = () => {
             </div>
             <Button
               variant="coral"
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => { if (showForm) setNewClient({ email: '', password: '', fullName: '' }); setShowForm(!showForm); }}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Client
@@ -336,7 +336,7 @@ const Admin = () => {
                     <Button type="submit" variant="coral" disabled={isCreating}>
                       {isCreating ? 'Creating...' : 'Create Client'}
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                    <Button type="button" variant="outline" onClick={() => { setNewClient({ email: '', password: '', fullName: '' }); setShowForm(false); }}>
                       Cancel
                     </Button>
                   </div>
