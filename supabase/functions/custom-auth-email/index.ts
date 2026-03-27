@@ -43,8 +43,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     let htmlContent = "";
     
     // Build the confirmation URL
-    const baseUrl = redirect_to || site_url || "https://theleanbrain.projectlean.app";
-    const confirmationUrl = `${baseUrl.replace('/auth?reset=true', '')}/auth?token_hash=${token_hash}&type=${email_action_type}`;
+    const baseUrl = "https://theleanbrain.projectlean.app";
+    const confirmationUrl = email_action_type === 'recovery'
+      ? `${baseUrl}/auth/reset-password?token_hash=${token_hash}&type=${email_action_type}`
+      : `${baseUrl}/auth?token_hash=${token_hash}&type=${email_action_type}`;
 
     switch (email_action_type) {
       case "recovery":

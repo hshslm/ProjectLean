@@ -17,31 +17,29 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // Check if we have a valid recovery session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // If user came from a recovery link, they should have a session
-      if (session) {
-        setIsValidSession(true);
-      } else {
-        // Check URL for recovery token (from email link)
-        const accessToken = searchParams.get('access_token');
-        const refreshToken = searchParams.get('refresh_token');
-        const type = searchParams.get('type');
-        
-        if (type === 'recovery' && accessToken) {
-          // Set the session from URL params
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-          });
-          
-          if (!error) {
-            setIsValidSession(true);
-          }
+      // Check for token_hash in URL (PKCE flow from recovery email)
+      const tokenHash = searchParams.get('token_hash');
+      const type = searchParams.get('type');
+
+      if (tokenHash && type === 'recovery') {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: 'recovery',
+        });
+        if (!error) {
+          setIsValidSession(true);
+          setIsChecking(false);
+          return;
         }
       }
+
+      // Check for existing recovery session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsValidSession(true);
+      }
+
       setIsChecking(false);
     };
 

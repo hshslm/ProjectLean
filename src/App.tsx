@@ -13,6 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 import SetPassword from "./pages/SetPassword";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
+import Profile from "./pages/Profile";
 import ErrorBoundary from "./components/ErrorBoundary";
 import OfflineState from "./components/OfflineState";
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/client/:clientId" element={<ClientView />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/terms" element={<Terms />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

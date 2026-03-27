@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3, LifeBuoy, Sparkles, HelpCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, RotateCcw, History, LogOut, ChevronLeft, ChevronRight, Plus, ClipboardCheck, UtensilsCrossed, BarChart3, LifeBuoy, Sparkles, HelpCircle, User } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 import { Button } from '@/components/ui/button';
@@ -96,6 +97,7 @@ interface UserGoals {
 }
 
 export const MealEstimator: React.FC = () => {
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const {
     canScan,
@@ -542,17 +544,6 @@ export const MealEstimator: React.FC = () => {
                 </Badge>
               )}
               {user && <NotificationSettings userId={user.id} />}
-              {isSubscribed && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => window.open('https://billing.stripe.com/p/login/4gw6rbcv63Gl4gw4gg', '_blank')}
-                  title="Manage Subscription"
-                  className="h-8 w-8 p-0"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                </Button>
-              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -561,6 +552,15 @@ export const MealEstimator: React.FC = () => {
                 className="h-8 w-8 p-0"
               >
                 <HelpCircle className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/profile')}
+                title="Profile"
+                className="h-8 w-8 p-0"
+              >
+                <User className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="sm" onClick={signOut} className="h-8 w-8 p-0">
                 <LogOut className="w-4 h-4" />
