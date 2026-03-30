@@ -4,7 +4,7 @@ import { getCorsHeaders, generateRequestId, errorResponse } from '../_shared/cor
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
-const FEEDBACK_RECIPIENT = 'karimzaki@projectleaneg.com';
+const FEEDBACK_RECIPIENTS = ['karimzaki@projectleaneg.com', 'hashim720@gmail.com', 'karim@stride-performance.com'];
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -23,9 +23,9 @@ Deno.serve(async (req) => {
     const userName = name || email || 'Anonymous';
     const userEmail = email || 'no-reply@projectlean.app';
 
-    await resend.emails.send({
+    const { error: sendError } = await resend.emails.send({
       from: 'Project Lean <noreply@projectlean.app>',
-      to: [FEEDBACK_RECIPIENT],
+      to: FEEDBACK_RECIPIENTS,
       replyTo: userEmail,
       subject: `Lean Brain Feedback from ${userName}`,
       html: `
@@ -43,6 +43,10 @@ Deno.serve(async (req) => {
         </div>
       `,
     });
+
+    if (sendError) {
+      return errorResponse(req, 'Could not send feedback. Please try again.', 500, rid, sendError.message);
+    }
 
     console.log(`[${rid}] Feedback sent from ${userEmail}`);
 
