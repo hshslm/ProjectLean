@@ -312,7 +312,7 @@ export const MealEstimator: React.FC = () => {
   };
 
   const handleEstimate = async () => {
-    if (photos.length === 0 && !notes.trim()) {
+    if (photos.length === 0 && !notes.trim() && !weight.trim() && !calorieBudget.trim() && !proteinGoal.trim()) {
       toast.error('Please add a photo or description of your meal');
       return;
     }
@@ -497,7 +497,7 @@ export const MealEstimator: React.FC = () => {
     }
   };
 
-  const canEstimate = photos.length > 0 || notes.trim().length > 0;
+  const canEstimate = photos.length > 0 || notes.trim().length > 0 || weight.trim().length > 0 || calorieBudget.trim().length > 0 || proteinGoal.trim().length > 0;
 
   // Apply multiplier to macros
   const adjustedMacros = result?.macros ? {
