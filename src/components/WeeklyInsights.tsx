@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, subDays } from 'date-fns';
 import { Flame, Brain, TrendingUp, SmilePlus, Zap, HeartPulse, Trophy, Shield, AlertTriangle, Target, Sparkles, MessageSquareText, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { invokeEdgeFunction } from '@/lib/edge-functions';
 import ReactMarkdown from 'react-markdown';
 import SkeletonCard from '@/components/SkeletonCard';
 
@@ -269,24 +270,38 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
   const generateSummary = async () => {
     setIsSummaryLoading(true);
     try {
-      const { data: fnData, error } = await supabase.functions.invoke('weekly-summary', {
-        body: {
-          weekData: data,
-          weeklyTheme: weeklyTheme.label,
-          recoveryScore,
-          recoveryOpportunities,
-          recoveries,
-        },
+      const { data: fnData, status, error } = await invokeEdgeFunction('weekly-summary', {
+        weekData: data,
+        weeklyTheme: weeklyTheme.label,
+        recoveryScore,
+        recoveryOpportunities,
+        recoveries,
       });
-      if (error) throw error;
-      if (fnData?.error) throw new Error(fnData.error);
+      if (error) {
+        console.error('Summary error:', status, error);
+        switch (status) {
+          case 401:
+            toast.error('Your session expired. Please sign out and back in.');
+            break;
+          case 429:
+            toast.error('Summary generation is busy. Please wait a minute and try again.');
+            break;
+          case 504:
+            toast.error('Summary took too long. Please try again.');
+            break;
+          default:
+            toast.error('Could not generate weekly summary. Please try again.');
+        }
+        return;
+      }
       setAiSummary(fnData.summary);
     } catch (e: any) {
       console.error('Summary error:', e);
-      const msg = e.message?.includes('failed to send request') || e.message?.includes('FetchError')
-        ? 'Connection error. Please check your internet and try again.'
-        : e.message || 'Failed to generate summary';
-      toast.error(msg);
+      if (!navigator.onLine) {
+        toast.error('You\'re offline. Please check your connection.');
+      } else {
+        toast.error('Connection error. Could not generate summary.');
+      }
     } finally {
       setIsSummaryLoading(false);
     }

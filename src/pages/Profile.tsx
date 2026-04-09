@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { invokeEdgeFunction } from '@/lib/edge-functions';
 import { ArrowLeft, LogOut, KeyRound, Sparkles, CreditCard, Crown, Loader2 } from 'lucide-react';
 
 const Profile = () => {
@@ -33,16 +34,25 @@ const Profile = () => {
   const handleManageSubscription = async () => {
     setIsLoadingPortal(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-portal-session');
+      const { data, status, error } = await invokeEdgeFunction('create-portal-session');
 
-      if (error) throw error;
+      if (error) {
+        switch (status) {
+          case 401:
+            toast.error('Your session expired. Please sign out and back in.');
+            break;
+          default:
+            toast.error('Could not open subscription management. Please try again.');
+        }
+        return;
+      }
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        throw new Error('No portal URL returned');
+        toast.error('Could not open subscription management. Please try again.');
       }
     } catch {
-      toast.error('Could not open subscription management. Please try again.');
+      toast.error(!navigator.onLine ? 'You\'re offline. Please check your connection.' : 'Could not open subscription management. Please try again.');
     } finally {
       setIsLoadingPortal(false);
     }

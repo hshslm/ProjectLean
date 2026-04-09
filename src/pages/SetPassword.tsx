@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { invokeEdgeFunction } from '@/lib/edge-functions';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 
 interface ValidationResult {
@@ -34,14 +35,12 @@ const SetPassword = () => {
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke('validate-invitation', {
-          body: { token },
-        });
+        const { data, status, error } = await invokeEdgeFunction('validate-invitation', { token });
 
         if (error) {
-          const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
-            ? 'Connection error. Please check your internet and try again.'
-            : 'Failed to validate invitation';
+          const msg = status === 401
+            ? 'This invitation link has expired or is invalid.'
+            : 'Failed to validate invitation. Please try again.';
           setValidationResult({ valid: false, error: msg });
         } else if (data.valid) {
           setValidationResult({ valid: true });
@@ -50,9 +49,9 @@ const SetPassword = () => {
           setValidationResult({ valid: false, error: data.error });
         }
       } catch (err: any) {
-        const msg = err.message?.includes('failed to send request') || err.message?.includes('FetchError')
-          ? 'Connection error. Please check your internet and try again.'
-          : 'Failed to validate invitation';
+        const msg = !navigator.onLine
+          ? 'You\'re offline. Please check your connection.'
+          : 'Failed to validate invitation. Please try again.';
         setValidationResult({ valid: false, error: msg });
       }
       
@@ -84,15 +83,22 @@ const SetPassword = () => {
 
     try {
       const token = searchParams.get('token');
-      const { data, error } = await supabase.functions.invoke('validate-invitation', {
-        body: { token, newPassword: password },
+      const { data, status, error } = await invokeEdgeFunction('validate-invitation', {
+        token,
+        newPassword: password,
       });
 
-      if (error || !data.success) {
-        const msg = error?.message?.includes('failed to send request') || error?.message?.includes('FetchError')
-          ? 'Connection error. Please check your internet and try again.'
-          : data?.error || 'Failed to set password';
-        toast.error(msg);
+      if (error || !data?.success) {
+        switch (status) {
+          case 401:
+            toast.error('This invitation link has expired. Please request a new one.');
+            break;
+          case 429:
+            toast.error('Too many attempts. Please wait a moment.');
+            break;
+          default:
+            toast.error(error || data?.error || 'Failed to set password. Please try again.');
+        }
         setIsLoading(false);
         return;
       }
@@ -100,10 +106,8 @@ const SetPassword = () => {
       toast.success('Password set successfully! You can now log in.');
       navigate('/auth');
     } catch (err: any) {
-      const msg = err.message?.includes('failed to send request') || err.message?.includes('FetchError')
-        ? 'Connection error. Please check your internet and try again.'
-        : 'Failed to set password';
-      toast.error(msg);
+      console.error('Set password error:', err);
+      toast.error(!navigator.onLine ? 'You\'re offline. Please check your connection.' : 'Failed to set password. Please try again.');
     }
 
     setIsLoading(false);

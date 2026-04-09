@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeEdgeFunction } from '@/lib/edge-functions';
 import { Users } from 'lucide-react';
 
 interface FoundersCounterProps {
@@ -11,7 +11,7 @@ export const FoundersCounter = ({ variant = 'hero' }: FoundersCounterProps) => {
   const total = 50;
 
   useEffect(() => {
-    supabase.functions.invoke('get-founders-count').then(({ data }) => {
+    invokeEdgeFunction('get-founders-count').then(({ data }) => {
       if (data?.claimed !== undefined) setClaimed(data.claimed);
     });
   }, []);

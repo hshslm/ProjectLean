@@ -10,6 +10,7 @@ import { ResetProtocol } from './ResetProtocol';
 import SkeletonCard from '@/components/SkeletonCard';
 import { PaywallModal } from '@/components/PaywallModal';
 import { useSubscription } from '@/hooks/useSubscription';
+import { invokeEdgeFunction } from '@/lib/edge-functions';
 import { format, isToday, addDays, subDays } from 'date-fns';
 
 const COGNITIVE_PATTERNS = [
@@ -198,15 +199,32 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
         .lt('checkin_date', today)
         .order('checkin_date', { ascending: false }) as any);
 
-      const { data, error } = await supabase.functions.invoke('karim-coach', {
-        body: {
-          checkin: checkinData,
-          history: history || [],
-        },
+      const { data, status, error } = await invokeEdgeFunction('karim-coach', {
+        checkin: checkinData,
+        history: history || [],
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        switch (status) {
+          case 401:
+            toast.error('Your session expired. Please sign out and back in.');
+            return;
+          case 403:
+            refetchSubscription();
+            setShowPaywall(true);
+            return;
+          case 429:
+            toast.error('The AI coach is busy right now. Please wait a minute and try again.');
+            return;
+          case 504:
+            toast.error('Response took too long. Please try again.');
+            return;
+          default:
+            console.error('Coaching error:', status, error);
+            toast.error('Coaching is temporarily unavailable. Please try again in a moment.');
+            return;
+        }
+      }
 
       const responseText = data.response;
       setCoachingResponse(responseText);
@@ -223,15 +241,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
 
     } catch (error: any) {
       console.error('Coaching error:', error);
-      if (error.message?.includes('Check-in limit') || error.message?.includes('limit reached')) {
-        refetchSubscription();
-        setShowPaywall(true);
-      } else if (error.message?.includes('failed to send request') || error.message?.includes('FetchError')) {
-        toast.error('Connection error. Please check your internet and try again.');
-      } else if (error.message?.includes('Rate limited')) {
-        toast.error('AI coaching is temporarily busy. Try again in a moment.');
+      if (!navigator.onLine) {
+        toast.error('You\'re offline. Please check your connection.');
       } else {
-        toast.error('Could not generate coaching response');
+        toast.error('Connection error. Please try again.');
       }
     } finally {
       setIsLoadingCoaching(false);

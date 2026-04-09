@@ -44,6 +44,7 @@ import { OnboardingWalkthrough } from '@/components/OnboardingWalkthrough';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadMealImage } from '@/lib/storage';
+import { invokeEdgeFunction } from '@/lib/edge-functions';
 import type { Ingredient } from '@/components/IngredientBreakdown';
 import type { ConfidenceLevel } from '@/components/ConfidenceIndicator';
 
@@ -351,37 +352,31 @@ export const MealEstimator: React.FC = () => {
       }
 
       // Call the AI edge function with all images
-      const { data, error } = await supabase.functions.invoke('analyze-meal', {
-        body: {
-          images: photos.map(p => p.preview),
-          notes: contextNotes || undefined,
-        },
+      const { data, status, error } = await invokeEdgeFunction('analyze-meal', {
+        images: photos.map(p => p.preview),
+        notes: contextNotes || undefined,
       });
 
       if (error) {
-        console.error('Function error:', error);
-        // If server returned scan limit error, show paywall
-        if (error.message?.includes('Scan limit') || data?.error?.includes?.('Scan limit')) {
-          refetchSubscription();
-          setShowPaywall(true);
-          return;
+        console.error('Meal analysis error:', status, error);
+        switch (status) {
+          case 401:
+            toast.error('Your session expired. Please sign out and back in.');
+            return;
+          case 403:
+            refetchSubscription();
+            setShowPaywall(true);
+            return;
+          case 429:
+            toast.error('Too many scans right now. Please wait a minute and try again.');
+            return;
+          case 504:
+            toast.error('Analysis took too long. Please try again.');
+            return;
+          default:
+            toast.error('Could not analyze meal. Please try again.');
+            return;
         }
-        const msg = error.message?.includes('failed to send request') || error.message?.includes('FetchError')
-          ? 'Connection error. Please check your internet and try again.'
-          : 'Something went wrong. Please try again.';
-        toast.error(msg);
-        return;
-      }
-
-      if (data.error) {
-        console.error('API error:', data.error);
-        if (data.error.includes?.('Scan limit')) {
-          refetchSubscription();
-          setShowPaywall(true);
-          return;
-        }
-        toast.error(data.error);
-        return;
       }
 
       setResult(data);
@@ -462,8 +457,12 @@ export const MealEstimator: React.FC = () => {
         }
       }
     } catch (error) {
-      toast.error('Something went wrong. Please try again.');
       console.error('Estimation error:', error);
+      if (!navigator.onLine) {
+        toast.error('You\'re offline. Please check your connection.');
+      } else {
+        toast.error('Connection error. Could not analyze meal.');
+      }
     } finally {
       setIsLoading(false);
     }

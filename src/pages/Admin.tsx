@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { invokeEdgeFunction } from '@/lib/edge-functions';
 import projectLeanLogo from '@/assets/project-lean-logo.png';
 
 interface Client {
@@ -37,21 +38,14 @@ interface Client {
 
 const PAGE_SIZE = 20;
 
-const getFriendlyError = async (error: any, fallback: string): Promise<string> => {
-  const raw = error?.message || '';
-  if (raw.includes('failed to send request') || raw.includes('FetchError'))
-    return 'Connection error. Please check your internet and try again.';
-  // Try to extract the real error from the edge function response body
-  const body = await error?.context?.json?.().catch(() => null);
-  const detail = body?.error || raw;
-  const rid = body?.requestId ? ` (ref: ${body.requestId})` : '';
-  if (detail.includes('already been registered') || detail.includes('already exists'))
-    return 'This email is already registered.' + rid;
-  if (detail.includes('Unauthorized') || detail.includes('session has expired'))
-    return 'Your session expired. Please sign out and sign back in.';
-  if (detail.includes('rate limit') || detail.includes('429'))
-    return 'Too many requests. Please wait a moment.' + rid;
-  return (detail || fallback) + rid;
+const getAdminError = (status: number, serverError: string, fallback: string): string => {
+  if (serverError.includes('already been registered') || serverError.includes('already exists'))
+    return 'This email is already registered.';
+  switch (status) {
+    case 401: return 'Your session expired. Please sign out and sign back in.';
+    case 429: return 'Too many requests. Please wait a moment.';
+    default: return serverError || fallback;
+  }
 };
 
 const Admin = () => {
@@ -160,24 +154,24 @@ const Admin = () => {
     setIsCreating(true);
 
     try {
-      // Create user via edge function
-      const { data, error } = await supabase.functions.invoke('create-client', {
-        body: {
-          email: newClient.email,
-          password: newClient.password,
-          fullName: newClient.fullName || newClient.email,
-        },
+      const { data, status, error } = await invokeEdgeFunction('create-client', {
+        email: newClient.email,
+        password: newClient.password,
+        fullName: newClient.fullName || newClient.email,
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        toast.error(getAdminError(status, error, 'Could not create client. Please try again.'));
+        return;
+      }
 
       toast.success(`Client created! An invitation email has been sent to ${newClient.email}`);
       setNewClient({ email: '', password: '', fullName: '' });
       setShowForm(false);
       fetchClients();
     } catch (error: any) {
-      toast.error(await getFriendlyError(error, 'Could not create client. Please try again.'));
+      console.error('Create client error:', error);
+      toast.error(!navigator.onLine ? 'You\'re offline. Please check your connection.' : 'Could not create client. Please try again.');
     } finally {
       setIsCreating(false);
     }
@@ -190,16 +184,17 @@ const Admin = () => {
   const handleResendLogin = async (clientUserId: string, clientEmail: string) => {
     setResendingFor(clientUserId);
     try {
-      const { data, error } = await supabase.functions.invoke('resend-login', {
-        body: { clientUserId },
-      });
+      const { status, error } = await invokeEdgeFunction('resend-login', { clientUserId });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        toast.error(getAdminError(status, error, 'Could not send login details. Please try again.'));
+        return;
+      }
 
       toast.success(`Login details sent to ${clientEmail}`);
     } catch (error: any) {
-      toast.error(await getFriendlyError(error, 'Could not send login details. Please try again.'));
+      console.error('Resend login error:', error);
+      toast.error(!navigator.onLine ? 'You\'re offline. Please check your connection.' : 'Could not send login details. Please try again.');
     } finally {
       setResendingFor(null);
     }
@@ -207,16 +202,17 @@ const Admin = () => {
   const handleSendRenewal = async (clientEmail: string) => {
     setRenewalFor(clientEmail);
     try {
-      const { data, error } = await supabase.functions.invoke('send-renewal-email', {
-        body: { email: clientEmail },
-      });
+      const { status, error } = await invokeEdgeFunction('send-renewal-email', { email: clientEmail });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        toast.error(getAdminError(status, error, 'Could not send renewal email. Please try again.'));
+        return;
+      }
 
       toast.success(`Renewal email sent to ${clientEmail}`);
     } catch (error: any) {
-      toast.error(await getFriendlyError(error, 'Could not send renewal email. Please try again.'));
+      console.error('Send renewal error:', error);
+      toast.error(!navigator.onLine ? 'You\'re offline. Please check your connection.' : 'Could not send renewal email. Please try again.');
     } finally {
       setRenewalFor(null);
     }
@@ -225,17 +221,18 @@ const Admin = () => {
   const handleDeleteClient = async (clientUserId: string, clientEmail: string) => {
     setDeletingFor(clientUserId);
     try {
-      const { data, error } = await supabase.functions.invoke('delete-client', {
-        body: { clientUserId },
-      });
+      const { status, error } = await invokeEdgeFunction('delete-client', { clientUserId });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        toast.error(getAdminError(status, error, 'Could not delete client. Please try again.'));
+        return;
+      }
 
       toast.success(`${clientEmail} has been deleted`);
       fetchClients();
     } catch (error: any) {
-      toast.error(await getFriendlyError(error, 'Could not delete client. Please try again.'));
+      console.error('Delete client error:', error);
+      toast.error(!navigator.onLine ? 'You\'re offline. Please check your connection.' : 'Could not delete client. Please try again.');
     } finally {
       setDeletingFor(null);
     }
