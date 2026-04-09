@@ -160,31 +160,49 @@ serve(async (req) => {
 
     console.log(`Calling Gemini API for meal analysis with ${imageList.length} image(s)...`);
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GEMINI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gemini-2.5-flash',
-        temperature: 0,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userContent }
-        ],
-      }),
+    const geminiBody = JSON.stringify({
+      model: 'gemini-2.5-flash',
+      temperature: 0,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent }
+      ],
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[${rid}] Gemini API error:`, response.status, errorText);
+    const fetchGemini = () =>
+      fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${GEMINI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: geminiBody,
+        signal: AbortSignal.timeout(45000),
+      });
 
-      if (response.status === 429) {
-        return errorResponse(req, 'Rate limit exceeded. Please try again in a moment.', 429, rid);
+    let response: Response;
+    try {
+      response = await fetchGemini();
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`[${rid}] Gemini API error (attempt 1): status=${response.status} body=${errorBody}`);
+        await new Promise(r => setTimeout(r, 2000));
+        response = await fetchGemini();
+        if (!response.ok) {
+          const retryBody = await response.text();
+          console.error(`[${rid}] Gemini API error (attempt 2): status=${response.status} body=${retryBody}`);
+          if (response.status === 429) {
+            return errorResponse(req, 'Rate limit exceeded. Please try again in a moment.', 429, rid);
+          }
+          return errorResponse(req, 'Failed to analyze meal. Please try again.', 500, rid);
+        }
       }
-
-      return errorResponse(req, 'Failed to analyze meal. Please try again.', 500, rid);
+    } catch (fetchError) {
+      if (fetchError instanceof DOMException && fetchError.name === 'TimeoutError') {
+        console.error(`[${rid}] Gemini API timeout after 45s`);
+        return errorResponse(req, 'Response took too long. Please try again.', 504, rid);
+      }
+      throw fetchError;
     }
 
     const data = await response.json();

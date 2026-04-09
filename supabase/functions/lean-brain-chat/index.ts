@@ -194,29 +194,53 @@ serve(async (req) => {
       (m: { role: string }) => m.role === 'user' || m.role === 'assistant'
     );
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: finalPrompt },
-          ...sanitizedMessages,
-        ],
-        stream: true,
-      }),
+    // Truncate to last 20 messages to prevent token limit issues
+    const truncatedMessages = sanitizedMessages.slice(-20);
+
+    const geminiBody = JSON.stringify({
+      model: "gemini-2.5-flash",
+      messages: [
+        { role: "system", content: finalPrompt },
+        ...truncatedMessages,
+      ],
+      stream: true,
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return errorResponse(req, 'Rate limited. Try again in a moment.', 429, rid);
+    const fetchGemini = () =>
+      fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: geminiBody,
+        signal: AbortSignal.timeout(45000),
+      });
+
+    let response: Response;
+    try {
+      response = await fetchGemini();
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`[${rid}] Gemini API error (attempt 1): status=${response.status} body=${errorBody}`);
+        // Retry once after 2 seconds
+        await new Promise(r => setTimeout(r, 2000));
+        response = await fetchGemini();
+        if (!response.ok) {
+          const retryBody = await response.text();
+          console.error(`[${rid}] Gemini API error (attempt 2): status=${response.status} body=${retryBody}`);
+          if (response.status === 429) {
+            return errorResponse(req, 'Rate limited. Try again in a moment.', 429, rid);
+          }
+          return errorResponse(req, 'AI coaching unavailable', 500, rid);
+        }
       }
-      const text = await response.text();
-      console.error(`[${rid}] Gemini API error:`, response.status, text);
-      return errorResponse(req, 'AI coaching unavailable', 500, rid);
+    } catch (fetchError) {
+      if (fetchError instanceof DOMException && fetchError.name === 'TimeoutError') {
+        console.error(`[${rid}] Gemini API timeout after 45s`);
+        return errorResponse(req, 'Response took too long. Please try again.', 504, rid);
+      }
+      throw fetchError;
     }
 
     return new Response(response.body, {
