@@ -210,7 +210,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
           refetchSubscription();
           setShowPaywall(true);
         } else {
-          toast.error(error);
+          toast.error(`Coaching response failed: ${error}`);
         }
         return;
       }
