@@ -329,16 +329,18 @@ Generate your coaching response for this client.`;
         if (!response.ok) {
           const retryBody = await response.text();
           console.error(`[${rid}] Gemini API error (attempt 2): status=${response.status} body=${retryBody}`);
+          let detail = '';
+          try { detail = JSON.parse(retryBody)?.error?.message || retryBody; } catch { detail = retryBody; }
           if (response.status === 429) {
-            return errorResponse(req, 'Rate limited. Try again in a moment.', 429, rid);
+            return errorResponse(req, `Gemini rate limited: ${detail}`, 429, rid);
           }
-          return errorResponse(req, 'AI coaching unavailable', 500, rid);
+          return errorResponse(req, `Gemini API error ${response.status}: ${detail}`, 502, rid);
         }
       }
     } catch (fetchError) {
       if (fetchError instanceof DOMException && fetchError.name === 'TimeoutError') {
         console.error(`[${rid}] Gemini API timeout after 45s`);
-        return errorResponse(req, 'Response took too long. Please try again.', 504, rid);
+        return errorResponse(req, 'Gemini API timed out after 45s. Please try again.', 504, rid);
       }
       throw fetchError;
     }

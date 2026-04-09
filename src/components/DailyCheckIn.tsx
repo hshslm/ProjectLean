@@ -205,25 +205,14 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({ userId }) => {
       });
 
       if (error) {
-        switch (status) {
-          case 401:
-            toast.error('Your session expired. Please sign out and back in.');
-            return;
-          case 403:
-            refetchSubscription();
-            setShowPaywall(true);
-            return;
-          case 429:
-            toast.error('The AI coach is busy right now. Please wait a minute and try again.');
-            return;
-          case 504:
-            toast.error('Response took too long. Please try again.');
-            return;
-          default:
-            console.error('Coaching error:', status, error);
-            toast.error('Coaching is temporarily unavailable. Please try again in a moment.');
-            return;
+        console.error('Coaching error:', status, error);
+        if (status === 403) {
+          refetchSubscription();
+          setShowPaywall(true);
+        } else {
+          toast.error(error);
         }
+        return;
       }
 
       const responseText = data.response;

@@ -43,7 +43,7 @@ const getAdminError = (status: number, serverError: string, fallback: string): s
     return 'This email is already registered.';
   switch (status) {
     case 401: return 'Your session expired. Please sign out and sign back in.';
-    case 429: return 'Too many requests. Please wait a moment.';
+    case 429: return serverError;
     default: return serverError || fallback;
   }
 };

@@ -94,7 +94,7 @@ const SetPassword = () => {
             toast.error('This invitation link has expired. Please request a new one.');
             break;
           case 429:
-            toast.error('Too many attempts. Please wait a moment.');
+            toast.error(error);
             break;
           default:
             toast.error(error || data?.error || 'Failed to set password. Please try again.');

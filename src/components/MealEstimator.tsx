@@ -359,24 +359,13 @@ export const MealEstimator: React.FC = () => {
 
       if (error) {
         console.error('Meal analysis error:', status, error);
-        switch (status) {
-          case 401:
-            toast.error('Your session expired. Please sign out and back in.');
-            return;
-          case 403:
-            refetchSubscription();
-            setShowPaywall(true);
-            return;
-          case 429:
-            toast.error('Too many scans right now. Please wait a minute and try again.');
-            return;
-          case 504:
-            toast.error('Analysis took too long. Please try again.');
-            return;
-          default:
-            toast.error('Could not analyze meal. Please try again.');
-            return;
+        if (status === 403) {
+          refetchSubscription();
+          setShowPaywall(true);
+        } else {
+          toast.error(error);
         }
+        return;
       }
 
       setResult(data);

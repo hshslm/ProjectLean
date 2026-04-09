@@ -279,19 +279,7 @@ export const WeeklyInsights: React.FC<WeeklyInsightsProps> = ({ userId }) => {
       });
       if (error) {
         console.error('Summary error:', status, error);
-        switch (status) {
-          case 401:
-            toast.error('Your session expired. Please sign out and back in.');
-            break;
-          case 429:
-            toast.error('Summary generation is busy. Please wait a minute and try again.');
-            break;
-          case 504:
-            toast.error('Summary took too long. Please try again.');
-            break;
-          default:
-            toast.error('Could not generate weekly summary. Please try again.');
-        }
+        toast.error(error);
         return;
       }
       setAiSummary(fnData.summary);
