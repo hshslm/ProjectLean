@@ -81,7 +81,7 @@ serve(async (req) => {
     // Authenticate the user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return errorResponse(req, 'Authentication required', 401, rid);
+      return errorResponse(req, 'Your session has expired. Please sign out and back in.', 401, rid);
     }
     const token = authHeader.replace('Bearer ', '');
     const supabase = createClient(
@@ -90,7 +90,7 @@ serve(async (req) => {
     );
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return errorResponse(req, 'Authentication required', 401, rid);
+      return errorResponse(req, 'Your session has expired. Please sign out and back in.', 401, rid);
     }
 
     // Server-side paywall + rate limiting: run both checks concurrently

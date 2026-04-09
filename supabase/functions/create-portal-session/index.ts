@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return errorResponse(req, 'Authentication required', 401, rid);
+      return errorResponse(req, 'Your session has expired. Please sign out and back in.', 401, rid);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return errorResponse(req, 'Authentication required', 401, rid);
+      return errorResponse(req, 'Your session has expired. Please sign out and back in.', 401, rid);
     }
 
     // Look up Stripe customer ID
