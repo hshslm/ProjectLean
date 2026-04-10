@@ -80,7 +80,7 @@ serve(async (req) => {
       return errorResponse(req, 'Check-in limit reached. Subscribe to continue using AI coaching.', 403, rid);
     }
 
-    // Rate limiting: max 10 coaching responses per hour
+    // Rate limiting: max 30 coaching responses per hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count: recentCoaching } = await supabase
       .from('coaching_responses')
@@ -88,7 +88,7 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .gte('created_at', oneHourAgo);
 
-    if (recentCoaching !== null && recentCoaching >= 10) {
+    if (recentCoaching !== null && recentCoaching >= 30) {
       return errorResponse(req, 'Rate limit exceeded. Please try again later.', 429, rid);
     }
 
