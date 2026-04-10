@@ -197,60 +197,85 @@ serve(async (req) => {
     // Truncate to last 20 messages to prevent token limit issues
     const truncatedMessages = sanitizedMessages.slice(-20);
 
-    const geminiBody = JSON.stringify({
-      model: "gemini-2.5-flash",
-      messages: [
-        { role: "system", content: finalPrompt },
-        ...truncatedMessages,
-      ],
-      stream: true,
-    });
+    const PRIMARY_MODEL = "gemini-2.5-flash";
+    const FALLBACK_MODEL = "gemini-2.5-flash-lite";
+    const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+    const DEADLINE = Date.now() + 120_000;
 
-    const fetchGemini = () =>
-      fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    const geminiMessages = [
+      { role: "system", content: finalPrompt },
+      ...truncatedMessages,
+    ];
+
+    const fetchGemini = (model: string) => {
+      const remaining = DEADLINE - Date.now();
+      if (remaining < 5000) throw new Error('Not enough time for another attempt');
+      return fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${GEMINI_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: geminiBody,
-        signal: AbortSignal.timeout(45000),
+        body: JSON.stringify({ model, messages: geminiMessages, stream: true }),
+        signal: AbortSignal.timeout(Math.min(45000, remaining - 2000)),
       });
+    };
+
+    const parseGeminiError = (body: string): string => {
+      try {
+        const parsed = JSON.parse(body);
+        return (Array.isArray(parsed) ? parsed[0]?.error?.message : parsed?.error?.message) || body;
+      } catch { return body; }
+    };
 
     let response: Response;
+    let usedModel = PRIMARY_MODEL;
     try {
-      response = await fetchGemini();
+      // Attempt 1: primary model
+      response = await fetchGemini(PRIMARY_MODEL);
       if (!response.ok) {
         const errorBody = await response.text();
-        console.error(`[${rid}] Gemini API error (attempt 1): status=${response.status} body=${errorBody}`);
-        // Retry once after 2 seconds
-        await new Promise(r => setTimeout(r, 2000));
-        response = await fetchGemini();
+        console.error(`[${rid}] Gemini API error (attempt 1, ${PRIMARY_MODEL}): status=${response.status} body=${errorBody}`);
+
+        if (!RETRYABLE_STATUSES.has(response.status)) {
+          return errorResponse(req, `Lean Brain error: ${parseGeminiError(errorBody)}`, response.status, rid);
+        }
+
+        // Attempt 2: retry primary after jittered delay
+        await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000));
+        response = await fetchGemini(PRIMARY_MODEL);
         if (!response.ok) {
           const retryBody = await response.text();
-          console.error(`[${rid}] Gemini API error (attempt 2): status=${response.status} body=${retryBody}`);
-          let detail = '';
-          try {
-            const parsed = JSON.parse(retryBody);
-            detail = (Array.isArray(parsed) ? parsed[0]?.error?.message : parsed?.error?.message) || retryBody;
-          } catch { detail = retryBody; }
-          console.error(`[${rid}] Gemini final error detail: ${detail}`);
-          if (response.status === 429) {
-            return errorResponse(req, 'Lean Brain is temporarily busy. Please try again in a minute.', 429, rid);
+          console.error(`[${rid}] Gemini API error (attempt 2, ${PRIMARY_MODEL}): status=${response.status} body=${retryBody}`);
+
+          // Attempt 3: fallback model after jittered delay
+          await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
+          console.log(`[${rid}] Falling back to ${FALLBACK_MODEL}`);
+          usedModel = FALLBACK_MODEL;
+          response = await fetchGemini(FALLBACK_MODEL);
+          if (!response.ok) {
+            const fallbackBody = await response.text();
+            const detail = parseGeminiError(fallbackBody);
+            console.error(`[${rid}] Gemini API error (attempt 3, ${FALLBACK_MODEL}): status=${response.status} detail=${detail}`);
+            if (response.status === 429) {
+              return errorResponse(req, 'Lean Brain is temporarily busy. Please try again in a minute.', 429, rid);
+            }
+            if (response.status === 503) {
+              return errorResponse(req, 'Lean Brain is temporarily unavailable due to high demand. Please try again in a moment.', 503, rid);
+            }
+            return errorResponse(req, 'Lean Brain is temporarily unavailable. Please try again.', 502, rid);
           }
-          if (response.status === 503) {
-            return errorResponse(req, 'Lean Brain is temporarily unavailable due to high demand. Please try again in a moment.', 503, rid);
-          }
-          return errorResponse(req, 'Lean Brain is temporarily unavailable. Please try again.', 502, rid);
         }
       }
     } catch (fetchError) {
       if (fetchError instanceof DOMException && fetchError.name === 'TimeoutError') {
-        console.error(`[${rid}] Gemini API timeout after 45s`);
-        return errorResponse(req, 'Gemini API timed out after 45s. Please try again.', 504, rid);
+        console.error(`[${rid}] Gemini API timeout (model: ${usedModel})`);
+        return errorResponse(req, 'Lean Brain timed out. Please try again.', 504, rid);
       }
       throw fetchError;
     }
+
+    console.log(`[${rid}] Gemini response OK (model: ${usedModel})`);
 
     return new Response(response.body, {
       headers: { ...getCorsHeaders(req), "Content-Type": "text/event-stream" },
