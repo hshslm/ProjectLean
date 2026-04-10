@@ -204,22 +204,34 @@ serve(async (req) => {
           return errorResponse(req, `Meal analysis error: ${parseGeminiError(errorBody)}`, response.status, rid);
         }
 
-        // Attempt 2: retry primary after jittered delay
-        await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000));
-        response = await fetchGemini(PRIMARY_MODEL);
-        if (!response.ok) {
-          const retryBody = await response.text();
-          console.error(`[${rid}] Gemini API error (attempt 2, ${PRIMARY_MODEL}): status=${response.status} body=${retryBody}`);
-
-          // Attempt 3: fallback model after jittered delay
-          await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
-          console.log(`[${rid}] Falling back to ${FALLBACK_MODEL}`);
+        // On 429, skip primary retry — go straight to fallback (separate rate limits)
+        if (response.status === 429) {
+          console.log(`[${rid}] Primary model rate limited, falling back to ${FALLBACK_MODEL}`);
           usedModel = FALLBACK_MODEL;
           response = await fetchGemini(FALLBACK_MODEL);
+        } else {
+          await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000));
+          response = await fetchGemini(PRIMARY_MODEL);
+        }
+
+        if (!response.ok) {
+          const retryBody = await response.text();
+          console.error(`[${rid}] Gemini API error (attempt 2, ${usedModel}): status=${response.status} body=${retryBody}`);
+
+          if (usedModel === PRIMARY_MODEL) {
+            await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
+            console.log(`[${rid}] Falling back to ${FALLBACK_MODEL}`);
+            usedModel = FALLBACK_MODEL;
+            response = await fetchGemini(FALLBACK_MODEL);
+          } else {
+            await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000));
+            response = await fetchGemini(FALLBACK_MODEL);
+          }
+
           if (!response.ok) {
             const fallbackBody = await response.text();
             const detail = parseGeminiError(fallbackBody);
-            console.error(`[${rid}] Gemini API error (attempt 3, ${FALLBACK_MODEL}): status=${response.status} detail=${detail}`);
+            console.error(`[${rid}] Gemini API error (attempt 3, ${usedModel}): status=${response.status} detail=${detail}`);
             if (response.status === 429) {
               return errorResponse(req, 'Meal analysis is temporarily busy. Please try again in a minute.', 429, rid);
             }
