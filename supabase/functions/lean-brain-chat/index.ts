@@ -230,11 +230,18 @@ serve(async (req) => {
           const retryBody = await response.text();
           console.error(`[${rid}] Gemini API error (attempt 2): status=${response.status} body=${retryBody}`);
           let detail = '';
-          try { detail = JSON.parse(retryBody)?.error?.message || retryBody; } catch { detail = retryBody; }
+          try {
+            const parsed = JSON.parse(retryBody);
+            detail = (Array.isArray(parsed) ? parsed[0]?.error?.message : parsed?.error?.message) || retryBody;
+          } catch { detail = retryBody; }
+          console.error(`[${rid}] Gemini final error detail: ${detail}`);
           if (response.status === 429) {
-            return errorResponse(req, `Gemini rate limited: ${detail}`, 429, rid);
+            return errorResponse(req, 'Lean Brain is temporarily busy. Please try again in a minute.', 429, rid);
           }
-          return errorResponse(req, `Gemini API error ${response.status}: ${detail}`, 502, rid);
+          if (response.status === 503) {
+            return errorResponse(req, 'Lean Brain is temporarily unavailable due to high demand. Please try again in a moment.', 503, rid);
+          }
+          return errorResponse(req, 'Lean Brain is temporarily unavailable. Please try again.', 502, rid);
         }
       }
     } catch (fetchError) {
