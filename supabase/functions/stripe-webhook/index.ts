@@ -12,9 +12,54 @@ const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
 
-// Only process events for the Project Lean AI Meal Tracker product
-const MEAL_TRACKER_PRODUCT_ID = "prod_TltJhHN2HGhoaq";
-const MEAL_TRACKER_PRICE_ID = "price_1SoLWcEEn5vGaL1PyAqAWoc9";
+// Only process events for the Project Lean AI Meal Tracker product.
+// Allowlist to support multiple active prices (regional/currency variants).
+// When Karim adds a new price/product, add it here — otherwise [REJECTED_FILTER] will log it.
+const MEAL_TRACKER_PRICE_IDS = [
+  "price_1SoLWcEEn5vGaL1PyAqAWoc9", // legacy
+  "price_1T9aYQEEn5vGaL1PPBg6gwz1", // current AED 129 monthly
+];
+const MEAL_TRACKER_PRODUCT_IDS = [
+  "prod_TltJhHN2HGhoaq", // legacy
+  "prod_U7qEmavXaUCpBq", // current Lean Brain Monthly product
+];
+
+const isMealTrackerItem = (item: { price?: Stripe.Price | null }, eventType: string, refId: string): boolean => {
+  const priceId = item.price?.id;
+  const productField = item.price?.product as string | Stripe.Product | null | undefined;
+  const productId = typeof productField === 'string' ? productField : productField?.id;
+  const ok = (priceId && MEAL_TRACKER_PRICE_IDS.includes(priceId))
+          || (productId && MEAL_TRACKER_PRODUCT_IDS.includes(productId));
+  if (!ok) {
+    console.warn(`[REJECTED_FILTER] event=${eventType} price=${priceId} product=${productId} ref=${refId}`);
+  }
+  return !!ok;
+};
+
+const CRITICAL_ALERT_EMAIL = "hashim720@gmail.com";
+const criticalAlertSentAt = new Map<string, number>();
+
+async function sendCriticalAlert(subject: string, detail: Record<string, unknown>): Promise<void> {
+  const key = JSON.stringify(detail.customer ?? detail.session ?? subject);
+  const now = Date.now();
+  const last = criticalAlertSentAt.get(key) ?? 0;
+  if (now - last < 60_000) return; // dedupe per-customer within 60s
+  criticalAlertSentAt.set(key, now);
+
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) return;
+  const resend = new Resend(apiKey);
+  try {
+    await resend.emails.send({
+      from: "Project Lean <noreply@projectlean.app>",
+      to: [CRITICAL_ALERT_EMAIL],
+      subject,
+      html: `<pre style="font-family:monospace;font-size:13px">${JSON.stringify(detail, null, 2)}</pre>`,
+    });
+  } catch (e) {
+    console.error("[CRITICAL] failed to send alert email:", e);
+  }
+}
 
 serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
@@ -29,16 +74,17 @@ serve(async (req) => {
     const body = await req.text();
     const event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
 
-    console.log("Received Stripe event:", event.type);
+    console.log(`[stripe-webhook] event=${event.type} id=${event.id}`);
 
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        
+        console.log(`[stripe-webhook] session=${session.id} customer=${session.customer ?? ''} sub=${session.subscription ?? ''}`);
+
         // Check if this checkout is for our meal tracker product
         const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
         const isMealTrackerPurchase = lineItems.data.some(
-          (item: Stripe.LineItem) => item.price?.id === MEAL_TRACKER_PRICE_ID || item.price?.product === MEAL_TRACKER_PRODUCT_ID
+          (item: Stripe.LineItem) => isMealTrackerItem(item, event.type, session.id)
         );
 
         if (!isMealTrackerPurchase) {
@@ -52,7 +98,7 @@ serve(async (req) => {
           console.log("Meal Tracker checkout completed for:", customerEmail);
 
           // Reset scan count to 0 on payment (giving them fresh 50 scans)
-          const { error } = await supabaseAdmin
+          const { data: updated, error } = await supabaseAdmin
             .from("profiles")
             .update({
               is_subscribed: true,
@@ -60,25 +106,28 @@ serve(async (req) => {
               scan_count: 0,
               checkin_count: 0,
             })
-            .eq("email", customerEmail);
+            .ilike("email", customerEmail)
+            .select("user_id");
 
           if (error) {
             console.error("Error updating profile:", error);
+            await sendCriticalAlert("[CRITICAL] stripe-webhook profile update errored", {
+              event: event.type, session: session.id, customer: session.customer, email: customerEmail, error: error.message,
+            });
+          } else if (!updated || updated.length === 0) {
+            console.error(`[CRITICAL] profile update matched 0 rows email=${customerEmail} session=${session.id}`);
+            await sendCriticalAlert("[CRITICAL] stripe-webhook could not link paid user", {
+              event: event.type, session: session.id, customer: session.customer, sub: session.subscription, email: customerEmail,
+            });
           } else {
-            console.log("Successfully updated subscription for:", customerEmail, "Scans reset to 0");
+            console.log("Successfully updated subscription for:", customerEmail, "rows:", updated.length);
 
-            // Store stripe_customer_id in admin-only table
-            const { data: profile } = await supabaseAdmin
-              .from("profiles")
-              .select("user_id")
-              .eq("email", customerEmail)
-              .maybeSingle();
-
-            if (profile?.user_id && session.customer) {
+            const userId = updated[0]?.user_id;
+            if (userId && session.customer) {
               await supabaseAdmin
                 .from("stripe_customers")
                 .upsert({
-                  user_id: profile.user_id,
+                  user_id: userId,
                   stripe_customer_id: session.customer as string,
                   updated_at: new Date().toISOString(),
                 }, { onConflict: "user_id" });
@@ -102,7 +151,7 @@ serve(async (req) => {
         // Check if this invoice is for the meal tracker subscription
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
         const isMealTrackerSubscription = subscription.items.data.some(
-          (item: Stripe.SubscriptionItem) => item.price.id === MEAL_TRACKER_PRICE_ID || item.price.product === MEAL_TRACKER_PRODUCT_ID
+          (item: Stripe.SubscriptionItem) => isMealTrackerItem(item, event.type, subscription.id)
         );
 
         if (!isMealTrackerSubscription) {
@@ -116,14 +165,37 @@ serve(async (req) => {
         const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
         const customerEmail = customer.email;
 
-        // Look up user via stripe_customers table
-        const { data: stripeCustomer } = await supabaseAdmin
-          .from("stripe_customers")
-          .select("user_id")
-          .eq("stripe_customer_id", customerId)
-          .maybeSingle();
+        // Look up user via stripe_customers table, or fall back to email and backfill
+        let invoiceUserId: string | null = null;
+        {
+          const { data: stripeCustomer } = await supabaseAdmin
+            .from("stripe_customers")
+            .select("user_id")
+            .eq("stripe_customer_id", customerId)
+            .maybeSingle();
+          invoiceUserId = stripeCustomer?.user_id ?? null;
 
-        if (stripeCustomer?.user_id) {
+          if (!invoiceUserId && customerEmail) {
+            const { data: profileByEmail } = await supabaseAdmin
+              .from("profiles")
+              .select("user_id")
+              .ilike("email", customerEmail)
+              .maybeSingle();
+            if (profileByEmail?.user_id) {
+              invoiceUserId = profileByEmail.user_id;
+              await supabaseAdmin
+                .from("stripe_customers")
+                .upsert({
+                  user_id: invoiceUserId,
+                  stripe_customer_id: customerId,
+                  updated_at: new Date().toISOString(),
+                }, { onConflict: "user_id" });
+              console.log("Backfilled stripe_customers via email fallback for:", customerEmail);
+            }
+          }
+        }
+
+        if (invoiceUserId) {
           const { error } = await supabaseAdmin
             .from("profiles")
             .update({
@@ -131,7 +203,7 @@ serve(async (req) => {
               checkin_count: 0,
               subscription_updated_at: new Date().toISOString(),
             })
-            .eq("user_id", stripeCustomer.user_id);
+            .eq("user_id", invoiceUserId);
 
           if (error) {
             console.error("Error resetting scan count:", error);
@@ -146,7 +218,7 @@ serve(async (req) => {
               const { data: profile } = await supabaseAdmin
                 .from("profiles")
                 .select("full_name")
-                .eq("user_id", stripeCustomer.user_id)
+                .eq("user_id", invoiceUserId)
                 .maybeSingle();
 
             const userName = profile?.full_name || customerEmail.split("@")[0];
@@ -199,18 +271,22 @@ serve(async (req) => {
           }
           }
         } else {
-          console.error("No stripe customer found for:", customerId);
+          console.error(`[CRITICAL] invoice.payment_succeeded could not resolve user customer=${customerId} email=${customerEmail ?? 'null'}`);
+          await sendCriticalAlert("[CRITICAL] stripe-webhook could not resolve paid user on renewal", {
+            event: event.type, customer: customerId, email: customerEmail, invoice: invoice.id,
+          });
         }
         break;
       }
 
+      case "customer.subscription.created":
       case "customer.subscription.deleted":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        
+
         // Check if this subscription is for the meal tracker
         const isMealTrackerSubscription = subscription.items.data.some(
-          (item: Stripe.SubscriptionItem) => item.price.id === MEAL_TRACKER_PRICE_ID || item.price.product === MEAL_TRACKER_PRODUCT_ID
+          (item: Stripe.SubscriptionItem) => isMealTrackerItem(item, event.type, subscription.id)
         );
 
         if (!isMealTrackerSubscription) {
@@ -223,27 +299,58 @@ serve(async (req) => {
 
         console.log("Meal Tracker subscription update for customer:", customerId, "Active:", isActive);
 
-        // Look up user via stripe_customers table
-        const { data: stripeCustomer } = await supabaseAdmin
-          .from("stripe_customers")
-          .select("user_id")
-          .eq("stripe_customer_id", customerId)
-          .maybeSingle();
+        // Look up user via stripe_customers table, or fall back to email lookup and backfill
+        let subUserId: string | null = null;
+        let subCustomerEmail: string | null = null;
+        {
+          const { data: stripeCustomer } = await supabaseAdmin
+            .from("stripe_customers")
+            .select("user_id")
+            .eq("stripe_customer_id", customerId)
+            .maybeSingle();
+          subUserId = stripeCustomer?.user_id ?? null;
 
-        if (stripeCustomer?.user_id) {
+          if (!subUserId) {
+            const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+            subCustomerEmail = customer.email;
+            if (subCustomerEmail) {
+              const { data: profileByEmail } = await supabaseAdmin
+                .from("profiles")
+                .select("user_id")
+                .ilike("email", subCustomerEmail)
+                .maybeSingle();
+              if (profileByEmail?.user_id) {
+                subUserId = profileByEmail.user_id;
+                await supabaseAdmin
+                  .from("stripe_customers")
+                  .upsert({
+                    user_id: subUserId,
+                    stripe_customer_id: customerId,
+                    updated_at: new Date().toISOString(),
+                  }, { onConflict: "user_id" });
+                console.log("Backfilled stripe_customers via email fallback for:", subCustomerEmail);
+              }
+            }
+          }
+        }
+
+        if (subUserId) {
           const { error } = await supabaseAdmin
             .from("profiles")
             .update({
               is_subscribed: isActive,
               subscription_updated_at: new Date().toISOString(),
             })
-            .eq("user_id", stripeCustomer.user_id);
+            .eq("user_id", subUserId);
 
           if (error) {
             console.error("Error updating subscription status:", error);
           }
         } else {
-          console.error("No stripe customer found for:", customerId);
+          console.error(`[CRITICAL] subscription event could not resolve user customer=${customerId} email=${subCustomerEmail ?? 'null'}`);
+          await sendCriticalAlert("[CRITICAL] stripe-webhook could not resolve subscription customer", {
+            event: event.type, customer: customerId, email: subCustomerEmail, subscription: subscription.id, status: subscription.status,
+          });
         }
         break;
       }
