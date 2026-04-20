@@ -53,6 +53,8 @@ interface PhotoItem {
   preview: string;
 }
 
+const PORTION_MULTIPLIERS: Record<PortionSize, number> = { small: 0.75, medium: 1, large: 1.3 };
+
 interface EstimationResult {
   foodIdentification: string;
   macros: {
@@ -117,7 +119,7 @@ export const MealEstimator: React.FC = () => {
   const [weightUnit, setWeightUnit] = useState<WeightUnit>('g');
   const [showReferenceTip, setShowReferenceTip] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [scanCooldown, setScanCooldown] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [result, setResult] = useState<EstimationResult | null>(null);
   const [multiplier, setMultiplier] = useState(1);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -330,11 +332,6 @@ export const MealEstimator: React.FC = () => {
     try {
       // Build context from all inputs
       let contextNotes = notes.trim();
-      
-      if (portionSize !== 'medium') {
-        contextNotes += contextNotes ? `. ` : '';
-        contextNotes += `Portion size: ${portionSize}`;
-      }
 
       if (weight) {
         contextNotes += contextNotes ? `. ` : '';
@@ -370,81 +367,6 @@ export const MealEstimator: React.FC = () => {
 
       setResult(data);
       refetchSubscription(); // Update scan count so next attempt checks correctly
-
-      // Save to meal_logs
-      if (user && data.macros) {
-        // Use selectedDate to log meal to the day the user is viewing
-        const d = selectedDate;
-        const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-        // Upload image to storage (or keep existing URL if photo unchanged)
-        let imageUrl: string | null = null;
-        const photoPreview = photos[0]?.preview || null;
-        if (photoPreview) {
-          const photoChanged = photoPreview !== originalImageUrl;
-          if (photoChanged && photoPreview.startsWith('data:')) {
-            imageUrl = await uploadMealImage(photoPreview, user.id);
-          } else {
-            // Photo didn't change or is already a URL — keep as-is
-            imageUrl = photoPreview;
-          }
-        }
-
-        if (editingMealId) {
-          // Update existing meal
-          const { error: saveError } = await supabase
-            .from('meal_logs')
-            .update({
-              food_identified: data.foodIdentification,
-              calories_low: data.macros.caloriesLow,
-              calories_high: data.macros.caloriesHigh,
-              protein_low: data.macros.proteinLow,
-              protein_high: data.macros.proteinHigh,
-              carbs_low: data.macros.carbsLow,
-              carbs_high: data.macros.carbsHigh,
-              fat_low: data.macros.fatLow,
-              fat_high: data.macros.fatHigh,
-              confidence: data.confidence?.level || null,
-              notes: notes.trim() || null,
-              image_url: imageUrl,
-            })
-            .eq('id', editingMealId);
-
-          if (saveError) {
-            console.error('Error updating meal log:', saveError);
-          } else {
-            toast.success('Meal updated');
-          }
-        } else {
-          // Insert new meal
-          const { error: saveError } = await supabase
-            .from('meal_logs')
-            .insert({
-              user_id: user.id,
-              food_identified: data.foodIdentification,
-              calories_low: data.macros.caloriesLow,
-              calories_high: data.macros.caloriesHigh,
-              protein_low: data.macros.proteinLow,
-              protein_high: data.macros.proteinHigh,
-              carbs_low: data.macros.carbsLow,
-              carbs_high: data.macros.carbsHigh,
-              fat_low: data.macros.fatLow,
-              fat_high: data.macros.fatHigh,
-              confidence: data.confidence?.level || null,
-              notes: notes.trim() || null,
-              image_url: imageUrl,
-              meal_date: localDate,
-            });
-
-          if (saveError) {
-            console.error('Error saving meal log:', saveError);
-          } else {
-            // Brief cooldown to prevent accidental double-taps
-            setScanCooldown(true);
-            setTimeout(() => setScanCooldown(false), 5000);
-          }
-        }
-      }
     } catch (error) {
       console.error('Estimation error:', error);
       if (!navigator.onLine) {
@@ -457,7 +379,88 @@ export const MealEstimator: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    // Persist the meal with final scaled values before clearing state
+    if (user && result?.macros && adjustedMacros) {
+      setIsSaving(true);
+      try {
+        const d = selectedDate;
+        const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+        // Upload image to storage (or keep existing URL if photo unchanged)
+        let imageUrl: string | null = null;
+        const photoPreview = photos[0]?.preview || null;
+        if (photoPreview) {
+          const photoChanged = photoPreview !== originalImageUrl;
+          if (photoChanged && photoPreview.startsWith('data:')) {
+            imageUrl = await uploadMealImage(photoPreview, user.id);
+          } else {
+            imageUrl = photoPreview;
+          }
+        }
+
+        if (editingMealId) {
+          const { error: saveError } = await supabase
+            .from('meal_logs')
+            .update({
+              food_identified: result.foodIdentification,
+              calories_low: adjustedMacros.caloriesLow,
+              calories_high: adjustedMacros.caloriesHigh,
+              protein_low: adjustedMacros.proteinLow,
+              protein_high: adjustedMacros.proteinHigh,
+              carbs_low: adjustedMacros.carbsLow,
+              carbs_high: adjustedMacros.carbsHigh,
+              fat_low: adjustedMacros.fatLow,
+              fat_high: adjustedMacros.fatHigh,
+              confidence: result.confidence?.level || null,
+              notes: notes.trim() || null,
+              image_url: imageUrl,
+            })
+            .eq('id', editingMealId);
+
+          if (saveError) {
+            console.error('Error updating meal log:', saveError);
+            toast.error('Could not save meal. Please try again.');
+            setIsSaving(false);
+            return;
+          }
+          toast.success('Meal updated');
+        } else {
+          const { error: saveError } = await supabase
+            .from('meal_logs')
+            .insert({
+              user_id: user.id,
+              food_identified: result.foodIdentification,
+              calories_low: adjustedMacros.caloriesLow,
+              calories_high: adjustedMacros.caloriesHigh,
+              protein_low: adjustedMacros.proteinLow,
+              protein_high: adjustedMacros.proteinHigh,
+              carbs_low: adjustedMacros.carbsLow,
+              carbs_high: adjustedMacros.carbsHigh,
+              fat_low: adjustedMacros.fatLow,
+              fat_high: adjustedMacros.fatHigh,
+              confidence: result.confidence?.level || null,
+              notes: notes.trim() || null,
+              image_url: imageUrl,
+              meal_date: localDate,
+            });
+
+          if (saveError) {
+            console.error('Error saving meal log:', saveError);
+            toast.error('Could not save meal. Please try again.');
+            setIsSaving(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error saving meal:', error);
+        toast.error('Could not save meal. Please try again.');
+        setIsSaving(false);
+        return;
+      }
+      setIsSaving(false);
+    }
+
     setPhotos([]);
     setNotes('');
     setPortionSize('medium');
@@ -487,16 +490,17 @@ export const MealEstimator: React.FC = () => {
 
   const canEstimate = photos.length > 0 || notes.trim().length > 0 || weight.trim().length > 0 || calorieBudget.trim().length > 0 || proteinGoal.trim().length > 0;
 
-  // Apply multiplier to macros
+  // Combine portion size (small/medium/large) and quick-adjustment multipliers and apply uniformly to all macros
+  const combinedMultiplier = PORTION_MULTIPLIERS[portionSize] * multiplier;
   const adjustedMacros = result?.macros ? {
-    caloriesLow: Math.round(result.macros.caloriesLow * multiplier),
-    caloriesHigh: Math.round(result.macros.caloriesHigh * multiplier),
-    proteinLow: Math.round(result.macros.proteinLow * multiplier),
-    proteinHigh: Math.round(result.macros.proteinHigh * multiplier),
-    carbsLow: Math.round(result.macros.carbsLow * multiplier),
-    carbsHigh: Math.round(result.macros.carbsHigh * multiplier),
-    fatLow: Math.round(result.macros.fatLow * multiplier),
-    fatHigh: Math.round(result.macros.fatHigh * multiplier),
+    caloriesLow: Math.round(result.macros.caloriesLow * combinedMultiplier),
+    caloriesHigh: Math.round(result.macros.caloriesHigh * combinedMultiplier),
+    proteinLow: Math.round(result.macros.proteinLow * combinedMultiplier),
+    proteinHigh: Math.round(result.macros.proteinHigh * combinedMultiplier),
+    carbsLow: Math.round(result.macros.carbsLow * combinedMultiplier),
+    carbsHigh: Math.round(result.macros.carbsHigh * combinedMultiplier),
+    fatLow: Math.round(result.macros.fatLow * combinedMultiplier),
+    fatHigh: Math.round(result.macros.fatHigh * combinedMultiplier),
   } : null;
 
   // Calculate daily totals for goal progress
@@ -792,7 +796,19 @@ export const MealEstimator: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setEditingMealId(null); setView('history'); }}
+                onClick={() => {
+                  setEditingMealId(null);
+                  setOriginalImageUrl(null);
+                  setPhotos([]);
+                  setNotes('');
+                  setPortionSize('medium');
+                  setCalorieBudget('');
+                  setProteinGoal('');
+                  setWeight('');
+                  setWeightUnit('g');
+                  setMultiplier(1);
+                  setView('history');
+                }}
                 className="mb-2"
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
@@ -886,13 +902,13 @@ export const MealEstimator: React.FC = () => {
                 <div className="animate-fade-up" style={{ animationDelay: '300ms' }}>
                   <Button
                     onClick={handleEstimate}
-                    disabled={!canEstimate || scanCooldown}
+                    disabled={!canEstimate}
                     variant="coral"
                     size="xl"
                     className="w-full"
                   >
-                    {scanCooldown ? 'Meal logged!' : editingMealId ? 'Re-estimate macros' : 'Estimate macros'}
-                    {!scanCooldown && <ArrowRight className="w-5 h-5" />}
+                    {editingMealId ? 'Re-estimate macros' : 'Estimate macros'}
+                    <ArrowRight className="w-5 h-5" />
                   </Button>
                 </div>
               )}
@@ -922,11 +938,12 @@ export const MealEstimator: React.FC = () => {
               <div className="pt-4 opacity-0 animate-fade-up" style={{ animationDelay: '1000ms' }}>
                 <Button
                   onClick={handleReset}
+                  disabled={isSaving}
                   variant="coral"
                   size="lg"
                   className="w-full"
                 >
-                  Done
+                  {isSaving ? 'Saving...' : 'Done'}
                 </Button>
               </div>
             </>
